@@ -15,7 +15,7 @@ import { adminRouter } from "./routes/admin.js";
 import { imageDirectory, uploadsRouter } from "./routes/uploads.js";
 
 const app = express();
-const port = Number(process.env.PORT ?? 4000);
+const port = Number(process.env.PORT) || 4000;
 const frontendOrigin =
   process.env.FRONTEND_ORIGIN ?? "http://127.0.0.1:5173";
 
