@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
-import { ArrowUpRight, Bell, LogOut, Menu, X, Sparkles, Flame, ShieldAlert } from 'lucide-react';
+import { ArrowUpRight, Bell, LogOut, Menu, X, Sparkles, Flame, ShieldAlert, Moon, Sun } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { subscriptionsEnabled } from '../config/features';
@@ -17,8 +17,10 @@ const links = [
 export function Shell() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [unread, setUnread] = useState(0);
+  const [darkMode, setDarkMode] = useState(false);
   const { session, signOut } = useAppContext();
   const navigate = useNavigate();
+
   useEffect(() => {
     if (!session) { setUnread(0); return; }
     let active = true;
@@ -28,6 +30,14 @@ export function Shell() {
     window.addEventListener('focus', refreshUnread);
     return () => { active = false; window.clearInterval(timer); window.removeEventListener('focus', refreshUnread); };
   }, [session]);
+
+  function toggleDarkMode() {
+    const next = !darkMode;
+    setDarkMode(next);
+    if (next) document.body.classList.add('dark-mode');
+    else document.body.classList.remove('dark-mode');
+  }
+
   return <>
     <header className="site-header">
       <Link className="brand" to="/" aria-label="FashionHub home"><span className="brand-mark">F<span>h</span></span><span>fashion<span className="brand-light">hub</span></span></Link>
@@ -40,6 +50,9 @@ export function Shell() {
         {session?.user.role === 'admin' && <NavLink to="/admin" onClick={() => setMenuOpen(false)}>Admin</NavLink>}
       </nav>
       <div className="header-actions">
+        <button type="button" className="icon-button" onClick={toggleDarkMode} aria-label="Toggle dark mode" title="Toggle dark mode" style={{ borderRadius: '50%' }}>
+          {darkMode ? <Sun size={15} /> : <Moon size={15} />}
+        </button>
         {session && <Link className="notification-link" to="/notifications" aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`}><Bell size={17} />{unread > 0 && <span>{unread > 9 ? '9+' : unread}</span>}</Link>}
         <Link className="account-link" to="/account">{session ? session.user.name : 'My account'} <ArrowUpRight size={14} /></Link>
         {!session && <Link className="header-signin" to="/auth/sign-in">Sign in</Link>}

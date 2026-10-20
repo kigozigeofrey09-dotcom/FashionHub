@@ -154,13 +154,22 @@ listingsRouter.get("/", async (req, res) => {
   }
   if (!rows?.length) return res.json([]);
 
-  const visibleShopsResult = await supabase.from("shops").select("id, country_code, city").in("id", [...new Set(rows.map((row) => row.shop_id))]);
+  const visibleShopsResult = await supabase.from("shops").select("id, country_code, city, is_verified").in("id", [...new Set(rows.map((row) => row.shop_id))]);
   if (visibleShopsResult.error) return res.status(500).json({ message: "Could not load marketplace listings." });
   const visibleShops = (visibleShopsResult.data ?? []).filter((shop) => (!country || shop.country_code === country) && (!city || String(shop.city).toLowerCase().includes(city.toLowerCase())));
   const visibleIds = new Set(visibleShops.map((shop) => shop.id));
+  const verifiedShopIds = new Set(visibleShops.filter(s => s.is_verified).map(s => s.id));
   const visibleRows = rows.filter((row) => visibleIds.has(row.shop_id));
   if (!visibleRows.length) return res.json([]);
-  try { return res.json(await hydrateListings(visibleRows)); }
+  try {
+    const hydrated = await hydrateListings(visibleRows);
+    hydrated.sort((a: any, b: any) => {
+      const verA = verifiedShopIds.has(a.shopId) ? 1 : 0;
+      const verB = verifiedShopIds.has(b.shopId) ? 1 : 0;
+      return verB - verA;
+    });
+    return res.json(hydrated);
+  }
   catch (error) { console.error("Could not load listing details:", error); return res.status(500).json({ message: "Could not load marketplace listing details." }); }
 });
 

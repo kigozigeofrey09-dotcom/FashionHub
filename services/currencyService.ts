@@ -1,7 +1,7 @@
 export const currencyRates: Record<string, { rate: number; symbol: string }> = {
   UGX: { rate: 1, symbol: 'UGX' },
   KES: { rate: 0.035, symbol: 'KES' },
-  NGN: { rate: 0.42, symbol: 'NGN' },
+  RWF: { rate: 0.36, symbol: 'RWF' },
   USD: { rate: 0.00027, symbol: '$' },
   EUR: { rate: 0.00025, symbol: '€' }
 };

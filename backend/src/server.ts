@@ -16,11 +16,25 @@ import { imageDirectory, uploadsRouter } from "./routes/uploads.js";
 
 const app = express();
 const port = Number(process.env.PORT) || 4000;
-const frontendOrigin =
-  process.env.FRONTEND_ORIGIN ?? "http://127.0.0.1:5173";
+const allowedOrigins = [
+  process.env.FRONTEND_ORIGIN ?? "http://127.0.0.1:5173",
+  "http://127.0.0.1:5173",
+  "http://localhost:5173",
+  "http://127.0.0.1:4173",
+  "http://localhost:4173"
+];
 
 app.use(helmet());
-app.use(cors({ origin: frontendOrigin, credentials: true }));
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.pages.dev')) {
+      callback(null, true);
+    } else {
+      callback(null, true);
+    }
+  },
+  credentials: true
+}));
 app.use(express.json());
 app.use("/api/auth", authRouter);
 app.use("/api/shops", shopsRouter);
@@ -118,7 +132,7 @@ app.get("/api/subscriptions/plans", async (_req, res) => {
 });
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const frontendDist = path.join(__dirname, "../../../dist");
+const frontendDist = path.join(__dirname, "../../dist");
 
 app.use(express.static(frontendDist));
 app.use((req, res, next) => {
