@@ -17,6 +17,8 @@ export class ApiError extends Error {
   }
 }
 
+export const apiBaseUrl = '/api';
+
 /**
  * Direct Supabase Request Adapter (Path A)
  * Maps REST-style API paths to direct Supabase table operations.

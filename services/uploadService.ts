@@ -1,17 +1,36 @@
-import { apiBaseUrl } from './http';
+import { supabase } from './supabaseClient';
 
 export type ImageKind = 'avatar' | 'storefront' | 'listing';
 
 export const uploadService = {
   async image(file: File, kind: ImageKind): Promise<{ url: string; path: string }> {
-    const response = await fetch(`${apiBaseUrl}/uploads/${kind}`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': file.type, Accept: 'application/json' },
-      body: file,
-    });
-    const payload = await response.json().catch(() => undefined) as { url?: string; path?: string; message?: string } | undefined;
-    if (!response.ok || !payload?.url || !payload.path) throw new Error(payload?.message || 'Could not upload this image.');
-    return { url: payload.url.startsWith('http') ? payload.url : `${apiBaseUrl}${payload.url}`, path: payload.path };
+    const fileExt = file.name.split('.').pop() || 'webp';
+    const fileName = `${kind}_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { data, error } = await supabase.storage
+      .from('fashionhub-media')
+      .upload(filePath, file, { cacheControl: '3600', upsert: false });
+
+    if (error) throw error;
+
+    const { data: publicUrlData } = supabase.storage
+      .from('fashionhub-media')
+      .getPublicUrl(filePath);
+
+    return {
+      url: publicUrlData.publicUrl,
+      path: filePath
+    };
   },
+
+  async uploadFiles(files: FileList | File[]): Promise<Array<{ url: string; path: string }>> {
+    const results = [];
+    const fileArray = Array.from(files);
+    for (const file of fileArray) {
+      const uploaded = await this.image(file, 'listing');
+      results.push(uploaded);
+    }
+    return results;
+  }
 };
