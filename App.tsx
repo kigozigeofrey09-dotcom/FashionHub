@@ -35,6 +35,7 @@ export function App() {
           <Route path="/policies" element={<InformationPage />} />
           <Route path="/auth/sign-in" element={<AuthPage mode="signin" />} />
           <Route path="/auth/sign-up" element={<AuthPage mode="signup" />} />
+          <Route path="/auth/forgot-password" element={<AuthPage mode="forgot" />} />
         </Route>
       </Routes>
     </AppProvider>
