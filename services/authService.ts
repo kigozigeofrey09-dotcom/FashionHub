@@ -1,12 +1,82 @@
 import type { AccountRole, Session, User } from '../types';
-import { postJson, request } from './http';
+import { supabase } from './supabaseClient';
 
 export const authService = {
-  getSession: () => request<Session>('/auth/session'),
-  signIn: (input: { email: string; password: string; role: AccountRole }) => request<{ user: User }>('/auth/sign-in', postJson(input)),
-  signUp: (input: { name: string; email: string; password: string; role: AccountRole; countryCode: string }) => request<{ message: string }>('/auth/sign-up-password', postJson(input)),
-  requestPasswordReset: (email: string) => request<{ message: string }>('/auth/password/forgot', postJson({ email })),
-  confirmPasswordReset: (password: string) => request<{ message: string }>('/auth/password/reset/confirm', postJson({ password })),
-  whoAmI: () => request<User>('/auth/me'),
-  signOut: () => request<void>('/auth/sign-out', { method: 'POST' }),
+  getSession: async (): Promise<Session> => {
+    const { data, error } = await supabase.auth.getSession();
+    if (error || !data.session?.user) throw new Error('Not authenticated');
+    const user = data.session.user;
+    return {
+      user: {
+        id: user.id,
+        name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+        email: user.email || '',
+        role: (user.user_metadata?.role as AccountRole) || 'buyer',
+        countryCode: user.user_metadata?.countryCode || 'UG'
+      }
+    };
+  },
+
+  signIn: async (input: { email: string; password: string; role: AccountRole }) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: input.email,
+      password: input.password
+    });
+    if (error) throw error;
+    const user = data.user;
+    return {
+      user: {
+        id: user.id,
+        name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+        email: user.email || '',
+        role: input.role,
+        countryCode: user.user_metadata?.countryCode || 'UG'
+      }
+    };
+  },
+
+  signUp: async (input: { name: string; email: string; password: string; role: AccountRole; countryCode: string }) => {
+    const { data, error } = await supabase.auth.signUp({
+      email: input.email,
+      password: input.password,
+      options: {
+        data: {
+          name: input.name,
+          role: input.role,
+          countryCode: input.countryCode
+        }
+      }
+    });
+    if (error) throw error;
+    return { message: 'Sign up successful. Please check your email or sign in.' };
+  },
+
+  requestPasswordReset: async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    if (error) throw error;
+    return { message: 'Password reset email sent.' };
+  },
+
+  confirmPasswordReset: async (password: string) => {
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) throw error;
+    return { message: 'Password updated successfully.' };
+  },
+
+  whoAmI: async (): Promise<User> => {
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data.user) throw new Error('Not authenticated');
+    const user = data.user;
+    return {
+      id: user.id,
+      name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+      email: user.email || '',
+      role: (user.user_metadata?.role as AccountRole) || 'buyer',
+      countryCode: user.user_metadata?.countryCode || 'UG'
+    };
+  },
+
+  signOut: async () => {
+    await supabase.auth.signOut();
+  },
 };
