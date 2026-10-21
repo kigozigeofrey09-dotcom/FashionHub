@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://hulzkkzloimnhntccazw.supabase.co';
-const supabaseAnonKey = 'sb_publishable_CUdrTPUiiUa2iTQf6uei2A_3eYosbG6';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
@@ -16,8 +16,6 @@ export class ApiError extends Error {
     this.name = 'ApiError';
   }
 }
-
-export const apiBaseUrl = '/api';
 
 /**
  * Direct Supabase Request Adapter (Path A)
