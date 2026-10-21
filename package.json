@@ -6,14 +6,14 @@
     "scripts":  {
                     "dev":  "vite",
                     "dev:all":  "node scripts/dev-all.mjs",
-                    "build":  "node --max-old-space-size=1536 ./node_modules/vite/bin/vite.js build",
                     "build:android":  "vite build \u0026\u0026 cap sync android",
                     "tauri":  "tauri",
                     "tauri:dev":  "tauri dev",
                     "tauri:build":  "tauri build",
                     "preview":  "vite preview",
                     "backend":  "tsx watch backend/src/server.ts",
-                    "start":  "vite preview --host 0.0.0.0 --port "
+                    "start":  "vite preview --host 0.0.0.0 --port $PORT",
+                    "build":  "vite build"
                 },
     "dependencies":  {
                          "@capacitor/android":  "^7.0.0",
