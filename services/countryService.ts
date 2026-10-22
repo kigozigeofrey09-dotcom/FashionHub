@@ -1,10 +1,62 @@
 import type { Country } from '../types';
-import { postJson, putJson, request } from './http';
+import { supabase } from './supabaseClient';
+import { seedCountries } from '../data/seed';
 
 export const countryService = {
-  list: () => request<Country[]>('/countries'),
-  listAdmin: () => request<Country[]>('/admin/countries'),
-  create: (country: Country) => request<Country>('/admin/countries', postJson(country)),
-  updateCurrency: (code: string, currency: string) => request<Country>(`/admin/countries/${encodeURIComponent(code)}/currency`, putJson({ currency })),
-  updatePaymentInstructions: (code: string, paymentInstructions: string) => request<Country>(`/admin/countries/${encodeURIComponent(code)}/payment-instructions`, putJson({ paymentInstructions })),
+  list: async (): Promise<Country[]> => {
+    try {
+      const { data, error } = await supabase.from('countries').select('*');
+      if (error || !data || !data.length) return seedCountries;
+      return (data || []).map((row: any) => ({
+        code: row.code,
+        name: row.name,
+        currency: row.currency,
+        cities: row.cities || [],
+        paymentInstructions: row.payment_instructions
+      }));
+    } catch {
+      return seedCountries;
+    }
+  },
+  listAdmin: async (): Promise<Country[]> => countryService.list(),
+  create: async (country: Country): Promise<Country> => {
+    const { data, error } = await supabase.from('countries').upsert({
+      code: country.code,
+      name: country.name,
+      currency: country.currency,
+      cities: country.cities,
+      payment_instructions: country.paymentInstructions,
+      enabled: true
+    }).select('*').single();
+    if (error) throw error;
+    return {
+      code: data.code,
+      name: data.name,
+      currency: data.currency,
+      cities: data.cities || [],
+      paymentInstructions: data.payment_instructions
+    };
+  },
+  updateCurrency: async (code: string, currency: string): Promise<Country> => {
+    const { data, error } = await supabase.from('countries').update({ currency }).eq('code', code).select('*').single();
+    if (error) throw error;
+    return {
+      code: data.code,
+      name: data.name,
+      currency: data.currency,
+      cities: data.cities || [],
+      paymentInstructions: data.payment_instructions
+    };
+  },
+  updatePaymentInstructions: async (code: string, paymentInstructions: string): Promise<Country> => {
+    const { data, error } = await supabase.from('countries').update({ payment_instructions: paymentInstructions }).eq('code', code).select('*').single();
+    if (error) throw error;
+    return {
+      code: data.code,
+      name: data.name,
+      currency: data.currency,
+      cities: data.cities || [],
+      paymentInstructions: data.payment_instructions
+    };
+  },
 };
