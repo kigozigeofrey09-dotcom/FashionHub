@@ -108,7 +108,7 @@ export function SellerOnboardingPage() {
   }
 
   return <section className="content-page setup-page">
-    <PageTitle eyebrow="SELL ON FASHIONHUB" title={<>Make a little <em>space.</em></>}><span>Every newly registered seller receives a 2-Month Free Trial. Setup your shop and publish your first listing.</span></PageTitle>
+    <PageTitle eyebrow="SELL ON FASHIONHUB" title={<>Make a little <em>space.</em></>}><span>Every newly registered seller receives a 1-Month Free Trial. Setup your shop and publish your first listing.</span></PageTitle>
     {!countries.length && <Notice tone="warning" title="Live country list unavailable">Start the backend API to load live country data.</Notice>}
     <ol className="stepper" aria-label="Shop setup steps">{['Your work', 'Shop details', 'First listing', 'Done'].map((label, index) => <li key={label} className={`${step === index ? 'is-active' : ''} ${step > index ? 'is-complete' : ''}`}><span>{index + 1}</span><strong>{label}</strong></li>)}</ol>
     {error && <Notice tone="error" title="Shop setup not completed">{error}{createdShop && ' Your saved shop was loaded.'}</Notice>}
@@ -148,7 +148,7 @@ export function SellerDashboardPage() {
   const [paymentSubmitted, setPaymentSubmitted] = useState(false);
 
   const registrationDate = new Date();
-  const trialEndDate = new Date(registrationDate.getTime() + 60 * 24 * 60 * 60 * 1000);
+  const trialEndDate = new Date(registrationDate.getTime() + 30 * 24 * 60 * 60 * 1000);
   const daysRemaining = Math.ceil((trialEndDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
   const isTrialExpired = daysRemaining <= 0;
   const isExpiringSoon = daysRemaining <= 5 && !isTrialExpired;
@@ -264,8 +264,8 @@ export function SellerDashboardPage() {
     <PageTitle eyebrow="SELLER STUDIO & SUBSCRIPTION" title={<>Your work, <em>in one place.</em></>} action={<><Link className="button button-outline" to="/seller/setup">Setup shop</Link>{subscriptionsEnabled && <Link className="button button-dark" to="/subscriptions">Subscription status</Link>}</>}>Shop and listing information is loaded from your seller account.</PageTitle>
 
     {/* Subscription Expiration Banner */}
-    {isExpiringSoon && <Notice tone="warning" title="Free Trial Ending Soon">Your 2-month free trial ends on {trialEndDate.toLocaleDateString()}. Subscribe now for UGX 10,000/month to keep your shop live.</Notice>}
-    {isTrialExpired && <Notice tone="error" title="Free Trial Expired">Your 2-month free trial has expired. Adding new products or receiving orders is restricted until payment is confirmed.</Notice>}
+    {isExpiringSoon && <Notice tone="warning" title="Free Trial Ending Soon">Your 1-month free trial ends on {trialEndDate.toLocaleDateString()}. Subscribe now for UGX 10,000/month to keep your shop live.</Notice>}
+    {isTrialExpired && <Notice tone="error" title="Free Trial Expired">Your 1-month free trial has expired. Adding new products or receiving orders is restricted until payment is confirmed.</Notice>}
 
     {/* Manual Payment Screen Modal / Section */}
     {(isTrialExpired || showManualPayment) && <section className="admin-panel" style={{ background: '#fcfbfa', border: '2px solid #315039', marginBottom: '25px', padding: '25px' }}>
