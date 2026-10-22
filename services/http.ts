@@ -33,6 +33,24 @@ export async function request<T>(path: string, init: RequestInit = {}): Promise<
       throw new Error(`Invalid API path: ${path}`);
     }
 
+    if (tableName === 'auth') {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData.user;
+      if (!user) {
+        throw new ApiError('Not authenticated', 'unauthorized', 401);
+      }
+      const session = {
+        user: {
+          id: user.id,
+          name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+          email: user.email || '',
+          role: (user.user_metadata?.role as any) || 'buyer',
+          countryCode: user.user_metadata?.countryCode || 'UG'
+        }
+      };
+      return session as T;
+    }
+
     let query = supabase.from(tableName);
 
     if (method === 'GET') {
