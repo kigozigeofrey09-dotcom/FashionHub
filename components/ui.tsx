@@ -28,9 +28,15 @@ export function whatsappHref(phone: string, message: string) {
 }
 
 export function ListingCard({ listing, onSave, saved = false }: { listing: Listing; onSave?: (listing: Listing) => void; saved?: boolean }) {
+  const fallbackImage = 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=85';
   return <article className="listing-card">
     <Link className="listing-image" to={`/listings/${listing.id}`} aria-label={`View ${listing.name}`}>
-      <img src={listing.image} alt={listing.name} loading="lazy" />
+      <img
+        src={listing.image || fallbackImage}
+        alt={listing.name}
+        loading="lazy"
+        onError={(e) => { (e.target as HTMLImageElement).src = fallbackImage; }}
+      />
       <span className="listing-category">{listing.category}</span>
       {listing.isSeed && <span className="sample-corner">SAMPLE</span>}
       {listing.promotionLabel && <span className="paid-promotion-badge">{listing.promotionLabel === 'Sponsored' ? 'SPONSORED' : 'FEATURED'}</span>}
