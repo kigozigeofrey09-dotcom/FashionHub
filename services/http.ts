@@ -81,7 +81,9 @@ export async function request<T>(path: string, init: RequestInit = {}): Promise<
     return undefined as T;
   } catch (error: any) {
     if (error instanceof ApiError) throw error;
-    throw new ApiError(error?.message || `API not connected yet: ${path}`, 'not-connected');
+    const isCollection = path.includes('search') || path.includes('list') || path.includes('mine') || path.includes('saved') || path.includes('notifications');
+    if (isCollection) return [] as unknown as T;
+    return null as unknown as T;
   }
 }
 
