@@ -12,7 +12,8 @@ const modes: AuthMode[] = ['sign-in', 'sign-up', 'forgot-password', 'reset-passw
 
 export function AuthPage() {
   const { mode: routeMode = 'sign-in' } = useParams();
-  const mode = modes.includes(routeMode as AuthMode) ? routeMode as AuthMode : 'sign-in';
+  const normalizedRouteMode = routeMode === 'signup' ? 'sign-up' : routeMode === 'signin' ? 'sign-in' : routeMode;
+  const mode = modes.includes(normalizedRouteMode as AuthMode) ? normalizedRouteMode as AuthMode : 'sign-in';
   const navigate = useNavigate();
   const { countries, countriesError, countriesLoading, refreshCountries, refreshSession } = useAppContext();
   const [role, setRole] = useState<AccountRole>('buyer');

@@ -33,8 +33,8 @@ export function App() {
           <Route path="/enquiries" element={<EnquiriesPage />} />
           <Route path="/support" element={<SupportPage />} />
           <Route path="/policies" element={<InformationPage />} />
-          <Route path="/auth/sign-in" element={<AuthPage mode="signin" />} />
-          <Route path="/auth/sign-up" element={<AuthPage mode="signup" />} />
+          <Route path="/auth/:mode" element={<AuthPage />} />
+          <Route path="/auth" element={<AuthPage />} />
         </Route>
       </Routes>
     </AppProvider>
