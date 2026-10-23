@@ -170,6 +170,7 @@ export function SellerDashboardPage() {
     } catch (caught) {
       setShop(null);
       setListings([]);
+      setError('');
     }
     finally { setLoading(false); }
   }
