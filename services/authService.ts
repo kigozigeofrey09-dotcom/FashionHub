@@ -6,13 +6,28 @@ export const authService = {
     const { data, error } = await supabase.auth.getSession();
     if (error || !data.session?.user) throw new Error('Not authenticated');
     const user = data.session.user;
+
+    // Fetch or fallback profile from profiles table
+    let role = (user.user_metadata?.role as AccountRole) || 'buyer';
+    let name = user.user_metadata?.name || user.email?.split('@')[0] || 'User';
+    let countryCode = user.user_metadata?.countryCode || 'UG';
+
+    try {
+      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
+      if (profile) {
+        if (profile.role) role = profile.role as AccountRole;
+        if (profile.name) name = profile.name;
+        if (profile.country_code) countryCode = profile.country_code;
+      }
+    } catch {}
+
     return {
       user: {
         id: user.id,
-        name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+        name,
         email: user.email || '',
-        role: (user.user_metadata?.role as AccountRole) || 'buyer',
-        countryCode: user.user_metadata?.countryCode || 'UG'
+        role,
+        countryCode
       }
     };
   },
@@ -24,6 +39,18 @@ export const authService = {
     });
     if (error) throw new Error(error.message);
     const user = data.user;
+
+    // Ensure profile row exists in database
+    try {
+      await supabase.from('profiles').upsert({
+        id: user.id,
+        name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+        email: user.email,
+        role: input.role,
+        country_code: user.user_metadata?.countryCode || 'UG'
+      });
+    } catch {}
+
     return {
       user: {
         id: user.id,
@@ -48,6 +75,19 @@ export const authService = {
       }
     });
     if (error) throw new Error(error.message);
+
+    if (data.user) {
+      try {
+        await supabase.from('profiles').upsert({
+          id: data.user.id,
+          name: input.name,
+          email: input.email,
+          role: input.role,
+          country_code: input.countryCode
+        });
+      } catch {}
+    }
+
     return { message: 'Account created successfully! Please sign in with your email and password.' };
   },
 
@@ -64,16 +104,8 @@ export const authService = {
   },
 
   whoAmI: async (): Promise<User> => {
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) throw new Error('Not authenticated');
-    const user = data.user;
-    return {
-      id: user.id,
-      name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
-      email: user.email || '',
-      role: (user.user_metadata?.role as AccountRole) || 'buyer',
-      countryCode: user.user_metadata?.countryCode || 'UG'
-    };
+    const session = await authService.getSession();
+    return session.user;
   },
 
   signOut: async () => {
