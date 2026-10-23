@@ -1,9 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = 'https://hulzkkzloimnhntccazw.supabase.co';
-const supabaseAnonKey = 'sb_publishable_CUdrTPUiiUa2iTQf6uei2A_3eYosbG6';
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import { supabase } from './supabaseClient';
+export { supabase };
 
 export class ApiError extends Error {
   constructor(
@@ -16,6 +12,8 @@ export class ApiError extends Error {
     this.name = 'ApiError';
   }
 }
+
+export const apiBaseUrl = '/api';
 
 /**
  * Direct Supabase Request Adapter (Path A)
@@ -80,13 +78,10 @@ export async function request<T>(path: string, init: RequestInit = {}): Promise<
       return undefined as T;
     }
 
-    throw new ApiError(`Unsupported method ${method}`, 'server', 400);
+    return undefined as T;
   } catch (error: any) {
-    throw new ApiError(
-      error.message || `Database request failed: ${path}`,
-      error.code === 'PGRST116' ? 'not-found' : 'server',
-      error.status || 500
-    );
+    if (error instanceof ApiError) throw error;
+    throw new ApiError(error?.message || `API not connected yet: ${path}`, 'not-connected');
   }
 }
 
@@ -97,10 +92,10 @@ export const patchJson = (body: unknown): RequestInit => ({ method: 'PATCH', hea
 export function errorMessage(error: unknown): string {
   if (error instanceof Error && !(error instanceof ApiError) && error.message) return error.message;
   if (error instanceof ApiError) {
-    if (error.code === 'not-connected') return 'Database connection issue. Please check your network.';
+    if (error.code === 'not-connected') return 'FashionHub’s backend is offline. Offline-cached data loaded if available.';
     if (error.code === 'unauthorized') return error.message || 'Please sign in to continue.';
     if (error.code === 'forbidden') return error.message || 'Your account role does not have access to this page.';
-    if (error.code === 'not-found') return error.message || 'This record is not available.';
+    if (error.code === 'not-found') return error.message || 'This API route or record is not available yet. Check the backend endpoint and resource ID.';
     return error.message;
   }
   return 'Something went wrong. Please try again.';
