@@ -156,15 +156,21 @@ export function SellerDashboardPage() {
   async function loadDashboard() {
     setLoading(true); setError('');
     try {
-      const [myShop, myListings] = await Promise.all([shopService.getMine(), listingService.mine()]);
+      const myShop = await shopService.getMine();
       setShop(myShop);
       if (myShop) {
         setShopDraft({ name: myShop.name, story: myShop.story, tagline: myShop.tagline, city: myShop.city, accent: myShop.accent, logoUrl: myShop.logoUrl ?? '', coverUrl: myShop.coverUrl ?? '' });
         setWhatsappDraft(myShop.whatsappNumber ?? '');
         setDraft((current) => ({ ...current, category: myShop.categories[0] ?? current.category }));
+        const myListings = await listingService.mine();
+        setListings(myListings);
+      } else {
+        setListings([]);
       }
-      setListings(myListings);
-    } catch (caught) { setError(errorMessage(caught)); }
+    } catch (caught) {
+      setShop(null);
+      setListings([]);
+    }
     finally { setLoading(false); }
   }
   useEffect(() => { void loadDashboard(); }, []);
