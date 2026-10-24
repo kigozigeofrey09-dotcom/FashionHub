@@ -58,7 +58,7 @@ export function EnquiriesPage() {
     setBusy(true); setError(''); setNotice('');
     try {
       const created = await enquiryService.create({ listingId, message: message.trim() });
-      setNotice(`The enquiry service accepted reference ${created.id}.`);
+      setNotice(`Enquiry successfully sent (Reference ${created.id}).`);
       setMessage(''); await load();
     } catch (caught) { setError(errorMessage(caught)); }
     finally { setBusy(false); }
@@ -91,12 +91,19 @@ export function EnquiriesPage() {
 
   const listingChoices = demoDataEnabled ? [...seedListings, ...listings] : listings;
 
+  const getDisplayStatus = (status: string) => {
+    if (status === 'pending') {
+      return session?.user?.role === 'seller' ? 'Received' : 'Sent';
+    }
+    return status;
+  };
+
   return (
     <section className="content-page">
       <PageTitle eyebrow="BUYER & SELLER" title={<>Enquiries & <em>order status.</em></>} action={<Link className="button button-outline" to="/">Browse listings</Link>}>
-        Enquiry and order data is private to your authenticated backend session. No delivery integration is included.
+        Enquiry and order data is private to your authenticated backend session.
       </PageTitle>
-      {!session && <Notice tone="warning" title="Account required">Sign in to submit an enquiry or view account messages. No order or local success record is created here.</Notice>}
+      {!session && <Notice tone="warning" title="Account required">Sign in to submit an enquiry or view account messages.</Notice>}
       {!session && <Link className="button button-dark" to="/auth/sign-in">Sign in</Link>}
       {session && !access.active && <StorefrontAccessPrompt itemLabel="enquiries and orders" />}
       {session && access.active && (
@@ -117,7 +124,6 @@ export function EnquiriesPage() {
                       <option value="">Choose a listing</option>
                       {listingChoices.map((item) => <option value={item.id} key={item.id}>{item.name} · {item.shopName}{item.isSeed ? ' · SAMPLE' : ''}</option>)}
                     </select>
-                    {demoDataEnabled && <small className="field-note">Sample entries are examples only; the backend must validate live listing IDs.</small>}
                   </label>
                   {actionType === 'order' && <>
                     <label className="field"><span>Quantity</span><input type="number" min="1" max="99" value={quantity} onChange={(event) => setQuantity(event.target.value)} required /></label>
@@ -125,7 +131,7 @@ export function EnquiriesPage() {
                     <label className="field"><span>{fulfillment === 'pickup' ? 'Pickup details' : 'Delivery address and details'}</span><textarea value={fulfillmentDetails} onChange={(event) => setFulfillmentDetails(event.target.value)} required minLength={5} maxLength={500} rows={3} placeholder={fulfillment === 'pickup' ? 'Preferred pickup location or time' : 'Address and delivery instructions'} /></label>
                   </>}
                   <label className="field"><span>{actionType === 'order' ? 'Message to seller (optional)' : 'Your message'}</span><textarea value={message} onChange={(event) => setMessage(event.target.value)} required={actionType === 'enquiry'} minLength={actionType === 'enquiry' ? 10 : 0} maxLength={800} rows={4} /></label>
-                  <button className="button button-dark" disabled={busy || !listingChoices.length}>{busy ? 'Sending to backend…' : actionType === 'order' ? 'Submit order request' : 'Send enquiry'}</button>
+                  <button className="button button-dark" disabled={busy || !listingChoices.length}>{busy ? 'Sending…' : actionType === 'order' ? 'Submit order request' : 'Send enquiry'}</button>
                   {!listingChoices.length && <p className="field-note">No live listings are available to contact yet.</p>}
                 </form>
               </section>
@@ -134,14 +140,14 @@ export function EnquiriesPage() {
               <section className="subsection">
                 <p className="eyebrow">SELLER INBOX</p><h2>Buyer enquiries.</h2>
                 {loading ? <Loading label="Loading seller enquiries…" /> : enquiries.length ? enquiries.map((item) => (
-                  <article className="seller-enquiry" key={item.id}><div><StatusBadge status={item.status}>{item.status}</StatusBadge><h3>{item.message}</h3><p>Buyer enquiry · {new Date(item.createdAt).toLocaleDateString()}</p></div><ConversationThread item={item} /></article>
+                  <article className="seller-enquiry" key={item.id}><div><StatusBadge status={item.status}>{getDisplayStatus(item.status)}</StatusBadge><h3>{item.message}</h3><p>Buyer enquiry · {new Date(item.createdAt).toLocaleDateString()}</p></div><ConversationThread item={item} /></article>
                 )) : <EmptyState title="No seller enquiries">New buyer conversations will appear here.</EmptyState>}
               </section>
             ) : (
               <section className="subsection">
                 <p className="eyebrow">YOUR INBOX</p><h2>Recent enquiries.</h2>
                 {loading ? <Loading label="Loading enquiries…" /> : enquiries.length ? enquiries.map((item) => (
-                  <article className="inquiry-row" key={item.id}><div><StatusBadge status={item.status}>{item.status}</StatusBadge><h3>{item.message}</h3><p>Enquiry {item.id} · {new Date(item.createdAt).toLocaleDateString()}</p></div><ConversationThread item={item} /></article>
+                  <article className="inquiry-row" key={item.id}><div><StatusBadge status={item.status}>{getDisplayStatus(item.status)}</StatusBadge><h3>{item.message}</h3><p>Enquiry {item.id} · {new Date(item.createdAt).toLocaleDateString()}</p></div><ConversationThread item={item} /></article>
                 )) : <EmptyState title="No enquiries">Your conversations with sellers will appear here.</EmptyState>}
               </section>
             )}
