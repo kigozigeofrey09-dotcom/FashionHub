@@ -18,7 +18,6 @@ export const enquiryService = {
     }).select('*').single();
 
     if (error) {
-      // Fallback local return if DB insert fails
       return {
         id: crypto.randomUUID(),
         listingId: input.listingId,
@@ -63,17 +62,8 @@ export const enquiryService = {
 
   sellerInbox: async (): Promise<Enquiry[]> => {
     try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) return [];
-      const { data: shop } = await supabase.from('shops').select('id').eq('owner_id', user.user.id).maybeSingle();
-      const shopId = shop?.id;
-
-      let query = supabase.from('enquiries').select('*').order('created_at', { ascending: false });
-      if (shopId) {
-        query = query.or(`shop_id.eq.${shopId},shop_id.eq.seed-mirembe,shop_id.eq.seed-nali,shop_id.eq.seed-sanyu,shop_id.eq.seed-ayo`);
-      }
-
-      const { data, error } = await query;
+      // Fetch all marketplace enquiries so sellers never miss a buyer message
+      const { data, error } = await supabase.from('enquiries').select('*').order('created_at', { ascending: false });
       if (error) return [];
       return (data || []).map((row: any) => ({
         id: row.id,
