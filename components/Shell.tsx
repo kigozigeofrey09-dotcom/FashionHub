@@ -22,6 +22,14 @@ export function Shell() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const savedTheme = localStorage.getItem('fh_theme');
+    if (savedTheme === 'dark') {
+      setDarkMode(true);
+      document.body.classList.add('dark-mode');
+    }
+  }, []);
+
+  useEffect(() => {
     if (!session) { setUnread(0); return; }
     let active = true;
     const refreshUnread = () => void notificationService.unreadCount().then((result) => { if (active) setUnread(result.unread); }).catch(() => { if (active) setUnread(0); });
@@ -34,8 +42,13 @@ export function Shell() {
   function toggleDarkMode() {
     const next = !darkMode;
     setDarkMode(next);
-    if (next) document.body.classList.add('dark-mode');
-    else document.body.classList.remove('dark-mode');
+    if (next) {
+      document.body.classList.add('dark-mode');
+      localStorage.setItem('fh_theme', 'dark');
+    } else {
+      document.body.classList.remove('dark-mode');
+      localStorage.setItem('fh_theme', 'light');
+    }
   }
 
   return <>

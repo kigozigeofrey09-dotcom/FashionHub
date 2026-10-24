@@ -7,10 +7,11 @@ export const enquiryService = {
     if (!user.user) throw new Error('Not authenticated');
 
     const { data: listing } = await supabase.from('listings').select('shop_id').eq('id', input.listingId).single();
+    if (!listing) throw new Error('Listing not found');
 
     const { data, error } = await supabase.from('enquiries').insert({
       listing_id: input.listingId,
-      shop_id: listing?.shop_id,
+      shop_id: listing.shop_id,
       buyer_id: user.user.id,
       message: input.message,
       status: 'pending'
@@ -32,7 +33,7 @@ export const enquiryService = {
     try {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) return [];
-      const { data, error } = await supabase.from('enquiries').select('*').eq('buyer_id', user.user.id);
+      const { data, error } = await supabase.from('enquiries').select('*').eq('buyer_id', user.user.id).order('created_at', { ascending: false });
       if (error) return [];
       return (data || []).map((row: any) => ({
         id: row.id,
@@ -54,7 +55,7 @@ export const enquiryService = {
       if (!user.user) return [];
       const { data: shop } = await supabase.from('shops').select('id').eq('owner_id', user.user.id).maybeSingle();
       if (!shop) return [];
-      const { data, error } = await supabase.from('enquiries').select('*').eq('shop_id', shop.id);
+      const { data, error } = await supabase.from('enquiries').select('*').eq('shop_id', shop.id).order('created_at', { ascending: false });
       if (error) return [];
       return (data || []).map((row: any) => ({
         id: row.id,
