@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, Heart, MapPin, MessageCircle } from 'lucide-react';
+import { ArrowUpRight, Heart, MapPin, MessageCircle, MessageSquare } from 'lucide-react';
 import type { Listing } from '../types';
 
 export function PageTitle({ eyebrow, title, children, action }: { eyebrow: string; title: React.ReactNode; children?: React.ReactNode; action?: React.ReactNode }) {
@@ -46,7 +46,10 @@ export function ListingCard({ listing, onSave, saved = false }: { listing: Listi
       <div className="listing-name-price"><Link to={`/listings/${listing.id}`}><h3>{listing.name}</h3></Link><strong>{listing.currency} {listing.price.toLocaleString()}</strong></div>
       <Link className="listing-shop" to={`/shops/${listing.shopId}`}>{listing.shopName}<ArrowUpRight size={13} /></Link>
       <div className="listing-location"><MapPin size={12} />{listing.city}, {listing.countryName}<span>· {listing.type}</span></div>
-      {listing.sellerWhatsapp ? <a className="button button-outline" href={whatsappHref(listing.sellerWhatsapp, `Hi, I found ${listing.name} on FashionHub. Is it available?`)} target="_blank" rel="noopener noreferrer"><MessageCircle size={14} /> WhatsApp seller</a> : <Link className="button button-outline" to={`/listings/${listing.id}#whatsapp-order`}><MessageCircle size={14} /> WhatsApp seller</Link>}
+      <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+        {listing.sellerWhatsapp ? <a className="button button-outline" style={{ flex: 1, fontSize: '9px', padding: '0 6px' }} href={whatsappHref(listing.sellerWhatsapp, `Hi, I found ${listing.name} on FashionHub. Is it available?`)} target="_blank" rel="noopener noreferrer"><MessageCircle size={13} /> WhatsApp</a> : <Link className="button button-outline" style={{ flex: 1, fontSize: '9px', padding: '0 6px' }} to={`/listings/${listing.id}#whatsapp-order`}><MessageCircle size={13} /> WhatsApp</Link>}
+        <Link className="button button-dark" style={{ flex: 1, fontSize: '9px', padding: '0 6px', background: '#315039' }} to={`/messages?listingId=${listing.id}&shopId=${listing.shopId}`}><MessageSquare size={13} /> Chat</Link>
+      </div>
     </div>
   </article>;
 }

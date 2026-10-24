@@ -10,6 +10,7 @@ import { AccountPage } from './pages/AccountPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { SubscriptionsPage } from './pages/SubscriptionsPage';
 import { EnquiriesPage } from './pages/EnquiriesPage';
+import { MessagesPage } from './pages/MessagesPage';
 import { SupportPage, InformationPage } from './pages/InfoPages';
 import { DripAiPage } from './pages/DripAiPage';
 import { StyleSwipePage } from './pages/StyleSwipePage';
@@ -31,6 +32,7 @@ export function App() {
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/subscriptions" element={<SubscriptionsPage />} />
           <Route path="/enquiries" element={<EnquiriesPage />} />
+          <Route path="/messages" element={<MessagesPage />} />
           <Route path="/support" element={<SupportPage />} />
           <Route path="/policies" element={<InformationPage />} />
           <Route path="/auth/:mode" element={<AuthPage />} />
