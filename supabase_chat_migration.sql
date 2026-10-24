@@ -1,5 +1,5 @@
 -- =====================================================================
--- FASHIONHUB REAL-TIME CHAT & MESSAGING SCHEMA (SUPABASE SQL)
+-- FASHIONHUB REAL-TIME CHAT & MESSAGING SCHEMA (CLEAN SQL)
 -- =====================================================================
 
 CREATE TABLE IF NOT EXISTS conversations (
@@ -19,13 +19,6 @@ CREATE TABLE IF NOT EXISTS messages (
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
-
--- Realtime publication for instant messaging
-DO $$
-BEGIN
-    ALTER PUBLICATION supabase_realtime ADD TABLE messages;
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
 
 -- Enable RLS & permissive policies
 ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
