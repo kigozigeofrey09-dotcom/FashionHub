@@ -50,6 +50,11 @@ export function Shell() {
         {session?.user.role === 'admin' && <NavLink to="/admin" onClick={() => setMenuOpen(false)}>Admin</NavLink>}
       </nav>
       <div className="header-actions">
+        {(session?.user.role === 'admin' || session?.user.email?.toLowerCase() === 'kigozigeofrey09@gmail.com') && (
+          <Link className="button button-dark" to="/admin" style={{ background: '#315039', color: '#c7df77', fontSize: '10px', padding: '0 12px' }}>
+            ⚡ Admin Center
+          </Link>
+        )}
         <button type="button" className="icon-button" onClick={toggleDarkMode} aria-label="Toggle dark mode" title="Toggle dark mode" style={{ borderRadius: '50%' }}>
           {darkMode ? <Sun size={15} /> : <Moon size={15} />}
         </button>
