@@ -5,6 +5,8 @@ import { MarketplacePage } from './pages/MarketplacePage';
 import { AdminPage } from './pages/AdminPage';
 import { AuthPage } from './pages/AuthPage';
 import { SellerOnboardingPage, SellerDashboardPage } from './pages/SellerPages';
+import { SellerPromotionsPage } from './pages/SellerPromotionsPage';
+import { AdminAdsPage } from './pages/AdminAdsPage';
 import { ListingDetailPage, ShopPage } from './pages/DetailsPages';
 import { AccountPage } from './pages/AccountPage';
 import { NotificationsPage } from './pages/NotificationsPage';
@@ -22,8 +24,10 @@ export function App() {
         <Route element={<Shell />}>
           <Route path="/" element={<MarketplacePage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/admin/advertisements" element={<AdminAdsPage />} />
           <Route path="/seller/setup" element={<SellerOnboardingPage />} />
           <Route path="/seller/dashboard" element={<SellerDashboardPage />} />
+          <Route path="/seller/promotions" element={<SellerPromotionsPage />} />
           <Route path="/listings/:listingId" element={<ListingDetailPage />} />
           <Route path="/shops/:shopId" element={<ShopPage />} />
           <Route path="/drip-ai" element={<DripAiPage />} />
