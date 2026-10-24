@@ -1,13 +1,12 @@
 import { useEffect, useState, useRef } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { Send, User } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import { useAppContext } from '../context/AppContext';
-import { PageTitle, Loading, EmptyState } from '../components/ui';
+import { PageTitle, Loading, EmptyState, Notice } from '../components/ui';
 
 export function MessagesPage() {
   const { session } = useAppContext();
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const listingId = searchParams.get('listingId');
   const shopId = searchParams.get('shopId');
@@ -17,27 +16,47 @@ export function MessagesPage() {
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [dbError, setDbError] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const userId = session?.user?.id || 'guest_user';
+  const userId = session?.user?.id;
 
   async function initChat() {
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+    setDbError('');
     try {
-      if (listingId) {
-        const mockConv = {
-          id: `conv_${listingId}`,
-          buyer_id: userId,
-          seller_id: shopId || 'seller_1',
-          product_id: listingId,
-          updated_at: new Date().toISOString()
-        };
-        setActiveConversation(mockConv);
-        setConversations([mockConv]);
-        setMessages([
-          { id: '1', conversation_id: mockConv.id, sender_id: mockConv.seller_id, content: 'Hello! Thanks for your interest in this item. How can I help you today?', created_at: new Date().toISOString() }
-        ]);
-        setLoading(false);
-        return;
+      if (listingId && shopId) {
+        // Check if conversation exists for this buyer & listing
+        let { data: existing, error: findErr } = await supabase
+          .from('conversations')
+          .select('*')
+          .eq('buyer_id', userId)
+          .eq('product_id', listingId)
+          .maybeSingle();
+
+        if (!existing) {
+          const { data: created, error: createErr } = await supabase
+            .from('conversations')
+            .insert({
+              buyer_id: userId,
+              seller_id: shopId,
+              product_id: listingId
+            })
+            .select('*')
+            .single();
+
+          if (createErr) {
+            setDbError('Database tables for chat are missing. Please run supabase_chat_migration.sql in your Supabase SQL Editor.');
+          } else if (created) {
+            existing = created;
+          }
+        }
+        if (existing) {
+          setActiveConversation(existing);
+        }
       }
 
       const { data, error } = await supabase
@@ -46,45 +65,23 @@ export function MessagesPage() {
         .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
         .order('updated_at', { ascending: false });
 
-      if (error) throw error;
-      setConversations(data || []);
-      if (data && data.length > 0 && !activeConversation) {
-        setActiveConversation(data[0]);
-      } else if (!data || data.length === 0) {
-        const fallbackConv = {
-          id: 'conv_default',
-          buyer_id: userId,
-          seller_id: shopId || 'seller_1',
-          product_id: listingId || 'item_1',
-          updated_at: new Date().toISOString()
-        };
-        setActiveConversation(fallbackConv);
-        setConversations([fallbackConv]);
-        setMessages([
-          { id: '1', conversation_id: fallbackConv.id, sender_id: fallbackConv.seller_id, content: 'Hello! Welcome to FashionHub chat. How can I assist you with your order?', created_at: new Date().toISOString() }
-        ]);
+      if (error) {
+        setDbError('Database tables for chat are missing. Please run supabase_chat_migration.sql in your Supabase SQL Editor.');
+      } else {
+        setConversations(data || []);
+        if (data && data.length > 0 && !activeConversation) {
+          setActiveConversation(data[0]);
+        }
       }
-    } catch (err) {
-      console.error('Error initializing chat, using local fallback:', err);
-      const fallbackConv = {
-        id: 'conv_local_fallback',
-        buyer_id: userId,
-        seller_id: shopId || 'seller_1',
-        product_id: listingId || 'item_1',
-        updated_at: new Date().toISOString()
-      };
-      setActiveConversation(fallbackConv);
-      setConversations([fallbackConv]);
-      setMessages([
-        { id: '1', conversation_id: fallbackConv.id, sender_id: fallbackConv.seller_id, content: 'Hello! Welcome to FashionHub chat. How can I assist you with your order?', created_at: new Date().toISOString() }
-      ]);
+    } catch (err: any) {
+      console.error('Error initializing chat:', err);
+      setDbError(err?.message || 'Could not connect to real-time chat database.');
     } finally {
       setLoading(false);
     }
   }
 
   async function loadMessages(convId: string) {
-    if (convId.startsWith('conv_')) return; // local mock
     try {
       const { data, error } = await supabase
         .from('messages')
@@ -101,11 +98,13 @@ export function MessagesPage() {
   }
 
   useEffect(() => {
-    initChat();
-  }, [listingId]);
+    if (userId) {
+      initChat();
+    }
+  }, [userId, listingId]);
 
   useEffect(() => {
-    if (activeConversation && !activeConversation.id.startsWith('conv_')) {
+    if (activeConversation) {
       loadMessages(activeConversation.id);
 
       const channel = supabase
@@ -114,7 +113,10 @@ export function MessagesPage() {
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${activeConversation.id}` },
           (payload) => {
-            setMessages((prev) => [...prev, payload.new]);
+            setMessages((prev) => {
+              if (prev.some((m) => m.id === payload.new.id)) return prev;
+              return [...prev, payload.new];
+            });
             scrollToBottom();
           }
         )
@@ -134,48 +136,41 @@ export function MessagesPage() {
 
   async function handleSendMessage(e: React.FormEvent) {
     e.preventDefault();
-    if (!newMessage.trim() || !activeConversation) return;
+    if (!newMessage.trim() || !activeConversation || !userId) return;
 
     const content = newMessage.trim();
     setNewMessage('');
 
-    const newMsg = {
-      id: crypto.randomUUID(),
-      conversation_id: activeConversation.id,
-      sender_id: userId,
-      content,
-      created_at: new Date().toISOString()
-    };
+    try {
+      const { data: sentMsg, error } = await supabase.from('messages').insert({
+        conversation_id: activeConversation.id,
+        sender_id: userId,
+        content
+      }).select('*').single();
 
-    setMessages((prev) => [...prev, newMsg]);
-    scrollToBottom();
+      if (error) throw error;
 
-    if (!activeConversation.id.startsWith('conv_')) {
-      try {
-        await supabase.from('messages').insert({
-          conversation_id: activeConversation.id,
-          sender_id: userId,
-          content
-        });
-      } catch (err) {
-        console.error('Error sending message:', err);
-      }
-    } else {
-      // Simulate seller automated reply for testing
-      setTimeout(() => {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: crypto.randomUUID(),
-            conversation_id: activeConversation.id,
-            sender_id: activeConversation.seller_id,
-            content: 'Thanks for reaching out! The seller has received your enquiry regarding this item and will respond shortly.',
-            created_at: new Date().toISOString()
-          }
-        ]);
-        scrollToBottom();
-      }, 1000);
+      setMessages((prev) => [...prev, sentMsg]);
+      scrollToBottom();
+
+      await supabase
+        .from('conversations')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', activeConversation.id);
+    } catch (err: any) {
+      console.error('Error sending message:', err);
+      alert(err?.message || 'Could not send message. Ensure supabase_chat_migration.sql has been run in Supabase.');
     }
+  }
+
+  if (!session) {
+    return (
+      <div className="content-page text-center py-16">
+        <h2 className="text-2xl font-bold mb-2">Sign in to access Messages</h2>
+        <p className="text-sm text-slate-500 mb-6">Real-time buyer and seller chats require an authenticated account.</p>
+        <a href="/auth/sign-in" className="button button-dark">Sign in securely</a>
+      </div>
+    );
   }
 
   return (
@@ -184,7 +179,10 @@ export function MessagesPage() {
         Chat directly with buyers and makers across Kampala and beyond.
       </PageTitle>
 
+      {dbError && <Notice tone="warning" title="Database Setup Required">{dbError}</Notice>}
+
       <div className="grid grid-cols-1 md:grid-cols-3 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden h-[600px] mt-6">
+        {/* Sidebar */}
         <div className="border-r border-slate-200 flex flex-col bg-slate-50/50">
           <div className="p-4 border-b border-slate-200 bg-white">
             <h3 className="font-bold text-slate-800 text-sm">Active Conversations</h3>
@@ -208,9 +206,15 @@ export function MessagesPage() {
                 </div>
               );
             })}
+            {!conversations.length && !loading && (
+              <div className="p-8 text-center text-slate-400 text-xs">
+                No active conversations yet. Click "Chat" on any product to start chatting!
+              </div>
+            )}
           </div>
         </div>
 
+        {/* Chat Window */}
         <div className="md:col-span-2 flex flex-col bg-white">
           {activeConversation ? (
             <>
@@ -221,7 +225,7 @@ export function MessagesPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-slate-800 text-sm">Chat #{activeConversation.id.slice(0, 8)}</h3>
-                    <span className="text-[10px] text-emerald-600 font-medium flex items-center gap-1">● Live Chat Active</span>
+                    <span className="text-[10px] text-emerald-600 font-medium flex items-center gap-1">● Live Supabase Real-Time</span>
                   </div>
                 </div>
               </div>
