@@ -61,39 +61,42 @@ export function AdminPage() {
   }
 
   async function loadAdmin() {
-    setLoading(true); setError('');
-    const [settingsResult, payments, sellers, listings, reportQueue, mapResult, promoResult, analyticsResult, shopsResult] = await Promise.allSettled([
-      adminService.settings(),
-      subscriptionsEnabled ? adminService.paymentQueue() : Promise.resolve([] as SubscriptionRecord[]),
-      adminService.sellersReport(),
-      adminService.listingsReport(),
-      adminService.reportsQueue(),
-      adminService.mapNodes(),
-      adminService.promotions(),
-      adminService.analytics(),
-      shopService.list()
-    ]);
-    if (settingsResult.status === 'fulfilled') {
-      const result = settingsResult.value;
-      const editorPlans = result.plans.length ? result.plans : seedPlans;
-      setSettings(result);
-      setCountries(result.countries);
-      setRequiredRoles(result.subscriptionAccess.requiredRoles);
-      setSettingsConnected(true);
-      const country = result.countries.find((item) => item.code === countryCode) ?? result.countries.find((item) => item.code === 'UG') ?? result.countries[0];
-      if (country) { setCountryCode(country.code); setInstructions(country.paymentInstructions ?? ''); }
-      const plan = editorPlans.find((item) => item.id === planId) ?? editorPlans[0];
-      if (plan) loadPlanDraft(plan);
-    } else { setSettingsConnected(false); setError(errorMessage(settingsResult.reason)); }
-    if (payments.status === 'fulfilled') setQueue(payments.value);
-    if (sellers.status === 'fulfilled') setSellerReport(sellers.value);
-    if (listings.status === 'fulfilled') setListingReport(listings.value);
-    if (reportQueue.status === 'fulfilled') setReports(reportQueue.value);
-    if (mapResult.status === 'fulfilled') setMapNodes(mapResult.value);
-    if (promoResult.status === 'fulfilled') setPromotions(promoResult.value);
-    if (analyticsResult.status === 'fulfilled') setAnalytics(analyticsResult.value);
-    if (shopsResult.status === 'fulfilled') setAllShops(shopsResult.value);
-    setLoading(false);
+    setLoading(false); setError('');
+    try {
+      const [settingsResult, payments, sellers, listings, reportQueue, mapResult, promoResult, analyticsResult, shopsResult] = await Promise.allSettled([
+        adminService.settings(),
+        subscriptionsEnabled ? adminService.paymentQueue() : Promise.resolve([] as SubscriptionRecord[]),
+        adminService.sellersReport(),
+        adminService.listingsReport(),
+        adminService.reportsQueue(),
+        adminService.mapNodes(),
+        adminService.promotions(),
+        adminService.analytics(),
+        shopService.list()
+      ]);
+      if (settingsResult.status === 'fulfilled') {
+        const result = settingsResult.value;
+        const editorPlans = result.plans.length ? result.plans : seedPlans;
+        setSettings(result);
+        setCountries(result.countries);
+        setRequiredRoles(result.subscriptionAccess.requiredRoles);
+        setSettingsConnected(true);
+        const country = result.countries.find((item) => item.code === countryCode) ?? result.countries.find((item) => item.code === 'UG') ?? result.countries[0];
+        if (country) { setCountryCode(country.code); setInstructions(country.paymentInstructions ?? ''); }
+        const plan = editorPlans.find((item) => item.id === planId) ?? editorPlans[0];
+        if (plan) loadPlanDraft(plan);
+      } else { setSettingsConnected(false); }
+      if (payments.status === 'fulfilled') setQueue(payments.value);
+      if (sellers.status === 'fulfilled') setSellerReport(sellers.value);
+      if (listings.status === 'fulfilled') setListingReport(listings.value);
+      if (reportQueue.status === 'fulfilled') setReports(reportQueue.value);
+      if (mapResult.status === 'fulfilled') setMapNodes(mapResult.value);
+      if (promoResult.status === 'fulfilled') setPromotions(promoResult.value);
+      if (analyticsResult.status === 'fulfilled') setAnalytics(analyticsResult.value);
+      if (shopsResult.status === 'fulfilled') setAllShops(shopsResult.value);
+    } catch (caught) {
+      setError(errorMessage(caught));
+    }
   }
   useEffect(() => { void loadAdmin(); }, []);
 
