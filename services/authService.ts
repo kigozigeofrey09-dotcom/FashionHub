@@ -56,6 +56,14 @@ export const authService = {
         is_super_admin: isSuperAdmin,
         country_code: user.user_metadata?.countryCode || 'UG'
       });
+
+      await supabase.from('notifications').insert({
+        user_id: user.id,
+        title: 'Welcome back to FashionHub! 🎉',
+        body: 'Your account session is active. Check out the latest Kampala fashion drops and active orders.',
+        type: 'info',
+        is_read: false
+      });
     } catch {}
 
     return {
@@ -96,6 +104,14 @@ export const authService = {
           role: assignedRole,
           is_super_admin: isSuperAdmin,
           country_code: input.countryCode
+        });
+
+        await supabase.from('notifications').insert({
+          user_id: data.user.id,
+          title: 'Welcome to FashionHub! 🎉',
+          body: 'Your account is active. Explore independent fashion, connect with makers, and enjoy your 1-month free trial.',
+          type: 'info',
+          is_read: false
         });
       } catch {}
     }
