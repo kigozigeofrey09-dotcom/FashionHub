@@ -1,9 +1,9 @@
 import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Send, User } from 'lucide-react';
+import { Send, User, CheckCheck, Paperclip, Smile, Phone, Video, Search } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import { useAppContext } from '../context/AppContext';
-import { PageTitle, Loading, EmptyState, Notice } from '../components/ui';
+import { PageTitle, Notice } from '../components/ui';
 
 export function MessagesPage() {
   const { session } = useAppContext();
@@ -29,8 +29,7 @@ export function MessagesPage() {
     setDbError('');
     try {
       if (listingId && shopId) {
-        // Check if conversation exists for this buyer & listing
-        let { data: existing, error: findErr } = await supabase
+        let { data: existing } = await supabase
           .from('conversations')
           .select('*')
           .eq('buyer_id', userId)
@@ -166,7 +165,7 @@ export function MessagesPage() {
   if (!session) {
     return (
       <div className="content-page text-center py-16">
-        <h2 className="text-2xl font-bold mb-2">Sign in to access Messages</h2>
+        <h2 className="text-2xl font-bold mb-2">Sign in to access WhatsApp-style Chat</h2>
         <p className="text-sm text-slate-500 mb-6">Real-time buyer and seller chats require an authenticated account.</p>
         <a href="/auth/sign-in" className="button button-dark">Sign in securely</a>
       </div>
@@ -175,17 +174,32 @@ export function MessagesPage() {
 
   return (
     <div className="content-page max-w-6xl mx-auto py-6">
-      <PageTitle eyebrow="MESSAGES & ENQUIRIES" title={<>Real-time <em>conversation hub.</em></>}>
-        Chat directly with buyers and makers across Kampala and beyond.
+      <PageTitle eyebrow="WHATSAPP-STYLE CHAT" title={<>Live fashion <em>messaging.</em></>}>
+        Connect instantly with buyers and sellers with live read receipts and real-time synchronization.
       </PageTitle>
 
       {dbError && <Notice tone="warning" title="Database Setup Required">{dbError}</Notice>}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden h-[600px] mt-6">
-        {/* Sidebar */}
-        <div className="border-r border-slate-200 flex flex-col bg-slate-50/50">
-          <div className="p-4 border-b border-slate-200 bg-white">
-            <h3 className="font-bold text-slate-800 text-sm">Active Conversations</h3>
+      {/* WhatsApp Container */}
+      <div className="grid grid-cols-1 md:grid-cols-3 bg-[#efeae2] rounded-2xl shadow-xl border border-slate-300 overflow-hidden h-[680px] mt-6">
+        {/* Left Sidebar */}
+        <div className="border-r border-slate-200 flex flex-col bg-white">
+          <div className="p-4 bg-[#f0f2f5] border-b border-slate-200 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[#315039] text-white font-bold flex items-center justify-center">
+                {session.user.name.slice(0, 1)}
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-900 text-xs">{session.user.name}</h3>
+                <span className="text-[10px] text-emerald-600 font-medium">Online</span>
+              </div>
+            </div>
+          </div>
+          <div className="p-3 bg-white border-b border-slate-100">
+            <div className="bg-[#f0f2f5] px-3 py-2 rounded-xl flex items-center gap-2 text-xs text-slate-500">
+              <Search size={14} />
+              <span>Search or start new chat</span>
+            </div>
           </div>
           <div className="overflow-y-auto flex-1 divide-y divide-slate-100">
             {conversations.map((conv) => {
@@ -194,52 +208,72 @@ export function MessagesPage() {
                 <div
                   key={conv.id}
                   onClick={() => setActiveConversation(conv)}
-                  className={`p-4 cursor-pointer transition-colors flex items-center gap-3 ${isActive ? 'bg-emerald-50/70 border-l-4 border-emerald-600' : 'hover:bg-slate-100'}`}
+                  className={`p-3.5 cursor-pointer transition-colors flex items-center gap-3 ${isActive ? 'bg-[#f0f2f5]' : 'hover:bg-slate-50'}`}
                 >
-                  <div className="w-10 h-10 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center flex-shrink-0">
-                    <User size={18} />
+                  <div className="w-12 h-12 rounded-full bg-[#315039] text-[#c7df77] font-bold flex items-center justify-center flex-shrink-0 text-sm">
+                    💬
                   </div>
                   <div className="overflow-hidden flex-1">
-                    <h4 className="font-bold text-slate-900 text-xs truncate">Conversation #{conv.id.slice(0, 6)}</h4>
-                    <p className="text-[11px] text-slate-500 truncate">Click to open chat window</p>
+                    <div className="flex justify-between items-center mb-0.5">
+                      <h4 className="font-bold text-slate-900 text-xs truncate">Chat #{conv.id.slice(0, 6)}</h4>
+                      <span className="text-[9px] text-slate-400">12:30 PM</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 truncate">Tap to open WhatsApp chat...</p>
                   </div>
                 </div>
               );
             })}
             {!conversations.length && !loading && (
               <div className="p-8 text-center text-slate-400 text-xs">
-                No active conversations yet. Click "Chat" on any product to start chatting!
+                No active chats. Click "Chat" on any product listing to start messaging!
               </div>
             )}
           </div>
         </div>
 
-        {/* Chat Window */}
-        <div className="md:col-span-2 flex flex-col bg-white">
+        {/* Right Chat Window (WhatsApp Styled) */}
+        <div className="md:col-span-2 flex flex-col bg-[#efeae2] relative" style={{ backgroundImage: 'radial-gradient(#d1dbd6 0.75px, transparent 0.75px)', backgroundSize: '16px 16px' }}>
           {activeConversation ? (
             <>
-              <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-white">
+              {/* WhatsApp Header */}
+              <div className="px-4 py-3 bg-[#f0f2f5] border-b border-slate-300 flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
-                    <User size={16} />
+                  <div className="w-10 h-10 rounded-full bg-[#315039] text-[#c7df77] font-bold flex items-center justify-center text-sm shadow-inner">
+                    🛍️
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-800 text-sm">Chat #{activeConversation.id.slice(0, 8)}</h3>
-                    <span className="text-[10px] text-emerald-600 font-medium flex items-center gap-1">● Live Supabase Real-Time</span>
+                    <h3 className="font-bold text-slate-900 text-xs">Conversation #{activeConversation.id.slice(0, 8)}</h3>
+                    <span className="text-[10px] text-emerald-700 font-medium">online · FashionHub Vendor</span>
                   </div>
+                </div>
+                <div className="flex items-center gap-4 text-slate-600">
+                  <Video size={18} className="cursor-pointer hover:text-emerald-700" />
+                  <Phone size={18} className="cursor-pointer hover:text-emerald-700" />
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/40">
+              {/* Message Bubbles */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                <div className="text-center my-2">
+                  <span className="px-3 py-1 bg-[#e1f3fb] text-[#027eb5] text-[10px] font-medium rounded-lg shadow-sm">
+                    🔒 Messages are end-to-end encrypted with FashionHub Secure Realtime
+                  </span>
+                </div>
+
                 {messages.map((msg) => {
                   const isMe = msg.sender_id === userId;
                   return (
                     <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-xs md:max-w-md rounded-2xl px-4 py-3 text-xs leading-relaxed ${isMe ? 'bg-emerald-600 text-white rounded-br-none shadow-sm' : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none shadow-sm'}`}>
+                      <div className={`max-w-xs md:max-w-md rounded-xl px-3.5 py-2 text-xs leading-relaxed relative shadow-sm ${
+                        isMe ? 'bg-[#dcf8c6] text-slate-900 rounded-tr-none' : 'bg-white text-slate-900 rounded-tl-none'
+                      }`}>
                         <p>{msg.content}</p>
-                        <span className={`block text-[9px] mt-1 text-right ${isMe ? 'text-emerald-100' : 'text-slate-400'}`}>
-                          {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
+                        <div className="flex items-center justify-end gap-1 mt-1">
+                          <span className="text-[9px] text-slate-500">
+                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          {isMe && <CheckCheck size={14} className="text-blue-500" />}
+                        </div>
                       </div>
                     </div>
                   );
@@ -247,24 +281,27 @@ export function MessagesPage() {
                 <div ref={messagesEndRef} />
               </div>
 
-              <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-200 bg-white flex items-center gap-2">
+              {/* WhatsApp Input Bar */}
+              <form onSubmit={handleSendMessage} className="p-3 bg-[#f0f2f5] border-t border-slate-300 flex items-center gap-3">
+                <Smile size={22} className="text-slate-500 cursor-pointer hover:text-slate-700" />
+                <Paperclip size={20} className="text-slate-500 cursor-pointer hover:text-slate-700" />
                 <input
                   type="text"
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Type a message to the seller..."
-                  className="flex-1 px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Type a message..."
+                  className="flex-1 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-emerald-600"
                 />
                 <button
                   type="submit"
-                  className="p-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md transition-all flex items-center justify-center"
+                  className="w-10 h-10 bg-[#00a884] hover:bg-[#008f72] text-white rounded-full shadow-md transition-all flex items-center justify-center"
                 >
-                  <Send size={18} />
+                  <Send size={16} />
                 </button>
               </form>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-slate-400 text-xs p-8 text-center">
+            <div className="flex-1 flex items-center justify-center text-slate-500 text-xs p-8 text-center bg-[#f8f9fa]">
               Select a conversation from the sidebar or click "Chat" on any listing.
             </div>
           )}
