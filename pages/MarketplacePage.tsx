@@ -121,7 +121,21 @@ export function MarketplacePage() {
       {loading && <Loading label="Checking the marketplace service…" />}
       {visible.length > 0 ? <div className="product-grid">{visible.map((listing) => <ListingCard key={listing.id} listing={listing} onSave={saveListing} />)}</div> : !loading && <div className="empty-state"><span className="empty-mark">✳</span><h2>No finds just yet</h2><p>Try a different search, country, city or category.</p><button className="button button-outline" onClick={() => { setQuery(''); setCategory('All finds'); setCountryCode(''); setCity(''); setKind('all'); setVerifiedOnly(false); }}>Clear all filters</button></div>}
       <div className="section-heading compact"><div><p className="eyebrow">MAKERS & STUDIOS</p><h2>Find a <em>shop.</em></h2></div></div>
-      {visibleShops.length ? <div className="shop-grid">{visibleShops.map((shop) => <article className="shop-card" key={shop.id}><span className="shop-initial" style={{ '--shop-accent': shop.accent } as React.CSSProperties}>{shop.name.slice(0, 1)}</span><p className="eyebrow">{shop.countryCode} · {shop.city}</p><h3>{shop.name} {shop.isVerified && <span style={{ color: '#1d9bf0' }} title="Verified Storefront">✓</span>}</h3><p>{shop.tagline}</p><div className="preview-collections">{shop.categories.map((item) => <span key={item}>{item}</span>)}</div><Link to={`/shops/${shop.id}`}>Visit storefront <span>↗</span></Link>{shop.isSeed && <small>Sample shop</small>}</article>)}</div> : !loading && <EmptyState title="No shops match these filters">Try widening the country, city, category or listing type filters.</EmptyState>}
+      {visibleShops.length ? <div className="shop-grid">{visibleShops.map((shop) => <article className="shop-card" key={shop.id} style={{ border: '1px solid var(--line)', background: 'var(--white)', overflow: 'hidden', position: 'relative' }}>
+        <div style={{ height: '120px', background: '#e5e2da', position: 'relative' }}>
+          <img src={shop.coverUrl || 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80'} alt={shop.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <div style={{ position: 'absolute', bottom: '-18px', left: '16px', width: '42px', height: '42px', borderRadius: '50%', border: '2px solid var(--white)', overflow: 'hidden', background: 'var(--white)', display: 'grid', placeItems: 'center' }}>
+            {shop.logoUrl ? <img src={shop.logoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontFamily: 'var(--serif)', fontWeight: 700, color: shop.accent || 'var(--green)' }}>{shop.name.slice(0, 1)}</span>}
+          </div>
+        </div>
+        <div style={{ padding: '24px 16px 16px' }}>
+          <p className="eyebrow" style={{ margin: '0 0 4px' }}>{shop.countryCode} · {shop.city}</p>
+          <h3 style={{ margin: '0 0 4px', font: '500 18px var(--serif)' }}>{shop.name} {shop.isVerified && <span style={{ color: '#1d9bf0' }} title="Verified Storefront">✓</span>}</h3>
+          <p style={{ margin: '0 0 12px', fontSize: '10px', color: '#73776e', lineHeight: '1.5' }}>{shop.tagline || shop.story?.slice(0, 60) + '...'}</p>
+          <div className="preview-collections" style={{ marginBottom: '12px' }}>{shop.categories.map((item) => <span key={item}>{item}</span>)}</div>
+          <Link to={`/shops/${shop.id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: 'var(--green-dark)', fontSize: '10px', fontWeight: 650, textDecoration: 'none' }}>Visit storefront <span>↗</span></Link>
+        </div>
+      </article>)}</div> : !loading && <EmptyState title="No shops match these filters">Try widening the country, city, category or listing type filters.</EmptyState>}
     </section>
     <section className="maker-band"><span className="maker-icon">✳</span><div><p className="eyebrow">YOUR CRAFT, YOUR CORNER</p><h2>Have something <em>good?</em></h2></div><p>Build a storefront that feels like you, then connect it to the FashionHub marketplace.</p><Link className="button button-outline" to="/seller/setup">Start your shop <span>↗</span></Link></section>
   </>;
