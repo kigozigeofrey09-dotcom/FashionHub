@@ -156,6 +156,17 @@ export function MessagesPage() {
         .from('conversations')
         .update({ updated_at: new Date().toISOString() })
         .eq('id', activeConversation.id);
+
+      const recipientId = activeConversation.buyer_id === userId ? activeConversation.seller_id : activeConversation.buyer_id;
+      if (recipientId && recipientId !== userId && !recipientId.startsWith('seed-')) {
+        await supabase.from('notifications').insert({
+          user_id: recipientId,
+          title: `New message from ${session.user.name}`,
+          body: content.slice(0, 80),
+          type: 'enquiry',
+          link: '/messages'
+        });
+      }
     } catch (err: any) {
       console.error('Error sending message:', err);
       alert(err?.message || 'Could not send message. Ensure supabase_chat_migration.sql has been run in Supabase.');
