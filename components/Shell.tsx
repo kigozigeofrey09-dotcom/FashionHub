@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
-import { ArrowUpRight, Bell, LogOut, Menu, X, Sparkles, Flame, ShieldAlert, Moon, Sun } from 'lucide-react';
+import { ArrowUpRight, Bell, LogOut, Menu, X, Sparkles, Flame, ShieldAlert, Moon, Sun, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { subscriptionsEnabled } from '../config/features';
@@ -10,8 +10,8 @@ const links = [
   { to: '/', label: 'Discover', end: true },
   { to: '/style-swipe', label: '🔥 Style Swipe' },
   { to: '/drip-ai', label: '✨ Drip AI Stylist' },
+  { to: '/messages', label: '💬 Live Chat' },
   { to: '/seller/setup', label: 'Open a shop' },
-  { to: '/support', label: 'Support' },
 ];
 
 export function Shell() {
@@ -81,7 +81,7 @@ export function Shell() {
     <main className="app-main"><Outlet /></main>
     <footer className="site-footer">
       <Link className="brand brand-footer" to="/"><span className="brand-mark">F<span>h</span></span><span>fashion<span className="brand-light">hub</span></span></Link>
-      <nav aria-label="Footer links">{subscriptionsEnabled && <Link to="/subscriptions">Subscriptions</Link>}<Link to="/enquiries">Enquiries & orders</Link><Link to="/notifications">Notifications</Link><Link to="/support">FAQ & support</Link><Link to="/policies">Policies</Link></nav>
+      <nav aria-label="Footer links">{subscriptionsEnabled && <Link to="/subscriptions">Subscriptions</Link>}<Link to="/messages">Live WhatsApp Chat</Link><Link to="/notifications">Notifications</Link><Link to="/support">FAQ & support</Link><Link to="/policies">Policies</Link></nav>
       <span>FashionHub · independent fashion marketplace</span>
     </footer>
   </>;
