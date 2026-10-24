@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { PageTitle, ListingCard, Loading } from '../components/ui';
-import { seedListings } from '../data/seed';
-import { Sparkles, Sliders } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { PageTitle, ListingCard, Loading, EmptyState } from '../components/ui';
+import { listingService } from '../services/listingService';
+import { Sparkles } from 'lucide-react';
+import type { Listing } from '../types';
 
 const occasions = ['Campus Party', 'Sunday Service', 'Job Interview', 'Casual Sunday', 'Wedding Guest'];
 
@@ -9,13 +10,30 @@ export function DripAiPage() {
   const [budget, setBudget] = useState(100000);
   const [selectedOccasion, setSelectedOccasion] = useState('Campus Party');
   const [generating, setGenerating] = useState(false);
-  const [curated, setCurated] = useState(seedListings.slice(0, 3));
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [curated, setCurated] = useState<Listing[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    listingService.search(new URLSearchParams()).then((res) => {
+      if (active) {
+        setListings(res);
+        setCurated(res.slice(0, 3));
+      }
+    }).catch(() => {
+      if (active) setListings([]);
+    }).finally(() => {
+      if (active) setLoading(false);
+    });
+    return () => { active = false; };
+  }, []);
 
   function handleGenerate() {
     setGenerating(true);
     setTimeout(() => {
-      const filtered = seedListings.filter(item => item.price <= budget);
-      setCurated(filtered.length ? filtered : seedListings.slice(0, 2));
+      const filtered = listings.filter(item => item.price <= budget);
+      setCurated(filtered.length ? filtered : listings.slice(0, 2));
       setGenerating(false);
     }, 600);
   }
@@ -23,7 +41,7 @@ export function DripAiPage() {
   return (
     <div className="content-page">
       <PageTitle eyebrow="DRIP AI STYLIST" title={<>Your personal <em>outfit curator.</em></>}>
-        Select your budget in UGX and occasion, and let Drip AI curate the perfect local look for you.
+        Select your budget in UGX and occasion, and let Drip AI curate the perfect local look for you from live marketplace items.
       </PageTitle>
 
       <div style={{ background: '#fff', padding: '25px', border: '1px solid #e5e2da', margin: '20px 0', display: 'grid', gap: '20px' }}>
@@ -31,7 +49,7 @@ export function DripAiPage() {
           <label style={{ display: 'block', fontSize: '11px', fontWeight: 650, marginBottom: '8px' }}>
             Maximum Budget: <strong>UGX {budget.toLocaleString()}</strong>
           </label>
-          <input type="range" min="20000" max="300000" step="10000" value={budget} onChange={e => setBudget(Number(e.target.value))} style={{ width: '100%', accentColor: '#496a4d' }} />
+          <input type="range" min="20000" max="500000" step="10000" value={budget} onChange={e => setBudget(Number(e.target.value))} style={{ width: '100%', accentColor: '#496a4d' }} />
         </div>
 
         <div>
@@ -53,10 +71,14 @@ export function DripAiPage() {
       <div className="section-heading compact">
         <div><p className="eyebrow">CURATED FOR YOU</p><h2>AI Outfit Matches for <em>{selectedOccasion}</em></h2></div>
       </div>
-      {generating ? <Loading label="Drip AI is matching styles and prices…" /> : (
-        <div className="product-grid" style={{ marginTop: '20px' }}>
-          {curated.map(listing => <ListingCard key={listing.id} listing={listing} />)}
-        </div>
+      {loading ? <Loading label="Loading live marketplace catalog..." /> : generating ? <Loading label="Drip AI is matching styles and prices..." /> : (
+        curated.length > 0 ? (
+          <div className="product-grid" style={{ marginTop: '20px' }}>
+            {curated.map(listing => <ListingCard key={listing.id} listing={listing} />)}
+          </div>
+        ) : (
+          <EmptyState title="No live listings found for this budget">Try increasing your UGX budget or add live listings through your seller studio.</EmptyState>
+        )
       )}
     </div>
   );

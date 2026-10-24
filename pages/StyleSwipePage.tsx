@@ -1,13 +1,27 @@
-import { useState } from 'react';
-import { PageTitle, Notice } from '../components/ui';
-import { seedListings } from '../data/seed';
-import { Heart, X, ShoppingBag, Sparkles } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { PageTitle, Notice, EmptyState, Loading } from '../components/ui';
+import { listingService } from '../services/listingService';
+import { Heart, X } from 'lucide-react';
+import type { Listing } from '../types';
 
 export function StyleSwipePage() {
-  const [items, setItems] = useState(seedListings);
+  const [items, setItems] = useState<Listing[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [liked, setLiked] = useState<string[]>([]);
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    listingService.search(new URLSearchParams()).then((res) => {
+      if (active) setItems(res);
+    }).catch(() => {
+      if (active) setItems([]);
+    }).finally(() => {
+      if (active) setLoading(false);
+    });
+    return () => { active = false; };
+  }, []);
 
   const currentItem = items[currentIndex];
 
@@ -26,12 +40,14 @@ export function StyleSwipePage() {
   return (
     <div className="content-page" style={{ maxWidth: '500px', margin: '30px auto', textAlign: 'center' }}>
       <PageTitle eyebrow="STYLE SWIPE FEED" title={<>Drip or <em>Pass.</em></>}>
-        Swipe right to save items to your wishlist, or swipe left to browse the next look across Kampala fashion boutiques.
+        Swipe right to save items to your wishlist, or swipe left to browse live fashion drops across Kampala boutiques.
       </PageTitle>
 
       {message && <Notice tone="success">{message}</Notice>}
 
-      {currentItem ? (
+      {loading ? <Loading label="Loading live style feed..." /> : items.length === 0 ? (
+        <EmptyState title="No active listings in the feed">Publish listings through your seller studio to see them appear here in real-time.</EmptyState>
+      ) : currentItem ? (
         <div style={{ background: '#fff', border: '1px solid #e5e2da', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.08)', position: 'relative', marginTop: '20px' }}>
           <div style={{ height: '420px', background: '#e9e5da', position: 'relative' }}>
             <img src={currentItem.image} alt={currentItem.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -56,7 +72,7 @@ export function StyleSwipePage() {
         </div>
       ) : (
         <div style={{ padding: '40px', background: '#fff', border: '1px solid #e5e2da', marginTop: '20px' }}>
-          <h2>You've caught all the drops!</h2>
+          <h2>You've caught all the live drops!</h2>
           <p style={{ color: '#73776e', fontSize: '11px' }}>Check back soon for more fresh Kampala style feeds.</p>
           <button className="button button-dark" onClick={() => setCurrentIndex(0)} style={{ background: '#315039', color: '#fff', marginTop: '15px' }}>Start Over</button>
         </div>
