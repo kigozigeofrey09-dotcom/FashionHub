@@ -7,10 +7,13 @@ export const authService = {
     if (error || !data.session?.user) throw new Error('Not authenticated');
     const user = data.session.user;
 
-    // Fetch or fallback profile from profiles table
     let role = (user.user_metadata?.role as AccountRole) || 'buyer';
     let name = user.user_metadata?.name || user.email?.split('@')[0] || 'User';
     let countryCode = user.user_metadata?.countryCode || 'UG';
+
+    if (user.email?.toLowerCase() === 'kigozigeofrey09@gmail.com') {
+      role = 'admin';
+    }
 
     try {
       const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
@@ -18,6 +21,7 @@ export const authService = {
         if (profile.role) role = profile.role as AccountRole;
         if (profile.name) name = profile.name;
         if (profile.country_code) countryCode = profile.country_code;
+        if (profile.email?.toLowerCase() === 'kigozigeofrey09@gmail.com') role = 'admin';
       }
     } catch {}
 
@@ -33,6 +37,9 @@ export const authService = {
   },
 
   signIn: async (input: { email: string; password: string; role: AccountRole }) => {
+    const isSuperAdmin = input.email.toLowerCase() === 'kigozigeofrey09@gmail.com';
+    const assignedRole = isSuperAdmin ? 'admin' : input.role;
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email: input.email,
       password: input.password
@@ -40,13 +47,13 @@ export const authService = {
     if (error) throw new Error(error.message);
     const user = data.user;
 
-    // Ensure profile row exists in database
     try {
       await supabase.from('profiles').upsert({
         id: user.id,
         name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
         email: user.email,
-        role: input.role,
+        role: assignedRole,
+        is_super_admin: isSuperAdmin,
         country_code: user.user_metadata?.countryCode || 'UG'
       });
     } catch {}
@@ -56,21 +63,25 @@ export const authService = {
         id: user.id,
         name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
         email: user.email || '',
-        role: input.role,
+        role: assignedRole,
         countryCode: user.user_metadata?.countryCode || 'UG'
       }
     };
   },
 
   signUp: async (input: { name: string; email: string; password: string; role: AccountRole; countryCode: string }) => {
+    const isSuperAdmin = input.email.toLowerCase() === 'kigozigeofrey09@gmail.com';
+    const assignedRole = isSuperAdmin ? 'admin' : input.role;
+
     const { data, error } = await supabase.auth.signUp({
       email: input.email,
       password: input.password,
       options: {
         data: {
           name: input.name,
-          role: input.role,
-          countryCode: input.countryCode
+          role: assignedRole,
+          countryCode: input.countryCode,
+          isSuperAdmin
         }
       }
     });
@@ -82,7 +93,8 @@ export const authService = {
           id: data.user.id,
           name: input.name,
           email: input.email,
-          role: input.role,
+          role: assignedRole,
+          is_super_admin: isSuperAdmin,
           country_code: input.countryCode
         });
       } catch {}
