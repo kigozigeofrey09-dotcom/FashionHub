@@ -1,149 +1,273 @@
-import { useState, useEffect } from 'react';
-import { PageTitle, Notice, StatusBadge } from '../components/ui';
-import { adminService } from '../services/adminService';
-import { DollarSign, ShieldCheck, Store, Package, Truck, MessageSquare, Sparkles, Check, X, Bell } from 'lucide-react';
+import React, { useState } from 'react';
+import { 
+  BarChart3, Store, Globe2, Megaphone, Users, CreditCard, Settings, 
+  Search, Bell, TrendingUp, ShieldAlert
+} from 'lucide-react';
 
-export function AdminDashboardPage() {
-  const [activeTab, setActiveTab] = useState<'analytics' | 'subscriptions' | 'sellers' | 'catalog' | 'orders' | 'disputes' | 'config'>('analytics');
-  const [analytics, setAnalytics] = useState<any>(null);
-  const [queue, setQueue] = useState<any[]>([]);
-  const [broadcastMsg, setBroadcastMsg] = useState('');
-  const [message, setMessage] = useState('');
+export const AdminDashboardPage = () => {
+  const [activeTab, setActiveTab] = useState('overview');
 
-  useEffect(() => {
-    adminService.analytics().then(setAnalytics).catch(() => {});
-    adminService.paymentQueue().then(setQueue).catch(() => {});
-  }, []);
-
-  async function handleApprove(id: string) {
-    try {
-      await adminService.reviewPayment(id, { decision: 'approved' });
-      setQueue(prev => prev.filter(item => item.id !== id));
-      setMessage(`Payment ${id} approved successfully! Subscription extended by 30 days.`);
-    } catch (e: any) {
-      setMessage(e.message);
-    }
-  }
+  // Exclusive Super Admin email
+  const adminEmail = "kigozigeofrey09@gmail.com";
 
   return (
-    <div className="content-page admin-page">
-      <PageTitle eyebrow="EXECUTIVE SUPER-DASHBOARD" title={<>FashionHub <em>Command Center.</em></>}>
-        Manage revenue analytics, MTN MoMo manual subscriptions (0773927881), arcade boutiques, master catalog, and logistics.
-      </PageTitle>
+    <div className="min-h-screen bg-[#0f172a] text-slate-100 flex flex-col font-sans">
+      {/* Top Navigation Header */}
+      <header className="h-16 bg-[#1e293b] border-b border-slate-800 flex items-center justify-between px-6 sticky top-0 z-50">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white">
+            D
+          </div>
+          <span className="font-bold text-lg tracking-wide text-white">
+            DayBook <span className="text-xs text-blue-400 font-normal px-2 py-0.5 rounded bg-blue-950/60 border border-blue-800">Super Admin</span>
+          </span>
+        </div>
 
-      {message && <Notice tone="success">{message}</Notice>}
+        <div className="flex items-center gap-6">
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input 
+              type="text" 
+              placeholder="Search shops, listings, agencies..." 
+              className="bg-[#0f172a] border border-slate-700 text-sm rounded-full pl-9 pr-4 py-1.5 focus:outline-none focus:border-blue-500 text-slate-200 placeholder-slate-500 w-64"
+            />
+          </div>
 
-      {/* Navigation Tabs for 7 Modules */}
-      <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '15px', marginBottom: '20px', borderBottom: '1px solid #e5e2da' }}>
-        {[
-          { id: 'analytics', label: '📊 Analytics', icon: DollarSign },
-          { id: 'subscriptions', label: '💳 Subscriptions (MoMo)', icon: ShieldCheck },
-          { id: 'sellers', label: '🏪 Arcade Shops', icon: Store },
-          { id: 'catalog', label: '🛍️ Master Catalog', icon: Package },
-          { id: 'orders', label: '🚚 Logistics & Layaway', icon: Truck },
-          { id: 'disputes', label: '🎙️ Bargaining & Chats', icon: MessageSquare },
-          { id: 'config', label: '🤖 AI & Broadcasts', icon: Sparkles }
-        ].map(tab => {
-          const Icon = tab.icon;
-          return (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 16px', background: activeTab === tab.id ? '#315039' : '#fff', color: activeTab === tab.id ? '#fff' : '#20251f', border: '1px solid #e5e2da', fontSize: '11px', fontWeight: 650, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-              <Icon size={14} /> {tab.label}
-            </button>
-          );
-        })}
-      </div>
+          <button className="relative text-slate-400 hover:text-white transition">
+            <Bell className="w-5 h-5" />
+            <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full"></span>
+          </button>
 
-      {/* Module 1: Executive Overview & Revenue Analytics */}
-      {activeTab === 'analytics' && (
-        <div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginBottom: '25px' }}>
-            <div className="admin-panel" style={{ background: '#fff', padding: '20px', border: '1px solid #e5e2da' }}>
-              <p className="eyebrow">ACTIVE SELLERS (TRIAL / PAID)</p>
-              <h3 style={{ fontSize: '24px', margin: '5px 0 0' }}>142 / 85</h3>
+          <div className="flex items-center gap-3 border-l border-slate-800 pl-6">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center text-xs font-bold text-white">
+              KG
             </div>
-            <div className="admin-panel" style={{ background: '#fff', padding: '20px', border: '1px solid #e5e2da' }}>
-              <p className="eyebrow">MONTHLY RECURRING REVENUE</p>
-              <h3 style={{ fontSize: '24px', margin: '5px 0 0', color: '#315039' }}>UGX 850,000</h3>
-            </div>
-            <div className="admin-panel" style={{ background: '#fff', padding: '20px', border: '1px solid #e5e2da' }}>
-              <p className="eyebrow">TOTAL GMV (SALES)</p>
-              <h3 style={{ fontSize: '24px', margin: '5px 0 0' }}>UGX 45.2M</h3>
-            </div>
-            <div className="admin-panel" style={{ background: '#fff', padding: '20px', border: '1px solid #e5e2da' }}>
-              <p className="eyebrow">COMPLETED ORDERS / DISPUTES</p>
-              <h3 style={{ fontSize: '24px', margin: '5px 0 0' }}>1,850 / 0.4%</h3>
+            <div className="text-xs">
+              <p className="font-medium text-slate-200">{adminEmail}</p>
+              <p className="text-slate-400">Master Authority</p>
             </div>
           </div>
         </div>
-      )}
+      </header>
 
-      {/* Module 2: Subscription & Manual Payment Approval Engine */}
-      {activeTab === 'subscriptions' && (
-        <div style={{ background: '#fff', padding: '25px', border: '1px solid #e5e2da' }}>
-          <h2>Pending MoMo Payments (0773927881)</h2>
-          <p style={{ fontSize: '11px', color: '#73776e', marginBottom: '20px' }}>Verify incoming MTN Mobile Money reference codes for Bankenga Kabesha.</p>
-          <div style={{ display: 'grid', gap: '10px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1.5fr auto', gap: '15px', padding: '12px', background: '#fcfbfa', border: '1px solid #e5e2da', alignItems: 'center', fontSize: '11px', fontWeight: 650 }}>
-              <span>Seller / Arcade</span><span>Amount</span><span>Transaction ID</span><span>Submitted Date</span><span>Actions</span>
+      <div className="flex flex-1">
+        {/* Left Sidebar Menu */}
+        <aside className="w-64 bg-[#1e293b]/50 border-r border-slate-800 p-4 flex flex-col gap-1">
+          <div className="px-3 py-2 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+            Main Menu
+          </div>
+          <button 
+            onClick={() => setActiveTab('overview')}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${activeTab === 'overview' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
+          >
+            <BarChart3 className="w-4 h-4" /> Dashboard Overview
+          </button>
+
+          <div className="px-3 py-2 mt-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+            Platform Modules
+          </div>
+          <button 
+            onClick={() => setActiveTab('fashionhub')}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${activeTab === 'fashionhub' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
+          >
+            <Store className="w-4 h-4" /> FashionHub Shops
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('visit')}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${activeTab === 'visit' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
+          >
+            <Globe2 className="w-4 h-4" /> Visit Agencies
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('ads')}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${activeTab === 'ads' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
+          >
+            <Megaphone className="w-4 h-4" /> Ad Campaigns
+          </button>
+
+          <div className="px-3 py-2 mt-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+            System
+          </div>
+          <button 
+            onClick={() => setActiveTab('users')}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${activeTab === 'users' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
+          >
+            <Users className="w-4 h-4" /> User Management
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('transactions')}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${activeTab === 'transactions' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
+          >
+            <CreditCard className="w-4 h-4" /> Flutterwave Logs
+          </button>
+        </aside>
+
+        {/* Main Dashboard Workspace */}
+        <main className="flex-1 p-8 space-y-8 overflow-y-auto">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-white tracking-tight">Super Admin Metrics</h1>
+              <p className="text-sm text-slate-400 mt-1">Real-time platform activity for FashionHub and Visit</p>
             </div>
-            {queue.map(item => (
-              <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1.5fr auto', gap: '15px', padding: '12px', background: '#fff', border: '1px solid #e5e2da', alignItems: 'center', fontSize: '11px' }}>
-                <strong>{item.planName || 'Boutique Seller'}</strong>
-                <span>UGX 10,000</span>
-                <code>{item.transactionReference}</code>
-                <span>{new Date(item.submittedAt).toLocaleDateString()}</span>
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  <button onClick={() => handleApprove(item.id)} className="button button-dark" style={{ background: '#315039', color: '#fff', padding: '6px 12px', border: 0, fontSize: '10px' }}><Check size={12} /> Approve</button>
-                  <button className="button button-outline" style={{ padding: '6px 12px', fontSize: '10px', color: '#df705e', borderColor: '#df705e' }}><X size={12} /> Reject</button>
+            <div className="flex gap-2 bg-[#1e293b] p-1 rounded-lg border border-slate-800 text-xs">
+              <button className="px-3 py-1.5 rounded bg-blue-600 text-white font-medium">Live Feed</button>
+              <button className="px-3 py-1.5 rounded text-slate-400 hover:text-white">Daily</button>
+              <button className="px-3 py-1.5 rounded text-slate-400 hover:text-white">Monthly</button>
+            </div>
+          </div>
+
+          {/* Metric Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+            <div className="bg-[#1e293b] border border-slate-800 p-5 rounded-xl">
+              <div className="flex justify-between items-start">
+                <p className="text-xs font-medium text-slate-400">Total Revenue</p>
+                <TrendingUp className="w-4 h-4 text-emerald-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-white mt-2">UGX 3,450,000</h3>
+              <p className="text-xs text-emerald-400 mt-2 flex items-center gap-1">
+                +14.2% <span className="text-slate-500">from last month</span>
+              </p>
+            </div>
+
+            <div className="bg-[#1e293b] border border-slate-800 p-5 rounded-xl">
+              <div className="flex justify-between items-start">
+                <p className="text-xs font-medium text-slate-400">FashionHub Sellers</p>
+                <Store className="w-4 h-4 text-blue-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-white mt-2">128 Shops</h3>
+              <p className="text-xs text-blue-400 mt-2 flex items-center gap-1">
+                +8 new <span className="text-slate-500">this week</span>
+              </p>
+            </div>
+
+            <div className="bg-[#1e293b] border border-slate-800 p-5 rounded-xl">
+              <div className="flex justify-between items-start">
+                <p className="text-xs font-medium text-slate-400">Active Listings</p>
+                <BarChart3 className="w-4 h-4 text-purple-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-white mt-2">1,540</h3>
+              <p className="text-xs text-purple-400 mt-2 flex items-center gap-1">
+                98% <span className="text-slate-500">verified items</span>
+              </p>
+            </div>
+
+            <div className="bg-[#1e293b] border border-slate-800 p-5 rounded-xl">
+              <div className="flex justify-between items-start">
+                <p className="text-xs font-medium text-slate-400">Visit Agency Leads</p>
+                <Globe2 className="w-4 h-4 text-amber-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-white mt-2">412 Claims</h3>
+              <p className="text-xs text-amber-400 mt-2 flex items-center gap-1">
+                +32 corridor leads <span className="text-slate-500">today</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Charts Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 bg-[#1e293b] border border-slate-800 p-6 rounded-xl flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-white">Sales & Messaging Activity</h3>
+                  <span className="text-xs text-slate-400">FashionHub + Visit</span>
+                </div>
+                <div className="h-48 w-full bg-[#0f172a] rounded-lg p-4 flex items-end justify-between gap-2 border border-slate-800/60">
+                  {[40, 65, 30, 85, 95, 75, 110, 90, 120, 140, 130, 160].map((height, i) => (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                      <div 
+                        style={{ height: `${height}px` }} 
+                        className="w-full bg-gradient-to-t from-blue-600 to-purple-500 rounded-t-sm opacity-80 hover:opacity-100 transition"
+                      ></div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
-            {!queue.length && <p style={{ fontSize: '11px', color: '#73776e', padding: '20px' }}>No pending subscription payments in queue.</p>}
-          </div>
-        </div>
-      )}
-
-      {/* Module 3: Seller & Arcade Shop Manager */}
-      {activeTab === 'sellers' && (
-        <div style={{ background: '#fff', padding: '25px', border: '1px solid #e5e2da' }}>
-          <h2>Downtown Arcade Shops & Verification</h2>
-          <p style={{ fontSize: '11px', color: '#73776e', marginBottom: '20px' }}>Manage Gazaland, Mukwano, and Nabukeera boutique accounts and gold badges.</p>
-          <div style={{ display: 'grid', gap: '10px' }}>
-            <div style={{ padding: '15px', border: '1px solid #e5e2da', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <strong>Mirembe Studio</strong> <span style={{ color: '#d39a4f', fontWeight: 'bold' }}>★ Verified Kampala Seller</span>
-                <p style={{ margin: '4px 0 0', fontSize: '10px', color: '#73776e' }}>Gazaland Arcade · First Floor · Shop F12</p>
+              <div className="flex items-center justify-between text-xs text-slate-400 mt-4 pt-4 border-t border-slate-800">
+                <span>Jan - Oct 2026</span>
+                <span className="text-emerald-400 font-medium">Peak Volume: 160 Interactions/day</span>
               </div>
-              <button className="button button-outline" style={{ fontSize: '10px', padding: '6px 12px' }}>Revoke Gold Badge</button>
+            </div>
+
+            <div className="bg-[#1e293b] border border-slate-800 p-6 rounded-xl flex flex-col justify-between">
+              <div>
+                <h3 className="font-semibold text-white mb-4">Revenue Breakdown</h3>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-slate-300">FashionHub Ads & Banners</span>
+                      <span className="text-blue-400 font-semibold">62%</span>
+                    </div>
+                    <div className="w-full h-2 bg-[#0f172a] rounded-full overflow-hidden">
+                      <div className="h-full bg-blue-500 w-[62%]"></div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-slate-300">Visit Agency Subscriptions</span>
+                      <span className="text-purple-400 font-semibold">28%</span>
+                    </div>
+                    <div className="w-full h-2 bg-[#0f172a] rounded-full overflow-hidden">
+                      <div className="h-full bg-purple-500 w-[28%]"></div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-slate-300">Featured Shop Slots</span>
+                      <span className="text-amber-400 font-semibold">10%</span>
+                    </div>
+                    <div className="w-full h-2 bg-[#0f172a] rounded-full overflow-hidden">
+                      <div className="h-full bg-amber-500 w-[10%]"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 p-3 bg-blue-950/40 border border-blue-800/50 rounded-lg flex items-center gap-3">
+                <ShieldAlert className="w-5 h-5 text-blue-400 flex-shrink-0" />
+                <p className="text-xs text-blue-200">Flutterwave webhook live and collecting payments directly.</p>
+              </div>
             </div>
           </div>
-        </div>
-      )}
 
-      {/* Module 7: Drip AI & System Configuration */}
-      {activeTab === 'config' && (
-        <div style={{ background: '#fff', padding: '25px', border: '1px solid #e5e2da' }}>
-          <h2>Broadcast Push Notifications & SMS Blasts</h2>
-          <p style={{ fontSize: '11px', color: '#73776e', marginBottom: '20px' }}>Send flash drop alerts or weekend sale notices to all active buyers and boutique owners.</p>
-          <form onSubmit={e => { e.preventDefault(); setMessage('Broadcast sent successfully to all users!'); setBroadcastMsg(''); }} className="form-stack">
-            <label className="field">
-              <span>Broadcast Message</span>
-              <textarea value={broadcastMsg} onChange={e => setBroadcastMsg(e.target.value)} required rows={4} placeholder="e.g. Flash Drop Weekend in Gazaland! All sneakers & watches 20% off!" />
-            </label>
-            <button className="button button-dark" style={{ background: '#315039', color: '#fff', padding: '12px', border: 0, fontWeight: 650 }}>
-              <Bell size={14} /> Send Instant Broadcast
-            </button>
-          </form>
-        </div>
-      )}
-
-      {/* Other modules placeholder */}
-      {['catalog', 'orders', 'disputes'].includes(activeTab) && (
-        <div style={{ background: '#fff', padding: '30px', border: '1px solid #e5e2da', textAlign: 'center' }}>
-          <h2>Module Active & Synchronized</h2>
-          <p style={{ fontSize: '11px', color: '#73776e' }}>Managing live records from PostgreSQL / Supabase backend.</p>
-        </div>
-      )}
+          {/* Pending Approvals Table */}
+          <div className="bg-[#1e293b] border border-slate-800 rounded-xl overflow-hidden">
+            <div className="p-5 border-b border-slate-800 flex items-center justify-between">
+              <h3 className="font-semibold text-white">Pending Ad Requests</h3>
+              <span className="text-xs text-slate-400">Requires Admin Approval</span>
+            </div>
+            <table className="w-full text-left text-sm text-slate-300">
+              <thead className="bg-[#0f172a] text-xs uppercase text-slate-400 border-b border-slate-800">
+                <tr>
+                  <th className="px-6 py-3">Seller / Agency</th>
+                  <th className="px-6 py-3">Campaign Type</th>
+                  <th className="px-6 py-3">Amount Paid</th>
+                  <th className="px-6 py-3">Status</th>
+                  <th className="px-6 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800">
+                <tr className="hover:bg-slate-800/40">
+                  <td className="px-6 py-4 font-medium text-white">Urban Wear Boutique</td>
+                  <td className="px-6 py-4">Homepage Hero Banner</td>
+                  <td className="px-6 py-4 text-emerald-400">UGX 90,000</td>
+                  <td className="px-6 py-4"><span className="px-2.5 py-1 text-xs rounded-full bg-amber-950 text-amber-400 border border-amber-800">Pending</span></td>
+                  <td className="px-6 py-4 text-right space-x-2">
+                    <button className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-500 transition">Approve</button>
+                    <button className="px-3 py-1 bg-slate-800 text-slate-300 rounded text-xs hover:bg-slate-700 transition">Reject</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </main>
+      </div>
     </div>
   );
-}
+};
+
+export default AdminDashboardPage;
