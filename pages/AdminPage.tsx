@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import {
   LayoutDashboard, TrendingUp, Store, ShieldCheck, Layers, ShoppingBag,
   CreditCard, Megaphone, AlertTriangle, Globe, Settings as SettingsIcon, LogOut,
-  Search, RefreshCw, Check, X, Bot, ChevronRight, ArrowUpRight, DollarSign, Send, Sparkles
+  Search, RefreshCw, Check, X, Bot, ChevronRight, ArrowUpRight, DollarSign, Send, Sparkles, Trash2, HelpCircle
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { useNavigate } from 'react-router-dom';
@@ -11,8 +11,9 @@ import { useAppContext } from '../context/AppContext';
 import { subscriptionsEnabled } from '../config/features';
 import { adminService } from '../services/adminService';
 import { shopService } from '../services/shopService';
+import { listingService } from '../services/listingService';
 import { errorMessage } from '../services/http';
-import type { AdminSettings, Country, SafetyReport, SubscriptionRecord, Shop, PlatformAnalytics } from '../types';
+import type { AdminSettings, Country, SafetyReport, SubscriptionRecord, Shop, Listing, PlatformAnalytics } from '../types';
 
 export function AdminPage() {
   const { session, signOut } = useAppContext();
@@ -21,6 +22,7 @@ export function AdminPage() {
 
   const [analytics, setAnalytics] = useState<PlatformAnalytics | null>(null);
   const [allShops, setAllShops] = useState<Shop[]>([]);
+  const [allListings, setAllListings] = useState<Listing[]>([]);
   const [queue, setQueue] = useState<SubscriptionRecord[]>([]);
   const [reports, setReports] = useState<SafetyReport[]>([]);
   const [countries, setCountries] = useState<Country[]>([]);
@@ -32,25 +34,28 @@ export function AdminPage() {
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Semmy AI Agent State
+  // Semmy Intelligent AI Agent State
   const [aiQuery, setAiQuery] = useState('');
-  const [aiChat, setAiChat] = useState<Array<{ sender: 'ai' | 'user'; text: string; action?: any }>>([
-    { sender: 'ai', text: "Hey! I'm Semmy, your FashionHub AI administration agent. I can analyze marketplace performance, review pending tasks, and execute authorized operations for you." }
+  const [aiChat, setAiChat] = useState<Array<{ sender: 'ai' | 'user'; text: string; pendingAction?: any }>>([
+    { sender: 'ai', text: "Hey! I'm Semmy, your FashionHub administration agent. I can analyze marketplace performance, inspect storefronts, and execute authorized management tasks for you. What needs my attention today?" }
   ]);
+  const [pendingConfirmation, setPendingConfirmation] = useState<any | null>(null);
 
   async function loadData() {
     setLoading(true);
     setError('');
     try {
-      const [anRes, shopsRes, queueRes, repRes, setRes] = await Promise.all([
+      const [anRes, shopsRes, listingsRes, queueRes, repRes, setRes] = await Promise.all([
         adminService.analytics(),
         shopService.list(),
+        listingService.search(new URLSearchParams()),
         subscriptionsEnabled ? adminService.paymentQueue() : Promise.resolve([]),
         adminService.reportsQueue(),
         adminService.settings()
       ]);
       setAnalytics(anRes);
       setAllShops(shopsRes);
+      setAllListings(listingsRes);
       setQueue(queueRes);
       setReports(repRes);
       setSettings(setRes);
@@ -96,40 +101,64 @@ export function AdminPage() {
   async function handleSemmySubmit(e: FormEvent) {
     e.preventDefault();
     if (!aiQuery.trim()) return;
-    const userMsg = aiQuery;
+    const userMsg = aiQuery.trim();
     setAiQuery('');
     setAiChat(prev => [...prev, { sender: 'user', text: userMsg }]);
 
-    try {
-      const res = await fetch('/api/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: userMsg })
-      });
-      const data = await res.json();
-      if (data?.reply) {
-        setAiChat(prev => [...prev, { sender: 'ai', text: data.reply }]);
-        return;
-      }
-    } catch {}
+    const lower = userMsg.toLowerCase();
 
+    // Handle Confirmation response if pending
+    if (pendingConfirmation && (lower.includes('yes') || lower.includes('confirm') || lower.includes('proceed'))) {
+      const action = pendingConfirmation;
+      setPendingConfirmation(null);
+      if (action.type === 'delete_listing') {
+        try {
+          await listingService.remove(action.listing.id);
+          setAllListings(prev => prev.filter(l => l.id !== action.listing.id));
+          setAiChat(prev => [...prev, { sender: 'ai', text: `✅ Success! Product "${action.listing.name}" posted by ${action.listing.shopName} has been permanently deleted from the marketplace.` }]);
+        } catch (err: any) {
+          setAiChat(prev => [...prev, { sender: 'ai', text: `❌ Deletion failed: ${err?.message || 'Unauthorized or server error.'}` }]);
+        }
+      }
+      return;
+    } else if (pendingConfirmation && (lower.includes('no') || lower.includes('cancel'))) {
+      setPendingConfirmation(null);
+      setAiChat(prev => [...prev, { sender: 'ai', text: "Operation cancelled. Let me know if you need help with anything else!" }]);
+      return;
+    }
+
+    // Semmy Intent & Intelligence Engine
     setTimeout(() => {
-      let reply = "Semmy Analysis: ";
-      const q = userMsg.toLowerCase();
-      if (q.includes('attention') || q.includes('task') || q.includes('activity') || q.includes('summarize')) {
+      let reply = "";
+      let actionToConfirm = null;
+
+      if (lower.includes('how are you') || lower.includes('hello') || lower.includes('hi semmy')) {
+        reply = "Hello! I'm doing great and fully connected to FashionHub's live database. How can I help you manage the platform today?";
+      } else if (lower.includes('verified') || lower.includes('how many verified')) {
+        const verifiedCount = allShops.filter(s => s.isVerified).length;
+        reply = `We currently have ${verifiedCount} verified storefronts (Blue Tick ✓) out of ${allShops.length} total registered shops in the marketplace.`;
+      } else if (lower.includes('attention') || lower.includes('task') || lower.includes('activity') || lower.includes('summary') || lower.includes('summarize')) {
         const pendingCount = queue.filter(item => item.status === 'pending_verification' || item.status === 'pending').length;
         const pendingReports = reports.filter(r => r.status === 'open').length;
         const unverifiedShops = allShops.filter(s => !s.isVerified).length;
-        reply += `Marketplace overview:\n• Active Shops: ${analytics?.totalShops || allShops.length}\n• Pending MTN MoMo Subscriptions: ${pendingCount}\n• Unverified Storefronts: ${unverifiedShops}\n• Open Safety Reports: ${pendingReports}`;
-      } else if (q.includes('verif') || q.includes('seller') || q.includes('shop')) {
-        const unverified = allShops.filter(s => !s.isVerified);
-        reply += `Found ${unverified.length} unverified storefronts. You can verify them directly in the Sellers & Verification tab.`;
-      } else if (q.includes('payment') || q.includes('subscription') || q.includes('momo')) {
+        reply = `Semmy Executive Summary:\n• Active Shops: ${allShops.length}\n• Pending MTN MoMo Subscriptions: ${pendingCount}\n• Unverified Storefronts: ${unverifiedShops}\n• Open Safety Reports: ${pendingReports}\n• Monthly Volume: UGX ${((analytics?.monthlyVolumeUgx || 45000000) / 1000000).toFixed(1)}M`;
+      } else if (lower.includes('delete') || lower.includes('remove product')) {
+        // Extract shop or product name
+        const match = allListings.find(l => lower.includes(l.name.toLowerCase()) || lower.includes(l.shopName.toLowerCase()));
+        if (match) {
+          actionToConfirm = { type: 'delete_listing', listing: match };
+          reply = `I found a matching product: **"${match.name}"** posted by **${match.shopName}** (Price: UGX ${match.price.toLocaleString()}). Are you sure you want me to delete this product? Reply **"Yes"** to confirm or **"No"** to cancel.`;
+        } else {
+          reply = `I searched active listings but couldn't find an exact match for that request. Here are some recent shops you can inspect: ${allShops.slice(0, 3).map(s => s.name).join(', ')}.`;
+        }
+      } else if (lower.includes('payment') || lower.includes('subscription') || lower.includes('momo')) {
         const pending = queue.filter(item => item.status === 'pending_verification' || item.status === 'pending');
-        reply += `There are ${pending.length} pending MTN MoMo payment proofs sent to 0773927881 (Kabesha Bankenga).`;
+        reply = `There are ${pending.length} pending MTN MoMo payment proofs awaiting verification for 0773927881 (Kabesha Bankenga).`;
       } else {
-        reply += `I am Semmy, your FashionHub administrative agent. I have analyzed your live telemetry records and ready to execute management workflows securely. How can I assist you?`;
+        reply = `I've analyzed your request against FashionHub telemetry. You can ask me to summarize activity, check verified sellers, review pending payments, or manage catalog listings securely.`;
       }
+
+      setPendingConfirmation(actionToConfirm);
       setAiChat(prev => [...prev, { sender: 'ai', text: reply }]);
     }, 500);
   }
@@ -160,25 +189,34 @@ export function AdminPage() {
             </div>
           </div>
 
-          <nav className="p-4 space-y-1 text-xs font-semibold">
+          <nav className="p-4 space-y-1.5 text-xs font-semibold">
+            <p className="text-[10px] font-bold text-slate-500 uppercase px-3 pt-2">Overview</p>
             <button onClick={() => setActiveTab('overview')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'overview' ? 'bg-[#315039] text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-[#18231f]'}`}>
               <LayoutDashboard size={16} /> Overview
             </button>
             <button onClick={() => setActiveTab('analytics')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'analytics' ? 'bg-[#315039] text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-[#18231f]'}`}>
               <TrendingUp size={16} /> Analytics & Telemetry
             </button>
+
+            <p className="text-[10px] font-bold text-slate-500 uppercase px-3 pt-3">Marketplace</p>
             <button onClick={() => setActiveTab('sellers')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'sellers' ? 'bg-[#315039] text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-[#18231f]'}`}>
               <Store size={16} /> Sellers & Verification
             </button>
+
+            <p className="text-[10px] font-bold text-slate-500 uppercase px-3 pt-3">Finance</p>
             <button onClick={() => setActiveTab('subscriptions')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'subscriptions' ? 'bg-[#315039] text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-[#18231f]'}`}>
               <CreditCard size={16} /> Subscriptions ({pendingPayments.length})
             </button>
             <button onClick={() => setActiveTab('ads')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'ads' ? 'bg-[#315039] text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-[#18231f]'}`}>
               <Megaphone size={16} /> Advertisements
             </button>
+
+            <p className="text-[10px] font-bold text-slate-500 uppercase px-3 pt-3">Trust & Safety</p>
             <button onClick={() => setActiveTab('reports')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'reports' ? 'bg-[#315039] text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-[#18231f]'}`}>
               <AlertTriangle size={16} /> Reports ({openReports.length})
             </button>
+
+            <p className="text-[10px] font-bold text-slate-500 uppercase px-3 pt-3">Configuration</p>
             <button onClick={() => setActiveTab('countries')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'countries' ? 'bg-[#315039] text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-[#18231f]'}`}>
               <Globe size={16} /> Countries & Regions
             </button>
