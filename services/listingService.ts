@@ -181,6 +181,7 @@ export const listingService = {
     const updatePayload: Record<string, unknown> = {};
     if (input.name !== undefined) updatePayload.name = input.name;
     if (input.price !== undefined) updatePayload.price = Number(input.price);
+    if (input.category !== undefined) updatePayload.category = input.category;
     if (input.description !== undefined) updatePayload.description = input.description;
     if (input.imageUrl !== undefined) updatePayload.image = input.imageUrl;
     if (input.isActive !== undefined) updatePayload.is_active = input.isActive;

@@ -213,7 +213,7 @@ export function SellerDashboardPage() {
     const form = new FormData(event.currentTarget);
     setBusyId(editing.id); setError('');
     try {
-      const updated = await listingService.update(editing.id, { name: form.get('name'), price: Number(form.get('price')), description: form.get('description'), imageUrl: String(form.get('imageUrl') ?? '') });
+      const updated = await listingService.update(editing.id, { name: form.get('name'), price: Number(form.get('price')), category: form.get('category'), description: form.get('description'), imageUrl: String(form.get('imageUrl') ?? '') });
       setListings((current) => current.map((i) => i.id === updated.id ? updated : i));
       setEditing(null);
     } catch (caught) { setError(errorMessage(caught)); }
@@ -383,6 +383,7 @@ export function SellerDashboardPage() {
               <form className="form-stack" onSubmit={saveEdit}>
                 <label className="field"><span>Name</span><input name="name" defaultValue={editing.name} required maxLength={80} /></label>
                 <label className="field"><span>Price · {editing.currency}</span><input name="price" type="number" min="1" defaultValue={editing.price} required /></label>
+                <label className="field"><span>Category</span><select name="category" defaultValue={editing.category}>{(shop?.categories.length ? shop.categories : categories).map((item) => <option key={item}>{item}</option>)}</select></label>
                 <label className="field"><span>Photo URL <small>optional</small></span><input name="imageUrl" type="url" defaultValue={editing.image} maxLength={2048} placeholder="https://…" /></label>
                 <label className="field"><span>Description</span><textarea name="description" defaultValue={editing.description} rows={4} required maxLength={800} /></label>
                 <button className="button button-dark" disabled={busyId === editing.id}>Save through listing API</button>
