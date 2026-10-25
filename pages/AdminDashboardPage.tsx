@@ -1,270 +1,265 @@
 import React, { useState } from 'react';
 import { 
-  BarChart3, Store, Globe2, Megaphone, Users, CreditCard, Settings, 
-  Search, Bell, TrendingUp, ShieldAlert
+  LayoutDashboard, FileText, Layers, Cpu, Box, FileCode, 
+  BarChart2, Table, Lock, Bell, Search, Globe, ChevronDown, 
+  TrendingUp, ArrowUpRight, Store, ShieldCheck, Zap
 } from 'lucide-react';
 
 export const AdminDashboardPage = () => {
-  const [activeTab, setActiveTab] = useState('overview');
-
-  // Exclusive Super Admin email
+  const [activeTab, setActiveTab] = useState('dashboard');
   const adminEmail = "kigozigeofrey09@gmail.com";
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-slate-100 flex flex-col font-sans">
-      {/* Top Navigation Header */}
-      <header className="h-16 bg-[#1e293b] border-b border-slate-800 flex items-center justify-between px-6 sticky top-0 z-50">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white">
+    <div className="fixed inset-0 z-[9999] bg-[#0b0f19] text-slate-200 flex font-sans overflow-hidden select-none">
+      
+      {/* 1. Left Sidebar (Star Admin Style) */}
+      <aside className="w-64 bg-[#111827] border-r border-slate-800/80 flex flex-col flex-shrink-0">
+        {/* Sidebar Brand Header */}
+        <div className="h-16 flex items-center px-6 gap-3 border-b border-slate-800/80 bg-[#111827]">
+          <div className="w-7 h-7 rounded bg-blue-600 flex items-center justify-center font-bold text-white text-sm shadow-lg shadow-blue-600/30">
             D
           </div>
-          <span className="font-bold text-lg tracking-wide text-white">
-            DayBook <span className="text-xs text-blue-400 font-normal px-2 py-0.5 rounded bg-blue-950/60 border border-blue-800">Super Admin</span>
-          </span>
+          <span className="font-bold text-base text-white tracking-wide">DayBook Admin</span>
         </div>
 
-        <div className="flex items-center gap-6">
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input 
-              type="text" 
-              placeholder="Search shops, listings, agencies..." 
-              className="bg-[#0f172a] border border-slate-700 text-sm rounded-full pl-9 pr-4 py-1.5 focus:outline-none focus:border-blue-500 text-slate-200 placeholder-slate-500 w-64"
-            />
+        {/* User Profile Mini Card */}
+        <div className="p-4 border-b border-slate-800/50 flex items-center gap-3 bg-[#161e31]/50">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs">
+            KG
           </div>
-
-          <button className="relative text-slate-400 hover:text-white transition">
-            <Bell className="w-5 h-5" />
-            <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full"></span>
-          </button>
-
-          <div className="flex items-center gap-3 border-l border-slate-800 pl-6">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center text-xs font-bold text-white">
-              KG
-            </div>
-            <div className="text-xs">
-              <p className="font-medium text-slate-200">{adminEmail}</p>
-              <p className="text-slate-400">Master Authority</p>
-            </div>
+          <div className="overflow-hidden">
+            <p className="text-xs font-semibold text-white truncate">{adminEmail}</p>
+            <p className="text-[10px] text-blue-400 font-medium">Super Admin</p>
           </div>
         </div>
-      </header>
 
-      <div className="flex flex-1">
-        {/* Left Sidebar Menu */}
-        <aside className="w-64 bg-[#1e293b]/50 border-r border-slate-800 p-4 flex flex-col gap-1">
-          <div className="px-3 py-2 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-            Main Menu
-          </div>
+        {/* Navigation Menu Links */}
+        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1 text-xs font-medium text-slate-400">
+          <div className="px-3 pb-2 text-[10px] uppercase font-bold tracking-wider text-slate-500">Main Menu</div>
+          
           <button 
-            onClick={() => setActiveTab('overview')}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${activeTab === 'overview' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
+            onClick={() => setActiveTab('dashboard')}
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition ${activeTab === 'dashboard' ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'hover:bg-slate-800/60 hover:text-slate-200'}`}
           >
-            <BarChart3 className="w-4 h-4" /> Dashboard Overview
+            <div className="flex items-center gap-3">
+              <LayoutDashboard className="w-4 h-4" />
+              <span>Dashboard</span>
+            </div>
+            <ChevronDown className="w-3 h-3 opacity-60" />
           </button>
 
-          <div className="px-3 py-2 mt-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-            Platform Modules
-          </div>
           <button 
             onClick={() => setActiveTab('fashionhub')}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${activeTab === 'fashionhub' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition ${activeTab === 'fashionhub' ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'hover:bg-slate-800/60 hover:text-slate-200'}`}
           >
-            <Store className="w-4 h-4" /> FashionHub Shops
+            <div className="flex items-center gap-3">
+              <Store className="w-4 h-4" />
+              <span>FashionHub Shops</span>
+            </div>
+            <span className="text-[10px] bg-blue-900/60 text-blue-300 px-1.5 py-0.5 rounded border border-blue-700/50">128</span>
           </button>
 
           <button 
             onClick={() => setActiveTab('visit')}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${activeTab === 'visit' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition ${activeTab === 'visit' ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'hover:bg-slate-800/60 hover:text-slate-200'}`}
           >
-            <Globe2 className="w-4 h-4" /> Visit Agencies
+            <div className="flex items-center gap-3">
+              <Globe className="w-4 h-4" />
+              <span>Visit Agencies</span>
+            </div>
+            <span className="text-[10px] bg-purple-900/60 text-purple-300 px-1.5 py-0.5 rounded border border-purple-700/50">412</span>
           </button>
 
           <button 
             onClick={() => setActiveTab('ads')}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${activeTab === 'ads' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition ${activeTab === 'ads' ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'hover:bg-slate-800/60 hover:text-slate-200'}`}
           >
-            <Megaphone className="w-4 h-4" /> Ad Campaigns
-          </button>
-
-          <div className="px-3 py-2 mt-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-            System
-          </div>
-          <button 
-            onClick={() => setActiveTab('users')}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${activeTab === 'users' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
-          >
-            <Users className="w-4 h-4" /> User Management
-          </button>
-
-          <button 
-            onClick={() => setActiveTab('transactions')}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${activeTab === 'transactions' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
-          >
-            <CreditCard className="w-4 h-4" /> Flutterwave Logs
-          </button>
-        </aside>
-
-        {/* Main Dashboard Workspace */}
-        <main className="flex-1 p-8 space-y-8 overflow-y-auto">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-white tracking-tight">Super Admin Metrics</h1>
-              <p className="text-sm text-slate-400 mt-1">Real-time platform activity for FashionHub and Visit</p>
+            <div className="flex items-center gap-3">
+              <Zap className="w-4 h-4" />
+              <span>Ad Campaigns</span>
             </div>
-            <div className="flex gap-2 bg-[#1e293b] p-1 rounded-lg border border-slate-800 text-xs">
-              <button className="px-3 py-1.5 rounded bg-blue-600 text-white font-medium">Live Feed</button>
-              <button className="px-3 py-1.5 rounded text-slate-400 hover:text-white">Daily</button>
-              <button className="px-3 py-1.5 rounded text-slate-400 hover:text-white">Monthly</button>
+          </button>
+
+          <div className="pt-4 px-3 pb-2 text-[10px] uppercase font-bold tracking-wider text-slate-500">UI Elements & Tools</div>
+          
+          <button className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-800/60 hover:text-slate-200 transition">
+            <div className="flex items-center gap-3"><Box className="w-4 h-4" /><span>Widgets</span></div>
+            <ChevronDown className="w-3 h-3 opacity-50" />
+          </button>
+          <button className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-800/60 hover:text-slate-200 transition">
+            <div className="flex items-center gap-3"><BarChart2 className="w-4 h-4" /><span>Charts</span></div>
+            <ChevronDown className="w-3 h-3 opacity-50" />
+          </button>
+          <button className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-800/60 hover:text-slate-200 transition">
+            <div className="flex items-center gap-3"><Table className="w-4 h-4" /><span>Tables</span></div>
+            <ChevronDown className="w-3 h-3 opacity-50" />
+          </button>
+          <button className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-800/60 hover:text-slate-200 transition">
+            <div className="flex items-center gap-3"><Lock className="w-4 h-4" /><span>Security RLS</span></div>
+          </button>
+        </div>
+      </aside>
+
+      {/* 2. Main Content Area */}
+      <div className="flex-1 flex flex-col bg-[#0b0f19] overflow-hidden">
+        
+        {/* Top Header Bar */}
+        <header className="h-16 bg-[#111827] border-b border-slate-800/80 px-8 flex items-center justify-between flex-shrink-0">
+          <div className="flex items-center gap-4 text-xs text-slate-400">
+            <span className="font-semibold text-white">Dashboard</span>
+            <span>/</span>
+            <span>ui elements</span>
+            <span>/</span>
+            <span className="text-blue-400 font-medium">super analytics</span>
+          </div>
+
+          <div className="flex items-center gap-5">
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+              <input 
+                type="text" 
+                placeholder="Search analytics..." 
+                className="bg-[#0b0f19] border border-slate-800 rounded-full pl-9 pr-4 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-600 w-64"
+              />
+            </div>
+
+            <button className="text-slate-400 hover:text-white relative">
+              <Bell className="w-4 h-4" />
+              <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+            </button>
+
+            <button 
+              onClick={() => window.location.href = '/'}
+              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium transition"
+            >
+              Exit Admin
+            </button>
+          </div>
+        </header>
+
+        {/* Dashboard Content Scrollable Body */}
+        <div className="flex-1 overflow-y-auto p-8 space-y-6">
+          
+          {/* Filter Bar Row */}
+          <div className="flex items-center justify-between bg-[#111827] border border-slate-800/80 p-3 rounded-xl">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold px-3 py-1 bg-blue-600 text-white rounded-lg">DayBook Analytics (Live)</span>
+              <span className="text-xs text-slate-400 px-3">Flutterwave Gateway: Active</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <button className="px-3 py-1.5 bg-blue-600 text-white rounded-md font-medium">Sales</button>
+              <button className="px-3 py-1.5 bg-[#0b0f19] text-slate-400 hover:text-white rounded-md border border-slate-800">Orders</button>
+              <button className="px-3 py-1.5 bg-[#0b0f19] text-slate-400 hover:text-white rounded-md border border-slate-800">Ad Revenue</button>
             </div>
           </div>
 
-          {/* Metric Cards Grid */}
+          {/* Top 4 Stat Metric Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-            <div className="bg-[#1e293b] border border-slate-800 p-5 rounded-xl">
-              <div className="flex justify-between items-start">
-                <p className="text-xs font-medium text-slate-400">Total Revenue</p>
-                <TrendingUp className="w-4 h-4 text-emerald-400" />
-              </div>
+            <div className="bg-[#111827] border border-slate-800/80 p-5 rounded-xl shadow-lg">
+              <p className="text-xs text-slate-400 font-medium">Total Platform Revenue</p>
               <h3 className="text-2xl font-bold text-white mt-2">UGX 3,450,000</h3>
-              <p className="text-xs text-emerald-400 mt-2 flex items-center gap-1">
-                +14.2% <span className="text-slate-500">from last month</span>
-              </p>
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-800/60 text-[11px]">
+                <span className="text-emerald-400 font-semibold flex items-center gap-1">+14.2% <TrendingUp className="w-3 h-3" /></span>
+                <span className="text-slate-500">vs last month</span>
+              </div>
             </div>
 
-            <div className="bg-[#1e293b] border border-slate-800 p-5 rounded-xl">
-              <div className="flex justify-between items-start">
-                <p className="text-xs font-medium text-slate-400">FashionHub Sellers</p>
-                <Store className="w-4 h-4 text-blue-400" />
+            <div className="bg-[#111827] border border-slate-800/80 p-5 rounded-xl shadow-lg">
+              <p className="text-xs text-slate-400 font-medium">FashionHub Shops</p>
+              <h3 className="text-2xl font-bold text-white mt-2">128 Active</h3>
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-800/60 text-[11px]">
+                <span className="text-blue-400 font-semibold">+8 new shops</span>
+                <span className="text-slate-500">Kampala region</span>
               </div>
-              <h3 className="text-2xl font-bold text-white mt-2">128 Shops</h3>
-              <p className="text-xs text-blue-400 mt-2 flex items-center gap-1">
-                +8 new <span className="text-slate-500">this week</span>
-              </p>
             </div>
 
-            <div className="bg-[#1e293b] border border-slate-800 p-5 rounded-xl">
-              <div className="flex justify-between items-start">
-                <p className="text-xs font-medium text-slate-400">Active Listings</p>
-                <BarChart3 className="w-4 h-4 text-purple-400" />
-              </div>
-              <h3 className="text-2xl font-bold text-white mt-2">1,540</h3>
-              <p className="text-xs text-purple-400 mt-2 flex items-center gap-1">
-                98% <span className="text-slate-500">verified items</span>
-              </p>
-            </div>
-
-            <div className="bg-[#1e293b] border border-slate-800 p-5 rounded-xl">
-              <div className="flex justify-between items-start">
-                <p className="text-xs font-medium text-slate-400">Visit Agency Leads</p>
-                <Globe2 className="w-4 h-4 text-amber-400" />
-              </div>
+            <div className="bg-[#111827] border border-slate-800/80 p-5 rounded-xl shadow-lg">
+              <p className="text-xs text-slate-400 font-medium">Visit Visa Leads</p>
               <h3 className="text-2xl font-bold text-white mt-2">412 Claims</h3>
-              <p className="text-xs text-amber-400 mt-2 flex items-center gap-1">
-                +32 corridor leads <span className="text-slate-500">today</span>
-              </p>
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-800/60 text-[11px]">
+                <span className="text-purple-400 font-semibold">+32 today</span>
+                <span className="text-slate-500">Corridors active</span>
+              </div>
+            </div>
+
+            <div className="bg-[#111827] border border-slate-800/80 p-5 rounded-xl shadow-lg">
+              <p className="text-xs text-slate-400 font-medium">Super Admin Access</p>
+              <h3 className="text-lg font-bold text-emerald-400 mt-2 truncate">Authorized</h3>
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-800/60 text-[11px]">
+                <span className="text-emerald-400 font-semibold flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> RLS Bypassed</span>
+                <span className="text-slate-500">Secure</span>
+              </div>
             </div>
           </div>
 
-          {/* Charts Row */}
+          {/* Charts Section matching manly_2.webp */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-[#1e293b] border border-slate-800 p-6 rounded-xl flex flex-col justify-between">
+            
+            {/* Main Sales & Area Chart */}
+            <div className="lg:col-span-2 bg-[#111827] border border-slate-800/80 p-6 rounded-xl shadow-lg flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-white">Sales & Messaging Activity</h3>
-                  <span className="text-xs text-slate-400">FashionHub + Visit</span>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h4 className="font-bold text-white text-sm">Sales Statistics Overview</h4>
+                    <p className="text-xs text-slate-400">Combined revenue metrics from FashionHub and Visit</p>
+                  </div>
+                  <div className="flex gap-2 text-xs text-slate-400">
+                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Revenue</span>
+                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-purple-500"></span> Sales</span>
+                  </div>
                 </div>
-                <div className="h-48 w-full bg-[#0f172a] rounded-lg p-4 flex items-end justify-between gap-2 border border-slate-800/60">
-                  {[40, 65, 30, 85, 95, 75, 110, 90, 120, 140, 130, 160].map((height, i) => (
-                    <div key={i} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+
+                {/* Simulated Wave Chart Area */}
+                <div className="h-56 w-full bg-[#0b0f19] rounded-lg p-4 flex items-end justify-between gap-3 border border-slate-800/60 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-t from-blue-600/10 to-transparent pointer-events-none"></div>
+                  {[35, 60, 45, 80, 95, 70, 110, 95, 130, 150, 140, 175].map((val, idx) => (
+                    <div key={idx} className="flex-1 flex flex-col items-center gap-2 h-full justify-end z-10">
                       <div 
-                        style={{ height: `${height}px` }} 
-                        className="w-full bg-gradient-to-t from-blue-600 to-purple-500 rounded-t-sm opacity-80 hover:opacity-100 transition"
+                        style={{ height: `${val}px` }} 
+                        className="w-full bg-gradient-to-t from-blue-600 via-indigo-500 to-purple-500 rounded-t-sm shadow-md hover:brightness-125 transition-all"
                       ></div>
                     </div>
                   ))}
                 </div>
               </div>
-              <div className="flex items-center justify-between text-xs text-slate-400 mt-4 pt-4 border-t border-slate-800">
-                <span>Jan - Oct 2026</span>
-                <span className="text-emerald-400 font-medium">Peak Volume: 160 Interactions/day</span>
+
+              <div className="flex items-center justify-between text-xs text-slate-400 mt-6 pt-4 border-t border-slate-800/80">
+                <span>Data syncing from Feb 2026</span>
+                <span className="text-emerald-400 font-medium">Peak Performance Verified</span>
               </div>
             </div>
 
-            <div className="bg-[#1e293b] border border-slate-800 p-6 rounded-xl flex flex-col justify-between">
+            {/* Right Side Radar / Distribution Widget */}
+            <div className="bg-[#111827] border border-slate-800/80 p-6 rounded-xl shadow-lg flex flex-col justify-between">
               <div>
-                <h3 className="font-semibold text-white mb-4">Revenue Breakdown</h3>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-slate-300">FashionHub Ads & Banners</span>
-                      <span className="text-blue-400 font-semibold">62%</span>
-                    </div>
-                    <div className="w-full h-2 bg-[#0f172a] rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-500 w-[62%]"></div>
-                    </div>
-                  </div>
+                <h4 className="font-bold text-white text-sm mb-1">Net Profit Margin</h4>
+                <p className="text-xs text-slate-400 mb-6">Subscription & Ad Fee Distribution</p>
 
-                  <div>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-slate-300">Visit Agency Subscriptions</span>
-                      <span className="text-purple-400 font-semibold">28%</span>
-                    </div>
-                    <div className="w-full h-2 bg-[#0f172a] rounded-full overflow-hidden">
-                      <div className="h-full bg-purple-500 w-[28%]"></div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-slate-300">Featured Shop Slots</span>
-                      <span className="text-amber-400 font-semibold">10%</span>
-                    </div>
-                    <div className="w-full h-2 bg-[#0f172a] rounded-full overflow-hidden">
-                      <div className="h-full bg-amber-500 w-[10%]"></div>
+                {/* Simulated Radar Shape Graphic */}
+                <div className="h-44 w-full bg-[#0b0f19] rounded-lg border border-slate-800/60 flex items-center justify-center relative">
+                  <div className="w-28 h-28 rounded-full bg-gradient-to-tr from-cyan-500/30 via-blue-600/40 to-purple-600/40 border border-blue-400/50 flex items-center justify-center shadow-lg shadow-blue-500/20 rotate-12">
+                    <div className="w-16 h-16 rounded-full bg-blue-600/20 border border-purple-400/60 flex items-center justify-center text-[10px] font-bold text-blue-300">
+                      62% Ads
                     </div>
                   </div>
                 </div>
+
+                <div className="grid grid-cols-2 gap-2 mt-4 text-xs text-slate-400">
+                  <div className="flex items-center gap-2"><span className="w-2 h-2 rounded bg-blue-500"></span> FashionHub Ads</div>
+                  <div className="flex items-center gap-2"><span className="w-2 h-2 rounded bg-purple-500"></span> Visit Subs</div>
+                </div>
               </div>
 
-              <div className="mt-6 p-3 bg-blue-950/40 border border-blue-800/50 rounded-lg flex items-center gap-3">
-                <ShieldAlert className="w-5 h-5 text-blue-400 flex-shrink-0" />
-                <p className="text-xs text-blue-200">Flutterwave webhook live and collecting payments directly.</p>
+              <div className="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between">
+                <span className="text-xs text-slate-400">Status</span>
+                <span className="text-xs text-emerald-400 font-semibold">Fully Optimized</span>
               </div>
             </div>
+
           </div>
 
-          {/* Pending Approvals Table */}
-          <div className="bg-[#1e293b] border border-slate-800 rounded-xl overflow-hidden">
-            <div className="p-5 border-b border-slate-800 flex items-center justify-between">
-              <h3 className="font-semibold text-white">Pending Ad Requests</h3>
-              <span className="text-xs text-slate-400">Requires Admin Approval</span>
-            </div>
-            <table className="w-full text-left text-sm text-slate-300">
-              <thead className="bg-[#0f172a] text-xs uppercase text-slate-400 border-b border-slate-800">
-                <tr>
-                  <th className="px-6 py-3">Seller / Agency</th>
-                  <th className="px-6 py-3">Campaign Type</th>
-                  <th className="px-6 py-3">Amount Paid</th>
-                  <th className="px-6 py-3">Status</th>
-                  <th className="px-6 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800">
-                <tr className="hover:bg-slate-800/40">
-                  <td className="px-6 py-4 font-medium text-white">Urban Wear Boutique</td>
-                  <td className="px-6 py-4">Homepage Hero Banner</td>
-                  <td className="px-6 py-4 text-emerald-400">UGX 90,000</td>
-                  <td className="px-6 py-4"><span className="px-2.5 py-1 text-xs rounded-full bg-amber-950 text-amber-400 border border-amber-800">Pending</span></td>
-                  <td className="px-6 py-4 text-right space-x-2">
-                    <button className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-500 transition">Approve</button>
-                    <button className="px-3 py-1 bg-slate-800 text-slate-300 rounded text-xs hover:bg-slate-700 transition">Reject</button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </main>
+        </div>
       </div>
     </div>
   );
