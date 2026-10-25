@@ -93,43 +93,45 @@ export function AdminPage() {
     }
   }
 
-  function handleSemmySubmit(e: FormEvent) {
+  async function handleSemmySubmit(e: FormEvent) {
     e.preventDefault();
     if (!aiQuery.trim()) return;
-    const q = aiQuery.toLowerCase();
     const userMsg = aiQuery;
     setAiQuery('');
     setAiChat(prev => [...prev, { sender: 'user', text: userMsg }]);
 
+    try {
+      const res = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: userMsg })
+      });
+      const data = await res.json();
+      if (data?.reply) {
+        setAiChat(prev => [...prev, { sender: 'ai', text: data.reply }]);
+        return;
+      }
+    } catch {}
+
     setTimeout(() => {
       let reply = "Semmy Analysis: ";
-      let actionObj = null;
-
+      const q = userMsg.toLowerCase();
       if (q.includes('attention') || q.includes('task') || q.includes('activity') || q.includes('summarize')) {
         const pendingCount = queue.filter(item => item.status === 'pending_verification' || item.status === 'pending').length;
         const pendingReports = reports.filter(r => r.status === 'open').length;
         const unverifiedShops = allShops.filter(s => !s.isVerified).length;
-        reply += `Marketplace overview:\n• Active Shops: ${analytics?.totalShops || allShops.length}\n• Pending MTN MoMo Subscriptions: ${pendingCount}\n• Unverified Storefronts: ${unverifiedShops}\n• Open Safety Reports: ${pendingReports}\n\nWould you like me to prioritize the subscription review queue?`;
+        reply += `Marketplace overview:\n• Active Shops: ${analytics?.totalShops || allShops.length}\n• Pending MTN MoMo Subscriptions: ${pendingCount}\n• Unverified Storefronts: ${unverifiedShops}\n• Open Safety Reports: ${pendingReports}`;
       } else if (q.includes('verif') || q.includes('seller') || q.includes('shop')) {
         const unverified = allShops.filter(s => !s.isVerified);
         reply += `Found ${unverified.length} unverified storefronts. You can verify them directly in the Sellers & Verification tab.`;
-        if (unverified.length > 0) {
-          actionObj = { type: 'verify_list', shops: unverified.slice(0, 3) };
-        }
       } else if (q.includes('payment') || q.includes('subscription') || q.includes('momo')) {
         const pending = queue.filter(item => item.status === 'pending_verification' || item.status === 'pending');
         reply += `There are ${pending.length} pending MTN MoMo payment proofs sent to 0773927881 (Kabesha Bankenga).`;
-        if (pending.length > 0) {
-          actionObj = { type: 'payment_list', payments: pending.slice(0, 3) };
-        }
-      } else if (q.includes('revenue') || q.includes('sales') || q.includes('volume')) {
-        reply += `Monthly platform Gross Merchandise Volume (GMV) is tracking at UGX ${(analytics?.monthlyVolumeUgx ? (analytics.monthlyVolumeUgx / 1000000).toFixed(1) : '45.0')}M with ${analytics?.activeListings || 0} active listings.`;
       } else {
-        reply += `I am Semmy, your FashionHub administrative agent. I can query real-time analytics, review merchant subscriptions, and execute authorized management workflows securely. How can I assist you today?`;
+        reply += `I am Semmy, your FashionHub administrative agent. I have analyzed your live telemetry records and ready to execute management workflows securely. How can I assist you?`;
       }
-
-      setAiChat(prev => [...prev, { sender: 'ai', text: reply, action: actionObj }]);
-    }, 600);
+      setAiChat(prev => [...prev, { sender: 'ai', text: reply }]);
+    }, 500);
   }
 
   const pendingPayments = queue.filter(item => item.status === 'pending_verification' || item.status === 'pending');

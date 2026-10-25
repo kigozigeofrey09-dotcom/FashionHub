@@ -12,6 +12,7 @@ import { accountRouter } from "./routes/account.js";
 import { notificationsRouter } from "./routes/notifications.js";
 import { workflowsRouter } from "./routes/workflows.js";
 import { adminRouter } from "./routes/admin.js";
+import { aiRouter } from "./routes/ai.js";
 import { imageDirectory, uploadsRouter } from "./routes/uploads.js";
 
 const app = express();
@@ -43,6 +44,7 @@ app.use("/api/account", accountRouter);
 app.use("/api/account/notifications", notificationsRouter);
 app.use("/api", workflowsRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/ai", aiRouter);
 app.use("/api/uploads/images", express.static(imageDirectory, { dotfiles: "deny", maxAge: "365d", immutable: true }));
 app.use("/api/uploads", uploadsRouter);
 
