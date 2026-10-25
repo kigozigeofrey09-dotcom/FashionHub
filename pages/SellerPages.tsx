@@ -130,7 +130,7 @@ export function SellerOnboardingPage() {
 export function SellerDashboardPage() {
   const { session, countries } = useAppContext();
   const [shop, setShop] = useState<Shop | null>(null);
-  const [shopDraft, setShopDraft] = useState({ name: '', story: '', tagline: '', city: '', accent: '#496a4d', logoUrl: '', coverUrl: '' });
+  const [shopDraft, setShopDraft] = useState({ name: '', story: '', tagline: '', city: '', accent: '#496a4d', logoUrl: '', coverUrl: '', categories: [] as Category[] });
   const [whatsappDraft, setWhatsappDraft] = useState('');
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -159,7 +159,7 @@ export function SellerDashboardPage() {
       const myShop = await shopService.getMine();
       setShop(myShop);
       if (myShop) {
-        setShopDraft({ name: myShop.name, story: myShop.story, tagline: myShop.tagline, city: myShop.city, accent: myShop.accent, logoUrl: myShop.logoUrl ?? '', coverUrl: myShop.coverUrl ?? '' });
+        setShopDraft({ name: myShop.name, story: myShop.story, tagline: myShop.tagline, city: myShop.city, accent: myShop.accent, logoUrl: myShop.logoUrl ?? '', coverUrl: myShop.coverUrl ?? '', categories: myShop.categories ?? [] });
         setWhatsappDraft(myShop.whatsappNumber ?? '');
         setDraft((current) => ({ ...current, category: myShop.categories[0] ?? current.category }));
         const myListings = await listingService.mine();
@@ -227,7 +227,7 @@ export function SellerDashboardPage() {
     try {
       const updated = await shopService.update(shop.id, shopDraft);
       setShop(updated);
-      setShopDraft({ name: updated.name, story: updated.story, tagline: updated.tagline, city: updated.city, accent: updated.accent, logoUrl: updated.logoUrl ?? '', coverUrl: updated.coverUrl ?? '' });
+      setShopDraft({ name: updated.name, story: updated.story, tagline: updated.tagline, city: updated.city, accent: updated.accent, logoUrl: updated.logoUrl ?? '', coverUrl: updated.coverUrl ?? '', categories: updated.categories ?? [] });
       setFeedback('Shop settings updated.');
     } catch (caught) { setError(errorMessage(caught)); }
     finally { setBusyId(''); }
@@ -325,6 +325,25 @@ export function SellerDashboardPage() {
             <label className="field"><span>Storefront accent</span><select value={shopDraft.accent} onChange={(event) => setShopDraft({ ...shopDraft, accent: event.target.value })}><option value="#496a4d">Maker green</option><option value="#a94f47">Clay red</option><option value="#426c83">Lake blue</option><option value="#a37936">Warm gold</option></select></label>
             <label className="field"><span>Storefront cover photo</span><input type="file" accept="image/jpeg,image/png,image/webp,image/avif" disabled={uploadingPhotos} onChange={(event) => void uploadDashboardPhotos(event.target.files, 'cover')} /><small className="field-note">{shopDraft.coverUrl ? 'Cover image selected; save settings to publish.' : 'Optional · max 10 MB'}</small></label>
             <label className="field"><span>Shop logo</span><input type="file" accept="image/jpeg,image/png,image/webp,image/avif" disabled={uploadingPhotos} onChange={(event) => void uploadDashboardPhotos(event.target.files, 'logo')} /><small className="field-note">{shopDraft.logoUrl ? 'Logo selected; save settings to publish.' : 'Optional · max 10 MB'}</small></label>
+            <fieldset className="field field-wide category-picker">
+              <legend>Shop Categories (Select all that apply)</legend>
+              <div className="category-options">
+                {categories.map((item) => (
+                  <label className="category-option" key={item}>
+                    <input
+                      type="checkbox"
+                      checked={shopDraft.categories.includes(item)}
+                      onChange={() => {
+                        const exists = shopDraft.categories.includes(item);
+                        const updated = exists ? shopDraft.categories.filter(c => c !== item) : [...shopDraft.categories, item];
+                        setShopDraft({ ...shopDraft, categories: updated });
+                      }}
+                    />
+                    <span>{item}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
             <label className="field field-wide"><span>Shop story</span><textarea value={shopDraft.story} onChange={(event) => setShopDraft({ ...shopDraft, story: event.target.value })} required minLength={10} maxLength={500} rows={4} /></label>
             <button className="button button-outline" disabled={busyId === 'shop-settings'}>{busyId === 'shop-settings' ? 'Saving…' : 'Save shop settings'}</button>
           </form>

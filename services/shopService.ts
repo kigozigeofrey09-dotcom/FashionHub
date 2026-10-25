@@ -119,6 +119,7 @@ export const shopService = {
     if (input.city !== undefined) updatePayload.city = input.city;
     if (input.accent !== undefined) updatePayload.accent = input.accent;
     if (input.whatsappNumber !== undefined) updatePayload.whatsapp_number = input.whatsappNumber;
+    if (input.categories !== undefined) updatePayload.categories = input.categories;
     if (input.logoUrl !== undefined) updatePayload.logo_url = input.logoUrl || null;
     if (input.coverUrl !== undefined) updatePayload.cover_url = input.coverUrl || null;
 
