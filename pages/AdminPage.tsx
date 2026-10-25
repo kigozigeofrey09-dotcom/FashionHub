@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import {
   LayoutDashboard, TrendingUp, Store, ShieldCheck, Layers, ShoppingBag,
   CreditCard, Megaphone, AlertTriangle, Globe, Settings as SettingsIcon, LogOut,
-  Search, RefreshCw, Check, X, Bot, ChevronRight, ArrowUpRight, DollarSign, Send, Sparkles, Trash2, HelpCircle
+  Search, RefreshCw, Check, X, ArrowUpRight, DollarSign
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { useNavigate } from 'react-router-dom';
@@ -11,9 +11,8 @@ import { useAppContext } from '../context/AppContext';
 import { subscriptionsEnabled } from '../config/features';
 import { adminService } from '../services/adminService';
 import { shopService } from '../services/shopService';
-import { listingService } from '../services/listingService';
 import { errorMessage } from '../services/http';
-import type { AdminSettings, Country, SafetyReport, SubscriptionRecord, Shop, Listing, PlatformAnalytics } from '../types';
+import type { AdminSettings, Country, SafetyReport, SubscriptionRecord, Shop, PlatformAnalytics } from '../types';
 
 export function AdminPage() {
   const { session, signOut } = useAppContext();
@@ -22,7 +21,6 @@ export function AdminPage() {
 
   const [analytics, setAnalytics] = useState<PlatformAnalytics | null>(null);
   const [allShops, setAllShops] = useState<Shop[]>([]);
-  const [allListings, setAllListings] = useState<Listing[]>([]);
   const [queue, setQueue] = useState<SubscriptionRecord[]>([]);
   const [reports, setReports] = useState<SafetyReport[]>([]);
   const [countries, setCountries] = useState<Country[]>([]);
@@ -34,28 +32,19 @@ export function AdminPage() {
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Semmy Intelligent AI Agent State
-  const [aiQuery, setAiQuery] = useState('');
-  const [aiChat, setAiChat] = useState<Array<{ sender: 'ai' | 'user'; text: string; pendingAction?: any }>>([
-    { sender: 'ai', text: "Hey! I'm Semmy, your FashionHub administration agent. I can analyze marketplace performance, inspect storefronts, and execute authorized management tasks for you. What needs my attention today?" }
-  ]);
-  const [pendingConfirmation, setPendingConfirmation] = useState<any | null>(null);
-
   async function loadData() {
     setLoading(true);
     setError('');
     try {
-      const [anRes, shopsRes, listingsRes, queueRes, repRes, setRes] = await Promise.all([
+      const [anRes, shopsRes, queueRes, repRes, setRes] = await Promise.all([
         adminService.analytics(),
         shopService.list(),
-        listingService.search(new URLSearchParams()),
         subscriptionsEnabled ? adminService.paymentQueue() : Promise.resolve([]),
         adminService.reportsQueue(),
         adminService.settings()
       ]);
       setAnalytics(anRes);
       setAllShops(shopsRes);
-      setAllListings(listingsRes);
       setQueue(queueRes);
       setReports(repRes);
       setSettings(setRes);
@@ -96,71 +85,6 @@ export function AdminPage() {
     } finally {
       setBusy(false);
     }
-  }
-
-  async function handleSemmySubmit(e: FormEvent) {
-    e.preventDefault();
-    if (!aiQuery.trim()) return;
-    const userMsg = aiQuery.trim();
-    setAiQuery('');
-    setAiChat(prev => [...prev, { sender: 'user', text: userMsg }]);
-
-    const lower = userMsg.toLowerCase();
-
-    // Handle Confirmation response if pending
-    if (pendingConfirmation && (lower.includes('yes') || lower.includes('confirm') || lower.includes('proceed'))) {
-      const action = pendingConfirmation;
-      setPendingConfirmation(null);
-      if (action.type === 'delete_listing') {
-        try {
-          await listingService.remove(action.listing.id);
-          setAllListings(prev => prev.filter(l => l.id !== action.listing.id));
-          setAiChat(prev => [...prev, { sender: 'ai', text: `✅ Success! Product "${action.listing.name}" posted by ${action.listing.shopName} has been permanently deleted from the marketplace.` }]);
-        } catch (err: any) {
-          setAiChat(prev => [...prev, { sender: 'ai', text: `❌ Deletion failed: ${err?.message || 'Unauthorized or server error.'}` }]);
-        }
-      }
-      return;
-    } else if (pendingConfirmation && (lower.includes('no') || lower.includes('cancel'))) {
-      setPendingConfirmation(null);
-      setAiChat(prev => [...prev, { sender: 'ai', text: "Operation cancelled. Let me know if you need help with anything else!" }]);
-      return;
-    }
-
-    // Semmy Intent & Intelligence Engine
-    setTimeout(() => {
-      let reply = "";
-      let actionToConfirm = null;
-
-      if (lower.includes('how are you') || lower.includes('hello') || lower.includes('hi semmy')) {
-        reply = "Hello! I'm doing great and fully connected to FashionHub's live database. How can I help you manage the platform today?";
-      } else if (lower.includes('verified') || lower.includes('how many verified')) {
-        const verifiedCount = allShops.filter(s => s.isVerified).length;
-        reply = `We currently have ${verifiedCount} verified storefronts (Blue Tick ✓) out of ${allShops.length} total registered shops in the marketplace.`;
-      } else if (lower.includes('attention') || lower.includes('task') || lower.includes('activity') || lower.includes('summary') || lower.includes('summarize')) {
-        const pendingCount = queue.filter(item => item.status === 'pending_verification' || item.status === 'pending').length;
-        const pendingReports = reports.filter(r => r.status === 'open').length;
-        const unverifiedShops = allShops.filter(s => !s.isVerified).length;
-        reply = `Semmy Executive Summary:\n• Active Shops: ${allShops.length}\n• Pending MTN MoMo Subscriptions: ${pendingCount}\n• Unverified Storefronts: ${unverifiedShops}\n• Open Safety Reports: ${pendingReports}\n• Monthly Volume: UGX ${((analytics?.monthlyVolumeUgx || 45000000) / 1000000).toFixed(1)}M`;
-      } else if (lower.includes('delete') || lower.includes('remove product')) {
-        // Extract shop or product name
-        const match = allListings.find(l => lower.includes(l.name.toLowerCase()) || lower.includes(l.shopName.toLowerCase()));
-        if (match) {
-          actionToConfirm = { type: 'delete_listing', listing: match };
-          reply = `I found a matching product: **"${match.name}"** posted by **${match.shopName}** (Price: UGX ${match.price.toLocaleString()}). Are you sure you want me to delete this product? Reply **"Yes"** to confirm or **"No"** to cancel.`;
-        } else {
-          reply = `I searched active listings but couldn't find an exact match for that request. Here are some recent shops you can inspect: ${allShops.slice(0, 3).map(s => s.name).join(', ')}.`;
-        }
-      } else if (lower.includes('payment') || lower.includes('subscription') || lower.includes('momo')) {
-        const pending = queue.filter(item => item.status === 'pending_verification' || item.status === 'pending');
-        reply = `There are ${pending.length} pending MTN MoMo payment proofs awaiting verification for 0773927881 (Kabesha Bankenga).`;
-      } else {
-        reply = `I've analyzed your request against FashionHub telemetry. You can ask me to summarize activity, check verified sellers, review pending payments, or manage catalog listings securely.`;
-      }
-
-      setPendingConfirmation(actionToConfirm);
-      setAiChat(prev => [...prev, { sender: 'ai', text: reply }]);
-    }, 500);
   }
 
   const pendingPayments = queue.filter(item => item.status === 'pending_verification' || item.status === 'pending');
@@ -266,180 +190,128 @@ export function AdminPage() {
           </div>
         </header>
 
-        {/* Dashboard Body with Semmy AI Assistant Split */}
-        <div className="flex-1 flex flex-col xl:flex-row overflow-y-auto">
-          <div className="flex-1 p-6 space-y-6">
-            {message && <Notice tone="success">{message}</Notice>}
-            {error && <Notice tone="error">{error}</Notice>}
-            {loading && <Loading label="Loading enterprise admin telemetry..." />}
+        {/* Dashboard Body */}
+        <div className="flex-1 p-6 space-y-6 overflow-y-auto">
+          {message && <Notice tone="success">{message}</Notice>}
+          {error && <Notice tone="error">{error}</Notice>}
+          {loading && <Loading label="Loading enterprise admin telemetry..." />}
 
-            {!loading && activeTab === 'overview' && (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="bg-[#151c18] border border-[#222b25] rounded-2xl p-5 shadow-sm">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Users</span>
-                    <h3 className="text-2xl font-extrabold text-white mt-1">{analytics?.totalUsers?.toLocaleString() || 120}</h3>
-                  </div>
-                  <div className="bg-[#151c18] border border-[#222b25] rounded-2xl p-5 shadow-sm">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Active Shops</span>
-                    <h3 className="text-2xl font-extrabold text-white mt-1">{analytics?.totalShops?.toLocaleString() || 15}</h3>
-                  </div>
-                  <div className="bg-[#151c18] border border-[#222b25] rounded-2xl p-5 shadow-sm">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Verified Blue Tick ✓</span>
-                    <h3 className="text-2xl font-extrabold text-sky-400 mt-1">{analytics?.verifiedShops?.toLocaleString() || 5}</h3>
-                  </div>
-                  <div className="bg-[#151c18] border border-[#222b25] rounded-2xl p-5 shadow-sm">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Monthly Volume (GMV)</span>
-                    <h3 className="text-2xl font-extrabold text-emerald-400 mt-1">UGX {((analytics?.monthlyVolumeUgx || 45000000) / 1000000).toFixed(1)}M</h3>
-                  </div>
+          {!loading && activeTab === 'overview' && (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-[#151c18] border border-[#222b25] rounded-2xl p-5 shadow-sm">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Users</span>
+                  <h3 className="text-2xl font-extrabold text-white mt-1">{analytics?.totalUsers?.toLocaleString() || 120}</h3>
                 </div>
-
-                <div className="bg-[#151c18] border border-[#222b25] rounded-2xl p-6">
-                  <h3 className="text-sm font-bold text-white mb-4">Quick Administrative Actions</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <button onClick={() => setActiveTab('subscriptions')} className="p-4 bg-[#1b2520] hover:bg-[#222b25] border border-[#28362e] rounded-xl text-left transition-all">
-                      <span className="text-xs font-bold text-amber-400 block mb-1">MTN MoMo Queue</span>
-                      <span className="text-xs text-slate-300">{pendingPayments.length} pending payment proofs</span>
-                    </button>
-                    <button onClick={() => setActiveTab('sellers')} className="p-4 bg-[#1b2520] hover:bg-[#222b25] border border-[#28362e] rounded-xl text-left transition-all">
-                      <span className="text-xs font-bold text-sky-400 block mb-1">Verify Storefronts</span>
-                      <span className="text-xs text-slate-300">{allShops.filter(s => !s.isVerified).length} awaiting Blue Tick</span>
-                    </button>
-                    <button onClick={() => setActiveTab('reports')} className="p-4 bg-[#1b2520] hover:bg-[#222b25] border border-[#28362e] rounded-xl text-left transition-all">
-                      <span className="text-xs font-bold text-rose-400 block mb-1">Safety Moderation</span>
-                      <span className="text-xs text-slate-300">{openReports.length} open reports</span>
-                    </button>
-                  </div>
+                <div className="bg-[#151c18] border border-[#222b25] rounded-2xl p-5 shadow-sm">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Active Shops</span>
+                  <h3 className="text-2xl font-extrabold text-white mt-1">{analytics?.totalShops?.toLocaleString() || 15}</h3>
                 </div>
-              </>
-            )}
-
-            {!loading && activeTab === 'analytics' && (
-              <div className="bg-[#151c18] border border-[#222b25] rounded-2xl p-6 space-y-6">
-                <h3 className="text-sm font-bold text-white">Marketplace Revenue & Order Trends (UGX)</h3>
-                <div className="h-80 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#222b25" />
-                      <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} />
-                      <YAxis stroke="#94a3b8" fontSize={12} tickFormatter={v => `${(v/1000000).toFixed(0)}M`} />
-                      <Tooltip formatter={(v: any) => [`UGX ${Number(v).toLocaleString()}`, 'Revenue']} />
-                      <Area type="monotone" dataKey="Revenue" stroke="#059669" fill="#059669" fillOpacity={0.2} />
-                    </AreaChart>
-                  </ResponsiveContainer>
+                <div className="bg-[#151c18] border border-[#222b25] rounded-2xl p-5 shadow-sm">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Verified Blue Tick ✓</span>
+                  <h3 className="text-2xl font-extrabold text-sky-400 mt-1">{analytics?.verifiedShops?.toLocaleString() || 5}</h3>
+                </div>
+                <div className="bg-[#151c18] border border-[#222b25] rounded-2xl p-5 shadow-sm">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Monthly Volume (GMV)</span>
+                  <h3 className="text-2xl font-extrabold text-emerald-400 mt-1">UGX {((analytics?.monthlyVolumeUgx || 45000000) / 1000000).toFixed(1)}M</h3>
                 </div>
               </div>
-            )}
 
-            {!loading && activeTab === 'sellers' && (
               <div className="bg-[#151c18] border border-[#222b25] rounded-2xl p-6">
-                <h3 className="text-sm font-bold text-white mb-4">Storefront Verification Manager (Blue Tick ✓)</h3>
-                <div className="space-y-3">
-                  {allShops.map((shop) => (
-                    <div key={shop.id} className="p-4 bg-[#1b2520] border border-[#26352d] rounded-xl flex items-center justify-between">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <strong className="text-white text-xs">{shop.name}</strong>
-                          {shop.isVerified && <span className="text-sky-400 font-bold" title="Verified">✓</span>}
-                        </div>
-                        <span className="text-[11px] text-slate-400">{shop.city}, {shop.countryCode} · {shop.sellType}</span>
-                      </div>
-                      <button
-                        disabled={busy}
-                        onClick={() => toggleVerification(shop)}
-                        className={`py-2 px-4 rounded-xl text-xs font-bold transition-all ${shop.isVerified ? 'bg-rose-900/40 text-rose-300 border border-rose-800' : 'bg-sky-600 hover:bg-sky-500 text-white'}`}
-                      >
-                        {shop.isVerified ? 'Revoke Blue Tick' : 'Grant Blue Tick ✓'}
-                      </button>
-                    </div>
-                  ))}
-                  {!allShops.length && <EmptyState title="No shops registered">No storefronts available for moderation.</EmptyState>}
-                </div>
-              </div>
-            )}
-
-            {!loading && activeTab === 'subscriptions' && (
-              <div className="bg-[#151c18] border border-[#222b25] rounded-2xl p-6">
-                <h3 className="text-sm font-bold text-white mb-2">MTN MoMo Subscription Review Queue (0773927881)</h3>
-                <p className="text-xs text-slate-400 mb-4">Recipient: <strong>Kabesha Bankenga</strong> · Fee: UGX 10,000 / month</p>
-                <div className="space-y-3">
-                  {pendingPayments.map((record) => (
-                    <div key={record.id} className="p-4 bg-[#1b2520] border border-[#26352d] rounded-xl flex items-center justify-between">
-                      <div>
-                        <span className="px-2.5 py-0.5 bg-amber-500/20 text-amber-400 text-[10px] font-bold rounded-full">{record.status}</span>
-                        <h4 className="font-bold text-white text-xs mt-1">{record.planName ?? record.planId} · {record.countryCode}</h4>
-                        <small className="text-[10px] text-slate-400">Ref: {record.transactionReference}</small>
-                      </div>
-                      <div className="flex gap-2">
-                        <button onClick={() => reviewPayment(record.id, 'declined')} disabled={busy} className="py-2 px-3 bg-rose-900/40 text-rose-300 rounded-xl text-xs font-semibold">Decline</button>
-                        <button onClick={() => reviewPayment(record.id, 'approved')} disabled={busy} className="py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold">Approve (+30 Days)</button>
-                      </div>
-                    </div>
-                  ))}
-                  {!pendingPayments.length && <EmptyState title="No pending payment submissions">All MTN MoMo payments have been verified.</EmptyState>}
-                </div>
-              </div>
-            )}
-
-            {!loading && (activeTab === 'ads' || activeTab === 'reports' || activeTab === 'countries' || activeTab === 'settings') && (
-              <div className="bg-[#151c18] border border-[#222b25] rounded-2xl p-8 text-center text-slate-400 text-xs">
-                {activeTab === 'ads' && <p>Manage active seller advertisements and sponsored homepage banners via <a href="/admin/advertisements" className="text-emerald-400 underline">/admin/advertisements</a>.</p>}
-                {activeTab === 'reports' && <p>Review reported listings and customer disputes in the moderation queue above.</p>}
-                {activeTab === 'countries' && <p>Configure regional currencies and payment instructions for East Africa.</p>}
-                {activeTab === 'settings' && <p>FashionHub enterprise tier settings are fully synchronized with Supabase.</p>}
-              </div>
-            )}
-          </div>
-
-          {/* Right Sidebar: Semmy AI Assistant */}
-          <aside className="w-full xl:w-80 bg-[#121815] border-l border-[#222b25] p-6 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center gap-3 mb-4 pb-4 border-b border-[#222b25]">
-                <div className="p-2.5 bg-emerald-600/20 text-emerald-400 rounded-xl">
-                  <Sparkles size={20} />
-                </div>
-                <div>
-                  <h3 className="font-bold text-white text-xs">Semmy · AI Assistant</h3>
-                  <span className="text-[10px] text-slate-400">FashionHub Administrator</span>
-                </div>
-              </div>
-
-              <div className="space-y-2 mb-4">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Suggested Queries</span>
-                {['Semmy, summarize today\'s activity', 'Which sellers need verification?', 'What needs my attention?'].map((suggestion, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setAiQuery(suggestion)}
-                    className="w-full text-left p-2.5 bg-[#18231f] hover:bg-[#222b25] text-slate-300 text-xs rounded-xl transition-all flex items-center justify-between"
-                  >
-                    <span>{suggestion}</span>
-                    <ChevronRight size={14} className="text-slate-500" />
+                <h3 className="text-sm font-bold text-white mb-4">Quick Administrative Actions</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <button onClick={() => setActiveTab('subscriptions')} className="p-4 bg-[#1b2520] hover:bg-[#222b25] border border-[#28362e] rounded-xl text-left transition-all">
+                    <span className="text-xs font-bold text-amber-400 block mb-1">MTN MoMo Queue</span>
+                    <span className="text-xs text-slate-300">{pendingPayments.length} pending payment proofs</span>
                   </button>
-                ))}
+                  <button onClick={() => setActiveTab('sellers')} className="p-4 bg-[#1b2520] hover:bg-[#222b25] border border-[#28362e] rounded-xl text-left transition-all">
+                    <span className="text-xs font-bold text-sky-400 block mb-1">Verify Storefronts</span>
+                    <span className="text-xs text-slate-300">{allShops.filter(s => !s.isVerified).length} awaiting Blue Tick</span>
+                  </button>
+                  <button onClick={() => setActiveTab('reports')} className="p-4 bg-[#1b2520] hover:bg-[#222b25] border border-[#28362e] rounded-xl text-left transition-all">
+                    <span className="text-xs font-bold text-rose-400 block mb-1">Safety Moderation</span>
+                    <span className="text-xs text-slate-300">{openReports.length} open reports</span>
+                  </button>
+                </div>
               </div>
+            </>
+          )}
 
-              <div className="space-y-3 max-h-64 overflow-y-auto pr-1 mb-4">
-                {aiChat.map((msg, i) => (
-                  <div key={i} className={`p-3 rounded-xl text-xs leading-relaxed ${msg.sender === 'user' ? 'bg-[#222b25] text-white ml-6' : 'bg-[#18231f] text-slate-300 border border-[#26352d] mr-6'}`}>
-                    <p>{msg.text}</p>
-                  </div>
-                ))}
+          {!loading && activeTab === 'analytics' && (
+            <div className="bg-[#151c18] border border-[#222b25] rounded-2xl p-6 space-y-6">
+              <h3 className="text-sm font-bold text-white">Marketplace Revenue & Order Trends (UGX)</h3>
+              <div className="h-80 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#222b25" />
+                    <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} />
+                    <YAxis stroke="#94a3b8" fontSize={12} tickFormatter={v => `${(v/1000000).toFixed(0)}M`} />
+                    <Tooltip formatter={(v: any) => [`UGX ${Number(v).toLocaleString()}`, 'Revenue']} />
+                    <Area type="monotone" dataKey="Revenue" stroke="#059669" fill="#059669" fillOpacity={0.2} />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
             </div>
+          )}
 
-            <form onSubmit={handleSemmySubmit} className="flex gap-2 pt-3 border-t border-[#222b25]">
-              <input
-                type="text"
-                value={aiQuery}
-                onChange={e => setAiQuery(e.target.value)}
-                placeholder="Ask Semmy..."
-                className="flex-1 px-3 py-2.5 bg-[#18231f] border border-[#26352d] rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
-              />
-              <button type="submit" className="p-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition-all">
-                <Send size={16} />
-              </button>
-            </form>
-          </aside>
+          {!loading && activeTab === 'sellers' && (
+            <div className="bg-[#151c18] border border-[#222b25] rounded-2xl p-6">
+              <h3 className="text-sm font-bold text-white mb-4">Storefront Verification Manager (Blue Tick ✓)</h3>
+              <div className="space-y-3">
+                {allShops.map((shop) => (
+                  <div key={shop.id} className="p-4 bg-[#1b2520] border border-[#26352d] rounded-xl flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <strong className="text-white text-xs">{shop.name}</strong>
+                        {shop.isVerified && <span className="text-sky-400 font-bold" title="Verified">✓</span>}
+                      </div>
+                      <span className="text-[11px] text-slate-400">{shop.city}, {shop.countryCode} · {shop.sellType}</span>
+                    </div>
+                    <button
+                      disabled={busy}
+                      onClick={() => toggleVerification(shop)}
+                      className={`py-2 px-4 rounded-xl text-xs font-bold transition-all ${shop.isVerified ? 'bg-rose-900/40 text-rose-300 border border-rose-800' : 'bg-sky-600 hover:bg-sky-500 text-white'}`}
+                    >
+                      {shop.isVerified ? 'Revoke Blue Tick' : 'Grant Blue Tick ✓'}
+                    </button>
+                  </div>
+                ))}
+                {!allShops.length && <EmptyState title="No shops registered">No storefronts available for moderation.</EmptyState>}
+              </div>
+            </div>
+          )}
+
+          {!loading && activeTab === 'subscriptions' && (
+            <div className="bg-[#151c18] border border-[#222b25] rounded-2xl p-6">
+              <h3 className="text-sm font-bold text-white mb-2">MTN MoMo Subscription Review Queue (0773927881)</h3>
+              <p className="text-xs text-slate-400 mb-4">Recipient: <strong>Kabesha Bankenga</strong> · Fee: UGX 10,000 / month</p>
+              <div className="space-y-3">
+                {pendingPayments.map((record) => (
+                  <div key={record.id} className="p-4 bg-[#1b2520] border border-[#26352d] rounded-xl flex items-center justify-between">
+                    <div>
+                      <span className="px-2.5 py-0.5 bg-amber-500/20 text-amber-400 text-[10px] font-bold rounded-full">{record.status}</span>
+                      <h4 className="font-bold text-white text-xs mt-1">{record.planName ?? record.planId} · {record.countryCode}</h4>
+                      <small className="text-[10px] text-slate-400">Ref: {record.transactionReference}</small>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => reviewPayment(record.id, 'declined')} disabled={busy} className="py-2 px-3 bg-rose-900/40 text-rose-300 rounded-xl text-xs font-semibold">Decline</button>
+                      <button onClick={() => reviewPayment(record.id, 'approved')} disabled={busy} className="py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold">Approve (+30 Days)</button>
+                    </div>
+                  </div>
+                ))}
+                {!pendingPayments.length && <EmptyState title="No pending payment submissions">All MTN MoMo payments have been verified.</EmptyState>}
+              </div>
+            </div>
+          )}
+
+          {!loading && (activeTab === 'ads' || activeTab === 'reports' || activeTab === 'countries' || activeTab === 'settings') && (
+            <div className="bg-[#151c18] border border-[#222b25] rounded-2xl p-8 text-center text-slate-400 text-xs">
+              {activeTab === 'ads' && <p>Manage active seller advertisements and sponsored homepage banners via <a href="/admin/advertisements" className="text-emerald-400 underline">/admin/advertisements</a>.</p>}
+              {activeTab === 'reports' && <p>Review reported listings and customer disputes in the moderation queue above.</p>}
+              {activeTab === 'countries' && <p>Configure regional currencies and payment instructions for East Africa.</p>}
+              {activeTab === 'settings' && <p>FashionHub enterprise tier settings are fully synchronized with Supabase.</p>}
+            </div>
+          )}
         </div>
       </div>
     </div>
