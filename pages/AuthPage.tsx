@@ -35,7 +35,9 @@ export function AuthPage() {
     try {
       if (mode === 'sign-up') {
         const result = await authService.signUp({ name: name.trim(), email: email.trim(), password, role, countryCode });
-        setMessage(result.message || 'Check your email to confirm your account, then sign in with your password.');
+        await refreshSession();
+        const destination = role === 'admin' ? '/admin' : role === 'seller' ? '/seller/setup' : '/account';
+        navigate(destination, { replace: true });
       } else if (mode === 'sign-in') {
         const result = await authService.signIn({ email: email.trim(), password, role });
         await refreshSession();
@@ -78,4 +80,3 @@ export function AuthPage() {
     </div>
   </section>;
 }
-

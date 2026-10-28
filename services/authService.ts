@@ -95,6 +95,14 @@ export const authService = {
     });
     if (error) throw new Error(error.message);
 
+    // Automatically sign in the user immediately upon sign up so they go straight into the app!
+    try {
+      await supabase.auth.signInWithPassword({
+        email: input.email,
+        password: input.password
+      });
+    } catch {}
+
     if (data.user) {
       try {
         await supabase.from('profiles').upsert({
@@ -116,7 +124,16 @@ export const authService = {
       } catch {}
     }
 
-    return { message: 'Account created successfully! Please sign in with your email and password.' };
+    return {
+      message: 'Account created successfully!',
+      user: {
+        id: data.user?.id || '',
+        name: input.name,
+        email: input.email,
+        role: assignedRole,
+        countryCode: input.countryCode
+      }
+    };
   },
 
   requestPasswordReset: async (email: string) => {
