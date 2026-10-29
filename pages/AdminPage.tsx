@@ -130,12 +130,13 @@ export function AdminPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#eef2f5] text-[#334155] flex font-sans antialiased overflow-x-hidden selection:bg-[#e04b4a] selection:text-white">
-      {/* Dark Slate Left Sidebar (#1d2531) */}
-      <aside className="w-64 bg-[#1d2531] text-[#94a3b8] flex flex-col justify-between hidden md:flex sticky top-0 h-screen shadow-2xl z-30">
-        <div>
-          {/* Top Brand Logo Card with Orange background (#e04b4a) */}
-          <div className="h-16 bg-[#e04b4a] text-white flex items-center justify-center font-black tracking-widest text-xl shadow-md uppercase">
+    <div className="flex h-screen bg-slate-100 overflow-hidden font-sans antialiased text-slate-800">
+
+      {/* Sidebar Wrapper */}
+      <aside className="w-64 bg-[#1d2531] text-slate-300 flex flex-col flex-shrink-0 shadow-2xl z-30">
+        <div className="flex-1 overflow-y-auto">
+          {/* Branded Orange Header ("ATLANT") */}
+          <div className="h-16 bg-[#e04b4a] text-white flex items-center justify-center font-black tracking-widest text-xl uppercase shadow-md">
             ATLANT
           </div>
 
@@ -151,7 +152,6 @@ export function AdminPage() {
             </div>
             <h3 className="font-bold text-white text-sm">John Doe</h3>
             <span className="text-[11px] text-slate-400 mt-0.5">Web Developer/Designer</span>
-
             <div className="flex items-center gap-2 mt-3">
               <button className="w-7 h-7 rounded bg-[#242f3e] hover:bg-[#2d3a4d] text-slate-300 flex items-center justify-center text-xs" title="Info"><Info size={13} /></button>
               <button className="w-7 h-7 rounded bg-[#242f3e] hover:bg-[#2d3a4d] text-slate-300 flex items-center justify-center text-xs" title="Messages"><MessageSquare size={13} /></button>
@@ -165,7 +165,7 @@ export function AdminPage() {
             <div className="space-y-0.5">
               <button onClick={() => setActiveTab('overview')} className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded transition-all ${activeTab === 'overview' ? 'bg-[#242f3e] text-white border-l-4 border-[#e04b4a]' : 'text-slate-400 hover:text-white hover:bg-[#242f3e]'}`}>
                 <span className="flex items-center gap-3"><LayoutDashboard size={15} /> Dashboards</span>
-                <span className="text-[10px] text-slate-500 font-bold">▼</span>
+                <span className="text-[10px] text-slate-400 font-bold">▼</span>
               </button>
               {activeTab === 'overview' && (
                 <div className="pl-8 py-1 space-y-1 bg-[#18202b]/50">
@@ -193,17 +193,18 @@ export function AdminPage() {
           </nav>
         </div>
 
-        <div className="p-4 border-t border-[#293548] bg-[#18202b]">
+        <div className="p-4 border-t border-[#293548] bg-[#18202b] flex-shrink-0">
           <button onClick={() => signOut()} className="w-full py-2.5 bg-rose-950/40 hover:bg-rose-900/50 text-rose-300 border border-rose-800/40 rounded text-xs font-semibold flex items-center justify-center gap-2 transition-all">
-            <LogOut size={14} /> Secure Sign Out
+            <Power size={14} /> Secure Sign Out
           </button>
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#eef2f5]">
-        {/* Top Header Bar (#242f3e) */}
-        <header className="h-16 bg-[#242f3e] text-white px-6 flex items-center justify-between sticky top-0 z-20 shadow-md">
+      {/* Main Content Container */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+        {/* Header Bar */}
+        <header className="h-16 bg-[#242f3e] text-white flex items-center justify-between px-6 shadow-md flex-shrink-0 z-20">
           <div className="flex items-center gap-4">
             <button className="p-1.5 text-slate-300 hover:text-white rounded hover:bg-[#1d2531]">
               <Menu size={18} />
@@ -221,10 +222,7 @@ export function AdminPage() {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* UK Flag icon */}
-            <div className="flex items-center gap-1 cursor-pointer" title="Language: English">
-              <span className="text-base">🇬🇧</span>
-            </div>
+            <div className="cursor-pointer text-base" title="English">🇬🇧</div>
 
             {/* Notification badge 3 */}
             <div className="relative cursor-pointer">
@@ -239,33 +237,37 @@ export function AdminPage() {
               <div className="w-8 h-8 rounded bg-[#1d2531] flex items-center justify-center text-slate-300 hover:text-white">
                 <Mail size={16} />
               </div>
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white text-[10px] font-black rounded-full flex items-center justify-center">4</span>
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center">4</span>
             </div>
 
-            {/* User profile icon */}
             <div className="w-8 h-8 rounded-full overflow-hidden border border-white/20 cursor-pointer">
-              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="User" className="w-full h-full object-cover" />
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="Profile" className="w-full h-full object-cover" />
             </div>
 
-            {/* Power / Logout icon */}
             <button onClick={() => signOut()} className="w-8 h-8 rounded bg-[#1d2531] hover:bg-rose-950 text-slate-300 hover:text-rose-400 flex items-center justify-center transition-all" title="Logout">
               <Power size={16} />
             </button>
           </div>
         </header>
 
-        {/* Dashboard Body */}
-        <div className="flex-1 p-6 space-y-6 overflow-y-auto">
+        {/* Main Content Area */}
+        <main className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-100">
+
+          {/* Breadcrumbs */}
+          <div className="text-xs text-slate-500 font-medium">
+            Home <span className="mx-1">/</span> <span className="text-slate-800 font-bold capitalize">{activeTab}</span>
+          </div>
+
           {message && <Notice tone="success">{message}</Notice>}
           {error && <Notice tone="error">{error}</Notice>}
           {loading && <Loading label="Loading ATLANT telemetry..." />}
 
           {!loading && activeTab === 'overview' && (
             <>
-              {/* Top Summary KPI Cards (4 Grid Columns) */}
+              {/* 4-Column Metric Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 {/* Card 1: New Visitors */}
-                <div className="bg-white border border-[#d6dee6] rounded-md p-5 shadow-sm relative overflow-hidden">
+                <div className="bg-white border border-[#d6dee6] rounded-md p-5 shadow-sm hover:shadow transition-shadow relative">
                   <div className="flex items-start justify-between">
                     <div>
                       <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">NEW Visitors</span>
@@ -281,7 +283,7 @@ export function AdminPage() {
                 </div>
 
                 {/* Card 2: New Messages */}
-                <div className="bg-white border border-[#d6dee6] rounded-md p-5 shadow-sm relative overflow-hidden">
+                <div className="bg-white border border-[#d6dee6] rounded-md p-5 shadow-sm hover:shadow transition-shadow relative">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded bg-slate-100 flex items-center justify-center text-slate-600">
@@ -298,7 +300,7 @@ export function AdminPage() {
                 </div>
 
                 {/* Card 3: Registered Users */}
-                <div className="bg-white border border-[#d6dee6] rounded-md p-5 shadow-sm relative overflow-hidden">
+                <div className="bg-white border border-[#d6dee6] rounded-md p-5 shadow-sm hover:shadow transition-shadow relative">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded bg-slate-100 flex items-center justify-center text-slate-600">
@@ -318,12 +320,12 @@ export function AdminPage() {
                 <div className="bg-[#e04b4a] text-white rounded-md p-5 shadow-md relative overflow-hidden flex flex-col justify-between">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="text-3xl font-black tracking-tight">{timeString || '13:09'}</h3>
+                      <h3 className="text-3xl font-black tracking-tight">{timeString || '13:09:00'}</h3>
                       <span className="text-[11px] text-white/90 block mt-0.5">{dateString || 'Saturday, December 9, 2023'}</span>
                     </div>
                     <button className="w-5 h-5 rounded-full bg-black/10 hover:bg-black/20 text-white flex items-center justify-center text-xs">×</button>
                   </div>
-                  <div className="flex items-center gap-4 mt-4 pt-3 border-t border-white/20 text-white/90 text-xs">
+                  <div className="flex items-center gap-4 mt-4 pt-3 border-t border-white/20 text-white/90 text-sm">
                     <Clock size={15} />
                     <Bell size={15} />
                     <Calendar size={15} />
@@ -331,8 +333,9 @@ export function AdminPage() {
                 </div>
               </div>
 
-              {/* Middle Row (Sales & World Map + Projects Table) */}
+              {/* Middle Flex/Grid Split (Sales & World Map + Projects Table) */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
                 {/* Left Column (Sales & Map - 8 cols) */}
                 <div className="lg:col-span-8 bg-white border border-[#d6dee6] rounded-md p-6 shadow-sm">
                   <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
@@ -340,8 +343,8 @@ export function AdminPage() {
                       <h3 className="font-bold text-sm text-slate-800 uppercase">SALES</h3>
                       <p className="text-[11px] text-slate-400">Sales activity by period you selected</p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs bg-slate-100 px-3 py-1 rounded border border-slate-200 text-slate-600 font-medium">November 10, 2023 - December 9, 2023</span>
+                    <div className="text-xs bg-slate-100 px-3 py-1 rounded border border-slate-200 text-slate-600 font-medium">
+                      November 10, 2023 - December 9, 2023
                     </div>
                   </div>
 
@@ -382,20 +385,20 @@ export function AdminPage() {
                       </div>
                     </div>
 
-                    {/* Interactive World Map graphic simulation */}
+                    {/* World Map Container */}
                     <div className="bg-[#1d2531] rounded-md p-4 relative h-48 flex items-center justify-center overflow-hidden border border-slate-700 shadow-inner">
-                      <div className="absolute inset-0 opacity-25 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:12px_12px]"></div>
-                      <div className="text-center z-15 space-y-2">
+                      <div className="absolute inset-0 opacity-25 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:14px_14px]"></div>
+                      <div className="text-center z-10 space-y-2">
                         <div className="inline-block px-3 py-1 bg-sky-500/20 text-sky-400 text-[10px] font-bold rounded-full border border-sky-500/30 animate-pulse">
-                          🌍 Global Telemetry Active
+                          🌍 Interactive Global Telemetry
                         </div>
-                        <p className="text-[11px] text-slate-300">East Africa (Kampala) · Europe · North America · Asia</p>
+                        <p className="text-[11px] text-slate-300">East Africa · Europe · North America · Asia</p>
                       </div>
                     </div>
                   </div>
 
                   <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                    <span>⚠ Data update in end of each hour. You can update it manually by pressing update button.</span>
+                    <span>Data update in end of each hour. You can update it manually by pressing update button.</span>
                     <button onClick={loadData} className="px-3 py-1 bg-[#e04b4a] hover:bg-[#cc3c3b] text-white rounded font-bold transition-all shadow-sm">Update</button>
                   </div>
                 </div>
@@ -420,33 +423,33 @@ export function AdminPage() {
                       <tbody className="divide-y divide-slate-100">
                         <tr>
                           <td className="py-2.5 font-semibold text-slate-700">Atlant</td>
-                          <td className="py-2.5"><span className="px-2 py-0.5 bg-rose-600 text-white rounded text-[10px] font-bold">Developing</span></td>
-                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-rose-100 ml-auto rounded"><div className="w-3/4 h-full bg-rose-600 rounded"></div></div></td>
+                          <td className="py-2.5"><span className="px-2 py-0.5 bg-red-100 text-red-600 rounded text-[10px] font-bold">Developing</span></td>
+                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-red-100 ml-auto rounded"><div className="w-3/4 h-full bg-red-600 rounded"></div></div></td>
                         </tr>
                         <tr>
                           <td className="py-2.5 font-semibold text-slate-700">Gemini</td>
-                          <td className="py-2.5"><span className="px-2 py-0.5 bg-amber-500 text-white rounded text-[10px] font-bold">Updating</span></td>
-                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-amber-100 ml-auto rounded"><div className="w-1/2 h-full bg-amber-500 rounded"></div></div></td>
+                          <td className="py-2.5"><span className="px-2 py-0.5 bg-yellow-100 text-yellow-600 rounded text-[10px] font-bold">Updating</span></td>
+                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-yellow-100 ml-auto rounded"><div className="w-1/2 h-full bg-yellow-500 rounded"></div></div></td>
                         </tr>
                         <tr>
                           <td className="py-2.5 font-semibold text-slate-700">Taurus</td>
-                          <td className="py-2.5"><span className="px-2 py-0.5 bg-amber-500 text-white rounded text-[10px] font-bold">Updating</span></td>
-                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-amber-100 ml-auto rounded"><div className="w-2/3 h-full bg-amber-500 rounded"></div></div></td>
+                          <td className="py-2.5"><span className="px-2 py-0.5 bg-yellow-100 text-yellow-600 rounded text-[10px] font-bold">Updating</span></td>
+                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-yellow-100 ml-auto rounded"><div className="w-2/3 h-full bg-yellow-500 rounded"></div></div></td>
                         </tr>
                         <tr>
                           <td className="py-2.5 font-semibold text-slate-700">Leo</td>
-                          <td className="py-2.5"><span className="px-2 py-0.5 bg-emerald-600 text-white rounded text-[10px] font-bold">Support</span></td>
-                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-emerald-100 ml-auto rounded"><div className="w-5/6 h-full bg-emerald-600 rounded"></div></div></td>
+                          <td className="py-2.5"><span className="px-2 py-0.5 bg-green-100 text-green-600 rounded text-[10px] font-bold">Support</span></td>
+                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-green-100 ml-auto rounded"><div className="w-5/6 h-full bg-green-600 rounded"></div></div></td>
                         </tr>
                         <tr>
                           <td className="py-2.5 font-semibold text-slate-700">Virgo</td>
-                          <td className="py-2.5"><span className="px-2 py-0.5 bg-emerald-600 text-white rounded text-[10px] font-bold">Support</span></td>
-                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-emerald-100 ml-auto rounded"><div className="w-4/5 h-full bg-emerald-600 rounded"></div></div></td>
+                          <td className="py-2.5"><span className="px-2 py-0.5 bg-green-100 text-green-600 rounded text-[10px] font-bold">Support</span></td>
+                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-green-100 ml-auto rounded"><div className="w-4/5 h-full bg-green-600 rounded"></div></div></td>
                         </tr>
                         <tr>
                           <td className="py-2.5 font-semibold text-slate-700">Aquarius</td>
-                          <td className="py-2.5"><span className="px-2 py-0.5 bg-emerald-600 text-white rounded text-[10px] font-bold">Support</span></td>
-                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-emerald-100 ml-auto rounded"><div className="w-full h-full bg-emerald-600 rounded"></div></div></td>
+                          <td className="py-2.5"><span className="px-2 py-0.5 bg-green-100 text-green-600 rounded text-[10px] font-bold">Support</span></td>
+                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-green-100 ml-auto rounded"><div className="w-full h-full bg-green-600 rounded"></div></div></td>
                         </tr>
                       </tbody>
                     </table>
@@ -454,8 +457,9 @@ export function AdminPage() {
                 </div>
               </div>
 
-              {/* Bottom Row (Data Charts - 3 Columns) */}
+              {/* Bottom Chart Row (3 Columns) */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
                 {/* Chart 1: Sales & Event */}
                 <div className="bg-white border border-[#d6dee6] rounded-md p-6 shadow-sm">
                   <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
@@ -500,7 +504,7 @@ export function AdminPage() {
                   </div>
                 </div>
 
-                {/* Chart 3: Visitors Gauge / Donut */}
+                {/* Chart 3: Visitors Gauge */}
                 <div className="bg-white border border-[#d6dee6] rounded-md p-6 shadow-sm flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
                     <div>
@@ -533,9 +537,9 @@ export function AdminPage() {
                 </div>
               </div>
 
-              {/* Priority Operations Panel for Storefronts & Subscriptions */}
+              {/* FashionHub Local Operations Panel */}
               <div className="bg-white border border-[#d6dee6] rounded-md p-6 shadow-sm">
-                <h3 className="font-bold text-sm text-slate-800 uppercase mb-4">Storefront & Payment Operations</h3>
+                <h3 className="font-bold text-sm text-slate-800 uppercase mb-4">FashionHub Operations Feed</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <button onClick={() => setActiveTab('subscriptions')} className="p-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-left transition-all shadow-sm">
                     <span className="text-xs font-bold text-amber-600 block mb-1">MTN MoMo Queue</span>
@@ -628,7 +632,8 @@ export function AdminPage() {
               {activeTab === 'settings' && <p>FashionHub enterprise tier settings are fully synchronized with Supabase.</p>}
             </div>
           )}
-        </div>
+
+        </main>
       </div>
     </div>
   );
