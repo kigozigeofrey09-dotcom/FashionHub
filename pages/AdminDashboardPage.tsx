@@ -142,7 +142,6 @@ export const AdminDashboardPage = () => {
                 Exit to Storefront
               </button>
             </div>
-            </button>
           </div>
         </header>
 
