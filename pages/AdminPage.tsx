@@ -2,9 +2,10 @@ import { useEffect, useState, type FormEvent } from 'react';
 import {
   LayoutDashboard, TrendingUp, Store, ShieldCheck, Layers, ShoppingBag,
   CreditCard, Megaphone, AlertTriangle, Globe, Settings as SettingsIcon, LogOut,
-  Search, RefreshCw, Check, X, ArrowUpRight, DollarSign, Award, ShieldAlert
+  Search, RefreshCw, Check, X, ArrowUpRight, DollarSign, Award, ShieldAlert,
+  Mail, Users, Clock, Calendar, BarChart2, PieChart
 } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { EmptyState, Loading, Notice, StatusBadge } from '../components/ui';
 import { useAppContext } from '../context/AppContext';
@@ -31,6 +32,21 @@ export function AdminPage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Live clock state
+  const [timeString, setTimeString] = useState('');
+  const [dateString, setDateString] = useState('');
+
+  useEffect(() => {
+    function updateClock() {
+      const now = new Date();
+      setTimeString(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }));
+      setDateString(now.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
+    }
+    updateClock();
+    const timer = setInterval(updateClock, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   async function loadData() {
     setLoading(true);
@@ -99,199 +115,288 @@ export function AdminPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#070b14] text-[#e2e8f0] flex font-sans antialiased overflow-x-hidden selection:bg-emerald-500 selection:text-black">
-      {/* Classic & Cool Sidebar */}
-      <aside className="w-72 bg-[#0b111e] border-r border-[#1e293b]/80 flex flex-col justify-between hidden md:flex sticky top-0 h-screen shadow-2xl">
+    <div className="min-h-screen bg-[#eaedf1] text-[#334155] flex font-sans antialiased overflow-x-hidden selection:bg-red-500 selection:text-white">
+      {/* ATLANT Sidebar */}
+      <aside className="w-64 bg-[#202938] text-[#cbd5e1] flex flex-col justify-between hidden md:flex sticky top-0 h-screen shadow-xl z-30">
         <div>
-          <div className="p-6 border-b border-[#1e293b]/60 flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 text-black flex items-center justify-center font-black text-lg shadow-lg shadow-emerald-950/50">
-              FH
-            </div>
-            <div>
-              <h2 className="font-extrabold text-sm tracking-widest uppercase text-white">FashionHub</h2>
-              <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Command Console
-              </span>
-            </div>
+          {/* Vibrant Red Brand Header */}
+          <div className="h-16 bg-[#e74c3c] text-white flex items-center justify-center px-6 font-black tracking-widest text-lg shadow-md uppercase">
+            ATLANT
           </div>
 
-          <nav className="p-4 space-y-1 text-xs font-medium">
-            <p className="text-[10px] font-black text-slate-500 uppercase px-3 pt-3 tracking-widest">Analytics</p>
-            <button onClick={() => setActiveTab('overview')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all font-semibold ${activeTab === 'overview' ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 shadow-md' : 'text-slate-400 hover:text-white hover:bg-[#131d2e]'}`}>
-              <LayoutDashboard size={16} /> Overview
-            </button>
-            <button onClick={() => setActiveTab('analytics')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all font-semibold ${activeTab === 'analytics' ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 shadow-md' : 'text-slate-400 hover:text-white hover:bg-[#131d2e]'}`}>
-              <TrendingUp size={16} /> Telemetry & Trends
-            </button>
+          {/* Admin Profile Box */}
+          <div className="p-5 bg-[#1b222d] border-b border-[#2a3649] flex flex-col items-center text-center">
+            <div className="relative mb-3">
+              <img
+                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80"
+                alt="Admin profile"
+                className="w-20 h-20 rounded-full object-cover border-2 border-white/20 shadow-md"
+              />
+              <span className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 border-2 border-[#1b222d] rounded-full"></span>
+            </div>
+            <h3 className="font-bold text-white text-sm">{session?.user?.name || 'Super Admin'}</h3>
+            <span className="text-[11px] text-slate-400 mt-0.5">FashionHub Administrator</span>
+          </div>
 
-            <p className="text-[10px] font-black text-slate-500 uppercase px-3 pt-4 tracking-widest">Marketplace</p>
-            <button onClick={() => setActiveTab('sellers')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all font-semibold ${activeTab === 'sellers' ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 shadow-md' : 'text-slate-400 hover:text-white hover:bg-[#131d2e]'}`}>
-              <Store size={16} /> Storefronts & Blue Tick
+          {/* Navigation Menu */}
+          <nav className="p-3 space-y-1 text-xs font-semibold">
+            <p className="text-[10px] font-bold text-slate-500 uppercase px-3 pt-2 tracking-wider">Navigation</p>
+            <button onClick={() => setActiveTab('overview')} className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg transition-all ${activeTab === 'overview' ? 'bg-[#1b222d] text-white border-l-4 border-[#e74c3c]' : 'text-slate-400 hover:text-white hover:bg-[#283548]'}`}>
+              <span className="flex items-center gap-3"><LayoutDashboard size={16} /> Dashboards</span>
+              <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-bold">Live</span>
             </button>
-
-            <p className="text-[10px] font-black text-slate-500 uppercase px-3 pt-4 tracking-widest">Finance & Ads</p>
-            <button onClick={() => setActiveTab('subscriptions')} className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all font-semibold ${activeTab === 'subscriptions' ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 shadow-md' : 'text-slate-400 hover:text-white hover:bg-[#131d2e]'}`}>
+            <button onClick={() => setActiveTab('analytics')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-all ${activeTab === 'analytics' ? 'bg-[#1b222d] text-white border-l-4 border-[#e74c3c]' : 'text-slate-400 hover:text-white hover:bg-[#283548]'}`}>
+              <TrendingUp size={16} /> Telemetry Analytics
+            </button>
+            <button onClick={() => setActiveTab('sellers')} className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg transition-all ${activeTab === 'sellers' ? 'bg-[#1b222d] text-white border-l-4 border-[#e74c3c]' : 'text-slate-400 hover:text-white hover:bg-[#283548]'}`}>
+              <span className="flex items-center gap-3"><Store size={16} /> Storefronts</span>
+              <span className="text-[10px] bg-sky-500/20 text-sky-400 px-1.5 py-0.5 rounded font-bold">{allShops.length}</span>
+            </button>
+            <button onClick={() => setActiveTab('subscriptions')} className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg transition-all ${activeTab === 'subscriptions' ? 'bg-[#1b222d] text-white border-l-4 border-[#e74c3c]' : 'text-slate-400 hover:text-white hover:bg-[#283548]'}`}>
               <span className="flex items-center gap-3"><CreditCard size={16} /> Subscriptions</span>
               {pendingPayments.length > 0 && <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 text-[10px] font-bold rounded-full">{pendingPayments.length}</span>}
             </button>
-            <button onClick={() => setActiveTab('ads')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all font-semibold ${activeTab === 'ads' ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 shadow-md' : 'text-slate-400 hover:text-white hover:bg-[#131d2e]'}`}>
-              <Megaphone size={16} /> Advertisements
-            </button>
-
-            <p className="text-[10px] font-black text-slate-500 uppercase px-3 pt-4 tracking-widest">Trust & Safety</p>
-            <button onClick={() => setActiveTab('reports')} className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all font-semibold ${activeTab === 'reports' ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 shadow-md' : 'text-slate-400 hover:text-white hover:bg-[#131d2e]'}`}>
+            <button onClick={() => setActiveTab('reports')} className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg transition-all ${activeTab === 'reports' ? 'bg-[#1b222d] text-white border-l-4 border-[#e74c3c]' : 'text-slate-400 hover:text-white hover:bg-[#283548]'}`}>
               <span className="flex items-center gap-3"><AlertTriangle size={16} /> Reports</span>
               {openReports.length > 0 && <span className="px-2 py-0.5 bg-rose-500/20 text-rose-400 text-[10px] font-bold rounded-full">{openReports.length}</span>}
             </button>
-
-            <p className="text-[10px] font-black text-slate-500 uppercase px-3 pt-4 tracking-widest">Enterprise</p>
-            <button onClick={() => setActiveTab('countries')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all font-semibold ${activeTab === 'countries' ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 shadow-md' : 'text-slate-400 hover:text-white hover:bg-[#131d2e]'}`}>
+            <button onClick={() => setActiveTab('countries')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-all ${activeTab === 'countries' ? 'bg-[#1b222d] text-white border-l-4 border-[#e74c3c]' : 'text-slate-400 hover:text-white hover:bg-[#283548]'}`}>
               <Globe size={16} /> Countries & Regions
             </button>
-            <button onClick={() => setActiveTab('settings')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all font-semibold ${activeTab === 'settings' ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 shadow-md' : 'text-slate-400 hover:text-white hover:bg-[#131d2e]'}`}>
+            <button onClick={() => setActiveTab('settings')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-all ${activeTab === 'settings' ? 'bg-[#1b222d] text-white border-l-4 border-[#e74c3c]' : 'text-slate-400 hover:text-white hover:bg-[#283548]'}`}>
               <SettingsIcon size={16} /> Platform Settings
             </button>
           </nav>
         </div>
 
-        <div className="p-4 border-t border-[#1e293b]/60 bg-[#090e18]">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-black font-black flex items-center justify-center text-xs shadow-md">
-              {session?.user?.name ? session.user.name.slice(0, 1) : 'A'}
-            </div>
-            <div className="overflow-hidden">
-              <span className="block text-xs font-bold text-white truncate">{session?.user?.name || 'Super Admin'}</span>
-              <span className="block text-[10px] text-emerald-400/80 truncate">kigozigeofrey09@gmail.com</span>
-            </div>
-          </div>
-          <button onClick={() => signOut()} className="w-full py-2.5 bg-rose-950/30 hover:bg-rose-900/40 text-rose-300 border border-rose-800/40 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all">
+        <div className="p-4 border-t border-[#2a3649] bg-[#18202b]">
+          <button onClick={() => signOut()} className="w-full py-2.5 bg-rose-950/40 hover:bg-rose-900/50 text-rose-300 border border-rose-800/40 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all">
             <LogOut size={14} /> Secure Sign Out
           </button>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#070b14]">
-        {/* Classic Top Header */}
-        <header className="h-20 bg-[#0b111e]/90 backdrop-blur-md border-b border-[#1e293b]/80 px-8 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+      <div className="flex-1 flex flex-col min-w-0 bg-[#eaedf1]">
+        {/* Top Header matching ATLANT */}
+        <header className="h-16 bg-[#202938] text-white px-6 flex items-center justify-between sticky top-0 z-20 shadow-md">
           <div className="flex items-center gap-4">
-            <div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Administration Console</span>
-              <h1 className="text-xl font-black text-white capitalize tracking-tight">{activeTab.replace('-', ' ')}</h1>
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
+              <span>Home</span> <span className="text-slate-600">/</span> <span className="text-white capitalize">{activeTab}</span>
             </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="relative hidden sm:block">
-              <Search className="absolute left-3.5 top-3 text-slate-400" size={16} />
+              <Search className="absolute left-3 top-2.5 text-slate-400" size={15} />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search database & telemetry..."
-                className="pl-10 pr-4 py-2.5 bg-[#111827] border border-[#1f2937] rounded-2xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 w-72 transition-all shadow-inner"
+                placeholder="Search telemetry..."
+                className="pl-9 pr-4 py-1.5 bg-[#1b222d] border border-[#2a3649] rounded-md text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#e74c3c] w-64 shadow-inner"
               />
             </div>
-            <button onClick={loadData} className="p-3 bg-[#111827] hover:bg-[#192233] text-slate-300 hover:text-white rounded-2xl border border-[#1f2937] transition-all shadow-sm flex items-center gap-2 text-xs font-bold" title="Refresh Telemetry">
-              <RefreshCw size={16} /> <span className="hidden lg:inline">Sync Data</span>
+            <button onClick={loadData} className="p-2 bg-[#1b222d] hover:bg-[#2a3649] text-slate-300 rounded-md border border-[#2a3649] transition-all" title="Sync Telemetry">
+              <RefreshCw size={15} />
             </button>
           </div>
         </header>
 
         {/* Dashboard Body */}
-        <div className="flex-1 p-8 space-y-8 overflow-y-auto">
+        <div className="flex-1 p-6 space-y-6 overflow-y-auto">
           {message && <Notice tone="success">{message}</Notice>}
           {error && <Notice tone="error">{error}</Notice>}
-          {loading && <Loading label="Loading enterprise admin telemetry..." />}
+          {loading && <Loading label="Loading ATLANT telemetry..." />}
 
           {!loading && activeTab === 'overview' && (
             <>
-              {/* Key Metric Cards */}
+              {/* Top Row: 4 Stat Cards matching ATLANT template */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                <div className="bg-[#0b111e] border border-[#1e293b] rounded-3xl p-6 shadow-xl relative overflow-hidden group hover:border-emerald-500/40 transition-all">
-                  <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl group-hover:bg-emerald-500/10 transition-all"></div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Users</span>
-                    <span className="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl"><UsersIcon size={18} /></span>
+                {/* Visitors Card */}
+                <div className="bg-white border border-[#dce2e8] rounded-md p-5 shadow-sm relative overflow-hidden group">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">NEW Visitors</span>
+                      <h3 className="text-3xl font-black text-slate-800 mt-1">{analytics?.totalUsers?.toLocaleString() || '1,977'}</h3>
+                    </div>
+                    <button className="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-xs">×</button>
                   </div>
-                  <h3 className="text-3xl font-black text-white tracking-tight">{analytics?.totalUsers?.toLocaleString() || 120}</h3>
-                  <div className="mt-2 flex items-center gap-1.5 text-[11px] text-emerald-400 font-semibold">
-                    <ArrowUpRight size={14} /> +12.4% this month
-                  </div>
-                </div>
-
-                <div className="bg-[#0b111e] border border-[#1e293b] rounded-3xl p-6 shadow-xl relative overflow-hidden group hover:border-teal-500/40 transition-all">
-                  <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-teal-500/5 rounded-full blur-xl group-hover:bg-teal-500/10 transition-all"></div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Active Shops</span>
-                    <span className="p-2 bg-teal-500/10 text-teal-400 rounded-xl"><Store size={18} /></span>
-                  </div>
-                  <h3 className="text-3xl font-black text-white tracking-tight">{analytics?.totalShops?.toLocaleString() || 15}</h3>
-                  <div className="mt-2 flex items-center gap-1.5 text-[11px] text-teal-400 font-semibold">
-                    <ArrowUpRight size={14} /> Active storefronts
+                  <div className="mt-4 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-slate-400"></span>
+                    <span className="w-2 h-2 rounded-full bg-[#e74c3c]"></span>
+                    <span className="w-2 h-2 rounded-full bg-slate-300"></span>
                   </div>
                 </div>
 
-                <div className="bg-[#0b111e] border border-[#1e293b] rounded-3xl p-6 shadow-xl relative overflow-hidden group hover:border-sky-500/40 transition-all">
-                  <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-sky-500/5 rounded-full blur-xl group-hover:bg-sky-500/10 transition-all"></div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Verified Blue Tick ✓</span>
-                    <span className="p-2 bg-sky-500/10 text-sky-400 rounded-xl"><Award size={18} /></span>
-                  </div>
-                  <h3 className="text-3xl font-black text-sky-400 tracking-tight">{analytics?.verifiedShops?.toLocaleString() || 5}</h3>
-                  <div className="mt-2 flex items-center gap-1.5 text-[11px] text-sky-400 font-semibold">
-                    Trusted merchants
+                {/* New Messages Card */}
+                <div className="bg-white border border-[#dce2e8] rounded-md p-5 shadow-sm relative overflow-hidden group">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded bg-slate-100 flex items-center justify-center text-slate-600">
+                        <Mail size={24} />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-black text-slate-800">48</h3>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">NEW MESSAGES</span>
+                        <span className="text-[10px] text-slate-400">In your mailbox</span>
+                      </div>
+                    </div>
+                    <button className="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-xs">×</button>
                   </div>
                 </div>
 
-                <div className="bg-[#0b111e] border border-[#1e293b] rounded-3xl p-6 shadow-xl relative overflow-hidden group hover:border-amber-500/40 transition-all">
-                  <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-amber-500/5 rounded-full blur-xl group-hover:bg-amber-500/10 transition-all"></div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Monthly Volume (GMV)</span>
-                    <span className="p-2 bg-amber-500/10 text-amber-400 rounded-xl"><DollarSign size={18} /></span>
+                {/* Registered Users Card */}
+                <div className="bg-white border border-[#dce2e8] rounded-md p-5 shadow-sm relative overflow-hidden group">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded bg-slate-100 flex items-center justify-center text-slate-600">
+                        <Users size={24} />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-black text-slate-800">{analytics?.totalShops || '375'}</h3>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">REGISTERED USERS</span>
+                        <span className="text-[10px] text-slate-400">On your website</span>
+                      </div>
+                    </div>
+                    <button className="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-xs">×</button>
                   </div>
-                  <h3 className="text-2xl font-black text-emerald-400 tracking-tight mt-1">UGX {((analytics?.monthlyVolumeUgx || 45000000) / 1000000).toFixed(1)}M</h3>
-                  <div className="mt-2 flex items-center gap-1.5 text-[11px] text-amber-400 font-semibold">
-                    East Africa region
+                </div>
+
+                {/* Time / Clock Card (Red ATLANT style) */}
+                <div className="bg-[#c0392b] text-white rounded-md p-5 shadow-md relative overflow-hidden flex flex-col justify-between">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-3xl font-black tracking-tight">{timeString || '13:09'}</h3>
+                      <span className="text-[11px] text-white/80 block mt-0.5">{dateString || 'Saturday, December 9, 2023'}</span>
+                    </div>
+                    <button className="w-6 h-6 rounded-full bg-black/10 hover:bg-black/20 text-white flex items-center justify-center text-xs">×</button>
+                  </div>
+                  <div className="flex items-center gap-4 mt-4 pt-3 border-t border-white/15 text-white/80 text-xs">
+                    <Clock size={15} />
+                    <Calendar size={15} />
                   </div>
                 </div>
               </div>
 
-              {/* Quick Actions Panel */}
-              <div className="bg-[#0b111e] border border-[#1e293b] rounded-3xl p-8 shadow-xl">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="text-base font-extrabold text-white">Priority Administration Actions</h3>
-                    <p className="text-xs text-slate-400 mt-0.5">Manage queue verifications, subscriptions, and safety moderation.</p>
+              {/* Middle Row: Sales Activity & World Map simulation + Projects Table */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left 2 cols: Sales Activity & Progress */}
+                <div className="lg:col-span-2 bg-white border border-[#dce2e8] rounded-md p-6 shadow-sm">
+                  <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                    <div>
+                      <h3 className="font-bold text-sm text-slate-800 uppercase">SALES</h3>
+                      <p className="text-[11px] text-slate-400">Sales activity by period you selected</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs bg-slate-100 px-3 py-1 rounded border border-slate-200 text-slate-600 font-medium">November 10, 2023 - December 9, 2023</span>
+                    </div>
                   </div>
-                  <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-bold rounded-xl border border-emerald-500/20">Live Secure Feed</span>
+
+                  <div className="space-y-4 mb-6">
+                    <div>
+                      <div className="flex justify-between text-xs font-semibold text-slate-600 mb-1">
+                        <span>In Queue</span> <span>75%</span>
+                      </div>
+                      <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-slate-700 rounded-full" style={{ width: '75%' }}></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-xs font-semibold text-slate-600 mb-1">
+                        <span>Shipped Products</span> <span>450/500</span>
+                      </div>
+                      <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-slate-700 rounded-full" style={{ width: '90%' }}></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-xs font-semibold text-slate-600 mb-1">
+                        <span className="text-rose-600">Returned Products</span> <span>25/500</span>
+                      </div>
+                      <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-rose-500 rounded-full" style={{ width: '5%' }}></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-xs font-semibold text-slate-600 mb-1">
+                        <span className="text-amber-600">Progress Today</span> <span>75/150</span>
+                      </div>
+                      <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-amber-500 rounded-full" style={{ width: '50%' }}></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-[#202938] text-white rounded-md text-xs flex items-center justify-between">
+                    <span>⚠ Data update in end of each hour. You can update it manually by pressing update button.</span>
+                    <button onClick={loadData} className="px-3 py-1 bg-[#e74c3c] hover:bg-[#d63031] text-white rounded font-bold transition-all">Update</button>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                  <button onClick={() => setActiveTab('subscriptions')} className="p-6 bg-[#111827] hover:bg-[#162032] border border-[#1f2937] hover:border-amber-500/40 rounded-2xl text-left transition-all group shadow-md">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="p-2.5 bg-amber-500/10 text-amber-400 rounded-xl group-hover:scale-110 transition-transform"><CreditCard size={20} /></span>
-                      <span className="text-xs font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full">{pendingPayments.length} pending</span>
+                {/* Right col: Projects Table */}
+                <div className="bg-white border border-[#dce2e8] rounded-md p-6 shadow-sm">
+                  <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                    <div>
+                      <h3 className="font-bold text-sm text-slate-800 uppercase">PROJECTS</h3>
+                      <p className="text-[11px] text-slate-400">Projects activity</p>
                     </div>
-                    <span className="text-sm font-bold text-white block mb-1">MTN MoMo Queue</span>
-                    <span className="text-xs text-slate-400 leading-relaxed">Review and approve mobile money subscription transaction proofs.</span>
-                  </button>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase text-[10px]">
+                          <th className="pb-2 text-left">Project</th>
+                          <th className="pb-2 text-left">Status</th>
+                          <th className="pb-2 text-right">Activity</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        <tr>
+                          <td className="py-2.5 font-semibold text-slate-700">Atlant</td>
+                          <td className="py-2.5"><span className="px-2 py-0.5 bg-rose-500 text-white rounded text-[10px] font-bold">Developing</span></td>
+                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-rose-200 ml-auto rounded"><div className="w-3/4 h-full bg-rose-500 rounded"></div></div></td>
+                        </tr>
+                        <tr>
+                          <td className="py-2.5 font-semibold text-slate-700">Gemini</td>
+                          <td className="py-2.5"><span className="px-2 py-0.5 bg-amber-500 text-white rounded text-[10px] font-bold">Updating</span></td>
+                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-amber-200 ml-auto rounded"><div className="w-1/2 h-full bg-amber-500 rounded"></div></div></td>
+                        </tr>
+                        <tr>
+                          <td className="py-2.5 font-semibold text-slate-700">Taurus</td>
+                          <td className="py-2.5"><span className="px-2 py-0.5 bg-amber-500 text-white rounded text-[10px] font-bold">Updating</span></td>
+                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-amber-200 ml-auto rounded"><div className="w-2/3 h-full bg-amber-500 rounded"></div></div></td>
+                        </tr>
+                        <tr>
+                          <td className="py-2.5 font-semibold text-slate-700">Leo</td>
+                          <td className="py-2.5"><span className="px-2 py-0.5 bg-emerald-600 text-white rounded text-[10px] font-bold">Support</span></td>
+                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-emerald-200 ml-auto rounded"><div className="w-5/6 h-full bg-emerald-600 rounded"></div></div></td>
+                        </tr>
+                        <tr>
+                          <td className="py-2.5 font-semibold text-slate-700">Virgo</td>
+                          <td className="py-2.5"><span className="px-2 py-0.5 bg-emerald-600 text-white rounded text-[10px] font-bold">Support</span></td>
+                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-emerald-200 ml-auto rounded"><div className="w-4/5 h-full bg-emerald-600 rounded"></div></div></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
 
-                  <button onClick={() => setActiveTab('sellers')} className="p-6 bg-[#111827] hover:bg-[#162032] border border-[#1f2937] hover:border-sky-500/40 rounded-2xl text-left transition-all group shadow-md">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="p-2.5 bg-sky-500/10 text-sky-400 rounded-xl group-hover:scale-110 transition-transform"><Award size={20} /></span>
-                      <span className="text-xs font-bold text-sky-400 bg-sky-500/10 px-2.5 py-1 rounded-full">{allShops.filter(s => !s.isVerified).length} awaiting</span>
-                    </div>
-                    <span className="text-sm font-bold text-white block mb-1">Verify Storefronts</span>
-                    <span className="text-xs text-slate-400 leading-relaxed">Grant or revoke verified Blue Tick badges for merchant storefronts.</span>
+              {/* Quick Actions Panel for Storefronts & Subscriptions */}
+              <div className="bg-white border border-[#dce2e8] rounded-md p-6 shadow-sm">
+                <h3 className="font-bold text-sm text-slate-800 uppercase mb-4">Priority Operations</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <button onClick={() => setActiveTab('subscriptions')} className="p-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-left transition-all">
+                    <span className="text-xs font-bold text-amber-600 block mb-1">MTN MoMo Queue</span>
+                    <span className="text-xs text-slate-600">{pendingPayments.length} pending payment proofs</span>
                   </button>
-
-                  <button onClick={() => setActiveTab('reports')} className="p-6 bg-[#111827] hover:bg-[#162032] border border-[#1f2937] hover:border-rose-500/40 rounded-2xl text-left transition-all group shadow-md">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="p-2.5 bg-rose-500/10 text-rose-400 rounded-xl group-hover:scale-110 transition-transform"><ShieldAlert size={20} /></span>
-                      <span className="text-xs font-bold text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-full">{openReports.length} open</span>
-                    </div>
-                    <span className="text-sm font-bold text-white block mb-1">Safety Moderation</span>
-                    <span className="text-xs text-slate-400 leading-relaxed">Examine reported listings, customer disputes, and safety flags.</span>
+                  <button onClick={() => setActiveTab('sellers')} className="p-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-left transition-all">
+                    <span className="text-xs font-bold text-sky-600 block mb-1">Storefront Verification</span>
+                    <span className="text-xs text-slate-600">{allShops.filter(s => !s.isVerified).length} awaiting Blue Tick</span>
+                  </button>
+                  <button onClick={() => setActiveTab('reports')} className="p-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-left transition-all">
+                    <span className="text-xs font-bold text-rose-600 block mb-1">Safety Moderation</span>
+                    <span className="text-xs text-slate-600">{openReports.length} open reports</span>
                   </button>
                 </div>
               </div>
@@ -299,22 +404,16 @@ export function AdminPage() {
           )}
 
           {!loading && activeTab === 'analytics' && (
-            <div className="bg-[#0b111e] border border-[#1e293b] rounded-3xl p-8 shadow-xl space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-base font-extrabold text-white">Marketplace Revenue & Order Trends (UGX)</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">Real-time telemetry of regional marketplace sales volume.</p>
-                </div>
-                <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20">Updated Live</span>
-              </div>
-              <div className="h-80 w-full pt-4">
+            <div className="bg-white border border-[#dce2e8] rounded-md p-6 shadow-sm space-y-6">
+              <h3 className="font-bold text-sm text-slate-800 uppercase">Marketplace Revenue & Order Trends (UGX)</h3>
+              <div className="h-80 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                    <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} />
-                    <YAxis stroke="#94a3b8" fontSize={12} tickFormatter={v => `${(v/1000000).toFixed(0)}M`} />
-                    <Tooltip contentStyle={{ backgroundColor: '#0b111e', borderColor: '#1e293b', borderRadius: '1rem', color: '#fff', fontSize: '12px' }} formatter={(v: any) => [`UGX ${Number(v).toLocaleString()}`, 'Revenue']} />
-                    <Area type="monotone" dataKey="Revenue" stroke="#10b981" fill="#10b981" fillOpacity={0.2} strokeWidth={2} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
+                    <YAxis stroke="#64748b" fontSize={12} tickFormatter={v => `${(v/1000000).toFixed(0)}M`} />
+                    <Tooltip formatter={(v: any) => [`UGX ${Number(v).toLocaleString()}`, 'Revenue']} />
+                    <Area type="monotone" dataKey="Revenue" stroke="#e74c3c" fill="#e74c3c" fillOpacity={0.2} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -322,28 +421,22 @@ export function AdminPage() {
           )}
 
           {!loading && activeTab === 'sellers' && (
-            <div className="bg-[#0b111e] border border-[#1e293b] rounded-3xl p-8 shadow-xl">
-              <h3 className="text-base font-extrabold text-white mb-1">Storefront Verification Manager (Blue Tick ✓)</h3>
-              <p className="text-xs text-slate-400 mb-6">Manage merchant trust badges and verified storefront status across East Africa.</p>
-              <div className="space-y-4">
+            <div className="bg-white border border-[#dce2e8] rounded-md p-6 shadow-sm">
+              <h3 className="font-bold text-sm text-slate-800 uppercase mb-4">Storefront Verification Manager (Blue Tick ✓)</h3>
+              <div className="space-y-3">
                 {allShops.map((shop) => (
-                  <div key={shop.id} className="p-5 bg-[#111827] border border-[#1f2937] hover:border-emerald-500/30 rounded-2xl flex items-center justify-between transition-all shadow-md">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-emerald-950/40 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-lg">
-                        {shop.name.slice(0, 1)}
+                  <div key={shop.id} className="p-4 bg-slate-50 border border-slate-200 rounded flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <strong className="text-slate-800 text-xs">{shop.name}</strong>
+                        {shop.isVerified && <span className="text-sky-600 font-bold" title="Verified">✓</span>}
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <strong className="text-white text-sm font-extrabold">{shop.name}</strong>
-                          {shop.isVerified && <span className="px-2 py-0.5 bg-sky-500/20 text-sky-400 text-[10px] font-black rounded-full flex items-center gap-1">✓ Verified</span>}
-                        </div>
-                        <span className="text-xs text-slate-400">{shop.city}, {shop.countryCode} · <span className="text-emerald-400 font-semibold">{shop.sellType}</span></span>
-                      </div>
+                      <span className="text-[11px] text-slate-500">{shop.city}, {shop.countryCode} · {shop.sellType}</span>
                     </div>
                     <button
                       disabled={busy}
                       onClick={() => toggleVerification(shop)}
-                      className={`py-2.5 px-5 rounded-xl text-xs font-bold transition-all shadow-md ${shop.isVerified ? 'bg-rose-950/40 text-rose-300 border border-rose-800/40 hover:bg-rose-900/50' : 'bg-sky-600 hover:bg-sky-500 text-white shadow-sky-950/50'}`}
+                      className={`py-1.5 px-4 rounded text-xs font-bold transition-all ${shop.isVerified ? 'bg-rose-100 text-rose-700 border border-rose-300' : 'bg-sky-600 hover:bg-sky-500 text-white'}`}
                     >
                       {shop.isVerified ? 'Revoke Blue Tick' : 'Grant Blue Tick ✓'}
                     </button>
@@ -355,46 +448,31 @@ export function AdminPage() {
           )}
 
           {!loading && activeTab === 'subscriptions' && (
-            <div className="bg-[#0b111e] border border-[#1e293b] rounded-3xl p-8 shadow-xl">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-[#1e293b]">
-                <div>
-                  <h3 className="text-base font-extrabold text-white">MTN MoMo Subscription Review Queue</h3>
-                  <p className="text-xs text-slate-400 mt-1">Recipient Number: <strong className="text-white">0773927881</strong> (Kabesha Bankenga) · Standard Fee: <strong className="text-emerald-400">UGX 10,000 / month</strong></p>
-                </div>
-                <span className="px-3.5 py-1.5 bg-amber-500/10 text-amber-400 text-xs font-bold rounded-2xl border border-amber-500/20 self-start">
-                  {pendingPayments.length} pending review
-                </span>
-              </div>
-              <div className="space-y-4">
+            <div className="bg-white border border-[#dce2e8] rounded-md p-6 shadow-sm">
+              <h3 className="font-bold text-sm text-slate-800 uppercase mb-2">MTN MoMo Subscription Review Queue (0773927881)</h3>
+              <p className="text-xs text-slate-500 mb-4">Recipient: <strong>Kabesha Bankenga</strong> · Fee: UGX 10,000 / month</p>
+              <div className="space-y-3">
                 {pendingPayments.map((record) => (
-                  <div key={record.id} className="p-6 bg-[#111827] border border-[#1f2937] hover:border-amber-500/30 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all shadow-md">
+                  <div key={record.id} className="p-4 bg-slate-50 border border-slate-200 rounded flex items-center justify-between">
                     <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="px-2.5 py-0.5 bg-amber-500/20 text-amber-400 text-[10px] font-black uppercase tracking-wider rounded-full">{record.status}</span>
-                        <span className="text-xs text-slate-400 font-semibold">{record.countryCode} Region</span>
-                      </div>
-                      <h4 className="font-black text-white text-sm">{record.planName ?? record.planId}</h4>
-                      <p className="text-xs text-slate-300 mt-1 font-mono bg-[#090e18] px-3 py-1 rounded-lg border border-[#1e293b] inline-block">Ref: {record.transactionReference}</p>
+                      <span className="px-2.5 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-bold rounded">{record.status}</span>
+                      <h4 className="font-bold text-slate-800 text-xs mt-1">{record.planName ?? record.planId} · {record.countryCode}</h4>
+                      <small className="text-[10px] text-slate-500">Ref: {record.transactionReference}</small>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <button onClick={() => reviewPayment(record.id, 'declined')} disabled={busy} className="py-2.5 px-4 bg-rose-950/40 text-rose-300 hover:bg-rose-900/50 border border-rose-800/40 rounded-xl text-xs font-bold transition-all">Decline</button>
-                      <button onClick={() => reviewPayment(record.id, 'approved')} disabled={busy} className="py-2.5 px-5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-950/50">Approve (+30 Days)</button>
+                    <div className="flex gap-2">
+                      <button onClick={() => reviewPayment(record.id, 'declined')} disabled={busy} className="py-1.5 px-3 bg-rose-100 text-rose-700 rounded text-xs font-semibold">Decline</button>
+                      <button onClick={() => reviewPayment(record.id, 'approved')} disabled={busy} className="py-1.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-semibold">Approve (+30 Days)</button>
                     </div>
                   </div>
                 ))}
-                {!pendingPayments.length && <EmptyState title="No pending payment submissions">All MTN MoMo subscription payments have been verified and settled.</EmptyState>}
+                {!pendingPayments.length && <EmptyState title="No pending payment submissions">All MTN MoMo payments have been verified.</EmptyState>}
               </div>
             </div>
           )}
 
-          {!loading && (activeTab === 'ads' || activeTab === 'reports' || activeTab === 'countries' || activeTab === 'settings') && (
-            <div className="bg-[#0b111e] border border-[#1e293b] rounded-3xl p-12 text-center text-slate-400 text-xs shadow-xl space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto mb-4">
-                <SettingsIcon size={24} />
-              </div>
-              <h3 className="text-sm font-bold text-white">Enterprise Configuration Module</h3>
-              {activeTab === 'ads' && <p>Manage active seller advertisements and sponsored homepage banners via <a href="/admin/advertisements" className="text-emerald-400 underline font-semibold">/admin/advertisements</a>.</p>}
-              {activeTab === 'reports' && <p>Review reported listings and customer disputes in the moderation queue above.</p>}
+          {!loading && (activeTab === 'reports' || activeTab === 'countries' || activeTab === 'settings') && (
+            <div className="bg-white border border-[#dce2e8] rounded-md p-8 text-center text-slate-500 text-xs shadow-sm">
+              {activeTab === 'reports' && <p>Review reported listings and customer disputes in the moderation queue.</p>}
               {activeTab === 'countries' && <p>Configure regional currencies and payment instructions for East Africa.</p>}
               {activeTab === 'settings' && <p>FashionHub enterprise tier settings are fully synchronized with Supabase.</p>}
             </div>
@@ -402,16 +480,5 @@ export function AdminPage() {
         </div>
       </div>
     </div>
-  );
-}
-
-function UsersIcon({ size }: { size: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-      <circle cx="9" cy="7" r="4"></circle>
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-    </svg>
   );
 }
