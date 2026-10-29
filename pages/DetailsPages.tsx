@@ -20,6 +20,7 @@ export function ListingDetailPage() {
   const { listingId = '' } = useParams();
   const initialListing = demoDataEnabled ? seedListings.find((item) => item.id === listingId) ?? null : null;
   const [listing, setListing] = useState<Listing | null>(initialListing);
+  const [shop, setShop] = useState<Shop | null>(null);
   const [loading, setLoading] = useState(!listing);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -61,8 +62,8 @@ export function ListingDetailPage() {
   useEffect(() => {
     if (!listing?.shopId) return;
     const sampleShop = demoDataEnabled ? seedShops.find((item) => item.id === listing.shopId) : undefined;
-    if (sampleShop) { setSellerWhatsapp(sampleShop.whatsappNumber ?? ''); return; }
-    shopService.get(listing.shopId).then((shop) => { if (shop.whatsappNumber) setSellerWhatsapp(shop.whatsappNumber); }).catch(() => {});
+    if (sampleShop) { setShop(sampleShop); setSellerWhatsapp(sampleShop.whatsappNumber ?? ''); return; }
+    shopService.get(listing.shopId).then((nextShop) => { setShop(nextShop); if (nextShop.whatsappNumber) setSellerWhatsapp(nextShop.whatsappNumber); }).catch(() => {});
   }, [listing?.shopId]);
 
   function openWhatsAppOrder(event: FormEvent<HTMLFormElement>) {
@@ -70,17 +71,6 @@ export function ListingDetailPage() {
     if (!sellerWhatsapp) { setError('Seller WhatsApp is not available.'); return; }
     const text = `Hi ${listing?.shopName}, I found this ${listing?.type} on FashionHub:\n\n*${listing?.name}*\nPrice: UGX ${listing?.price.toLocaleString()}\nQty: ${quantity}${size ? `\nSize: ${size}` : ''}${colour ? `\nFinish: ${colour}` : ''}\nFulfillment: ${fulfillment}${fulfillmentDetails ? `\nDetails: ${fulfillmentDetails}` : ''}${buyerNote ? `\nNote: ${buyerNote}` : ''}\n\nPlease confirm availability!`;
     window.open(whatsappHref(sellerWhatsapp, text), '_blank', 'noopener,noreferrer');
-  }
-
-  async function sendEnquiry(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!listing) return;
-    setBusy(true); setError(''); setMessage('');
-    try {
-      await enquiryService.create({ listingId: listing.id, message: enquiry.trim() });
-      setMessage('Inquiry sent to the seller.'); setEnquiry('');
-    } catch (caught) { setError(errorMessage(caught)); }
-    finally { setBusy(false); }
   }
 
   async function submitListingReport(event: FormEvent<HTMLFormElement>) {
@@ -126,12 +116,12 @@ export function ListingDetailPage() {
         <p className="detail-price">UGX {listing.price.toLocaleString()}</p>
         <p className="detail-description">{listing.description}</p>
 
-        {/* Arcade Locator & In-Store Reserve */}
+        {/* Custom Seller Pickup / Arcade Locator */}
         <div style={{ background: '#fcfbfa', padding: '12px', border: '1px solid #e5e2da', margin: '15px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 650, color: '#315039', marginBottom: '4px' }}>
-            <Store size={14} /> Gazaland Arcade · First Floor, Shop F12 (Kampala)
+            <Store size={14} /> {shop?.arcadeName ? `${shop.arcadeName} · ${shop.floorNumber || ''} ${shop.shopNumber || ''} (${shop.city || listing.city})` : `${listing.shopName} · ${listing.city} Storefront`}
           </div>
-          <p style={{ fontSize: '10px', color: '#73776e', margin: '0 0 8px' }}>Available for physical try-on and fitting at our downtown arcade location.</p>
+          <p style={{ fontSize: '10px', color: '#73776e', margin: '0 0 8px' }}>Available for physical try-on and fitting at {shop?.name || listing.shopName}&apos;s location.</p>
           <button className="button button-outline" onClick={() => setReservedInStore(true)} style={{ fontSize: '10px', padding: '6px 12px', borderColor: '#315039', color: '#315039' }}>
             {reservedInStore ? 'Reserved for In-Store Fitting ✓' : 'Reserve for In-Store Fitting / Pickup'}
           </button>
@@ -175,7 +165,7 @@ export function ListingDetailPage() {
           <img src={listing.image} alt="" style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '8px' }} />
           <h3 style={{ margin: '12px 0 4px', font: '500 20px var(--serif)' }}>{listing.name}</h3>
           <p style={{ color: '#c7df77', fontSize: '16px', fontWeight: 'bold', margin: 0 }}>UGX {listing.price.toLocaleString()}</p>
-          <small style={{ display: 'block', marginTop: '8px', opacity: 0.8 }}>Available at {listing.shopName} · Gazaland Arcade · FashionHub Uganda</small>
+          <small style={{ display: 'block', marginTop: '8px', opacity: 0.8 }}>Available at {shop?.arcadeName ? `${shop.arcadeName} · ${shop.shopNumber || ''}` : listing.shopName} · FashionHub Uganda</small>
         </div>
         <p style={{ fontSize: '11px', color: '#73776e' }}>Ready to share directly to WhatsApp Status, Instagram, or TikTok!</p>
         <button className="button button-dark" onClick={() => setShowFlyer(false)} style={{ background: '#315039', color: '#fff' }}>Close Flyer</button>
@@ -208,7 +198,7 @@ export function ShopPage() {
   const access = useStorefrontAccess();
   const { shopId = '' } = useParams();
   const initialShop = demoDataEnabled ? seedShops.find((item) => item.id === shopId) ?? null : null;
-  const [shop, setShop] = useState<Shop | null>(initialShop);
+  const [shop, setShop] = useState<Shop | null>(null);
   const [listings, setListings] = useState<Listing[]>(demoDataEnabled ? seedListings.filter((item) => item.shopId === shopId) : []);
   const [loading, setLoading] = useState(!shop);
   const [error, setError] = useState('');
