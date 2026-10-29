@@ -145,12 +145,12 @@ export function AdminPage() {
             <div className="relative mb-3">
               <img
                 src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80"
-                alt="John Doe"
+                alt="Arsene Kabesha"
                 className="w-20 h-20 rounded-full object-cover border-2 border-white/20 shadow-lg"
               />
               <span className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 border-2 border-[#18202b] rounded-full"></span>
             </div>
-            <h3 className="font-bold text-white text-sm">John Doe</h3>
+            <h3 className="font-bold text-white text-sm">{session?.user?.name || 'Arsene Kabesha'}</h3>
             <span className="text-[11px] text-slate-400 mt-0.5">Web Developer/Designer</span>
             <div className="flex items-center gap-2 mt-3">
               <button className="w-7 h-7 rounded bg-[#242f3e] hover:bg-[#2d3a4d] text-slate-300 flex items-center justify-center text-xs" title="Info"><Info size={13} /></button>
