@@ -3,9 +3,9 @@ import {
   LayoutDashboard, TrendingUp, Store, ShieldCheck, Layers, ShoppingBag,
   CreditCard, Megaphone, AlertTriangle, Globe, Settings as SettingsIcon, LogOut,
   Search, RefreshCw, Check, X, ArrowUpRight, DollarSign, Award, ShieldAlert,
-  Mail, Users, Clock, Calendar, BarChart2, PieChart
+  Mail, Users, Clock, Calendar, BarChart2, PieChart, Menu, Bell, Power, Info, MessageSquare, Settings
 } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar, PieChart as RePieChart, Pie, Cell } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { EmptyState, Loading, Notice, StatusBadge } from '../components/ui';
 import { useAppContext } from '../context/AppContext';
@@ -40,7 +40,7 @@ export function AdminPage() {
   useEffect(() => {
     function updateClock() {
       const now = new Date();
-      setTimeString(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }));
+      setTimeString(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }));
       setDateString(now.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
     }
     updateClock();
@@ -107,97 +107,149 @@ export function AdminPage() {
   const openReports = reports.filter(r => r.status === 'open');
 
   const chartData = [
-    { month: 'Nov', Revenue: 28000000, Orders: 120 },
-    { month: 'Dec', Revenue: 54000000, Orders: 290 },
-    { month: 'Jan', Revenue: 38000000, Orders: 195 },
-    { month: 'Feb', Revenue: 42000000, Orders: 220 },
-    { month: 'Mar', Revenue: 45000000, Orders: 245 },
+    { month: 'Oct 11', Revenue: 4, Users: 15 },
+    { month: 'Oct 12', Revenue: 10, Users: 35 },
+    { month: 'Oct 13', Revenue: 7, Users: 28 },
+    { month: 'Oct 14', Revenue: 12, Users: 65 },
+    { month: 'Oct 15', Revenue: 20, Users: 95 },
+  ];
+
+  const userActivityData = [
+    { date: 'Oct 10', new: 70, returning: 35 },
+    { date: 'Oct 11', new: 40, returning: 20 },
+    { date: 'Oct 12', new: 85, returning: 40 },
+    { date: 'Oct 13', new: 60, returning: 30 },
+    { date: 'Oct 14', new: 90, returning: 45 },
+    { date: 'Oct 15', new: 95, returning: 50 },
+    { date: 'Oct 16', new: 75, returning: 38 },
+  ];
+
+  const donutData = [
+    { name: 'Returned', value: 2513, color: '#0ea5e9' },
+    { name: 'Remaining', value: 1200, color: '#f97316' },
   ];
 
   return (
-    <div className="min-h-screen bg-[#eaedf1] text-[#334155] flex font-sans antialiased overflow-x-hidden selection:bg-red-500 selection:text-white">
-      {/* ATLANT Sidebar */}
-      <aside className="w-64 bg-[#202938] text-[#cbd5e1] flex flex-col justify-between hidden md:flex sticky top-0 h-screen shadow-xl z-30">
+    <div className="min-h-screen bg-[#eef2f5] text-[#334155] flex font-sans antialiased overflow-x-hidden selection:bg-[#e04b4a] selection:text-white">
+      {/* Dark Slate Left Sidebar (#1d2531) */}
+      <aside className="w-64 bg-[#1d2531] text-[#94a3b8] flex flex-col justify-between hidden md:flex sticky top-0 h-screen shadow-2xl z-30">
         <div>
-          {/* Vibrant Red Brand Header */}
-          <div className="h-16 bg-[#e74c3c] text-white flex items-center justify-center px-6 font-black tracking-widest text-lg shadow-md uppercase">
+          {/* Top Brand Logo Card with Orange background (#e04b4a) */}
+          <div className="h-16 bg-[#e04b4a] text-white flex items-center justify-center font-black tracking-widest text-xl shadow-md uppercase">
             ATLANT
           </div>
 
-          {/* Admin Profile Box */}
-          <div className="p-5 bg-[#1b222d] border-b border-[#2a3649] flex flex-col items-center text-center">
+          {/* Top Profile Block */}
+          <div className="p-5 bg-[#18202b] border-b border-[#293548] flex flex-col items-center text-center relative">
             <div className="relative mb-3">
               <img
                 src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80"
-                alt="Admin profile"
-                className="w-20 h-20 rounded-full object-cover border-2 border-white/20 shadow-md"
+                alt="John Doe"
+                className="w-20 h-20 rounded-full object-cover border-2 border-white/20 shadow-lg"
               />
-              <span className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 border-2 border-[#1b222d] rounded-full"></span>
+              <span className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 border-2 border-[#18202b] rounded-full"></span>
             </div>
-            <h3 className="font-bold text-white text-sm">{session?.user?.name || 'Super Admin'}</h3>
-            <span className="text-[11px] text-slate-400 mt-0.5">FashionHub Administrator</span>
+            <h3 className="font-bold text-white text-sm">John Doe</h3>
+            <span className="text-[11px] text-slate-400 mt-0.5">Web Developer/Designer</span>
+
+            <div className="flex items-center gap-2 mt-3">
+              <button className="w-7 h-7 rounded bg-[#242f3e] hover:bg-[#2d3a4d] text-slate-300 flex items-center justify-center text-xs" title="Info"><Info size={13} /></button>
+              <button className="w-7 h-7 rounded bg-[#242f3e] hover:bg-[#2d3a4d] text-slate-300 flex items-center justify-center text-xs" title="Messages"><MessageSquare size={13} /></button>
+            </div>
           </div>
 
           {/* Navigation Menu */}
           <nav className="p-3 space-y-1 text-xs font-semibold">
             <p className="text-[10px] font-bold text-slate-500 uppercase px-3 pt-2 tracking-wider">Navigation</p>
-            <button onClick={() => setActiveTab('overview')} className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg transition-all ${activeTab === 'overview' ? 'bg-[#1b222d] text-white border-l-4 border-[#e74c3c]' : 'text-slate-400 hover:text-white hover:bg-[#283548]'}`}>
-              <span className="flex items-center gap-3"><LayoutDashboard size={16} /> Dashboards</span>
-              <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-bold">Live</span>
+
+            <div className="space-y-0.5">
+              <button onClick={() => setActiveTab('overview')} className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded transition-all ${activeTab === 'overview' ? 'bg-[#242f3e] text-white border-l-4 border-[#e04b4a]' : 'text-slate-400 hover:text-white hover:bg-[#242f3e]'}`}>
+                <span className="flex items-center gap-3"><LayoutDashboard size={15} /> Dashboards</span>
+                <span className="text-[10px] text-slate-500 font-bold">▼</span>
+              </button>
+              {activeTab === 'overview' && (
+                <div className="pl-8 py-1 space-y-1 bg-[#18202b]/50">
+                  <button onClick={() => setActiveTab('overview')} className="w-full text-left py-1 text-[#e04b4a] font-bold text-xs">Dashboard 1</button>
+                  <button onClick={() => setActiveTab('analytics')} className="w-full text-left py-1 text-slate-400 hover:text-white text-xs">Dashboard 2</button>
+                  <button onClick={() => setActiveTab('sellers')} className="w-full text-left py-1 text-slate-400 hover:text-white text-xs">Dashboard 3</button>
+                </div>
+              )}
+            </div>
+
+            <button onClick={() => setActiveTab('reports')} className="w-full flex items-center justify-between px-3.5 py-2.5 rounded text-slate-400 hover:text-white hover:bg-[#242f3e]">
+              <span className="flex items-center gap-3"><Layers size={15} /> Pages</span>
+              <span className="text-[10px] text-slate-500 font-bold">►</span>
             </button>
-            <button onClick={() => setActiveTab('analytics')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-all ${activeTab === 'analytics' ? 'bg-[#1b222d] text-white border-l-4 border-[#e74c3c]' : 'text-slate-400 hover:text-white hover:bg-[#283548]'}`}>
-              <TrendingUp size={16} /> Telemetry Analytics
+            <button onClick={() => setActiveTab('countries')} className="w-full flex items-center justify-between px-3.5 py-2.5 rounded text-slate-400 hover:text-white hover:bg-[#242f3e]">
+              <span className="flex items-center gap-3"><ShoppingBag size={15} /> Layouts</span>
+              <span className="text-[10px] text-slate-500 font-bold">►</span>
             </button>
-            <button onClick={() => setActiveTab('sellers')} className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg transition-all ${activeTab === 'sellers' ? 'bg-[#1b222d] text-white border-l-4 border-[#e74c3c]' : 'text-slate-400 hover:text-white hover:bg-[#283548]'}`}>
-              <span className="flex items-center gap-3"><Store size={16} /> Storefronts</span>
-              <span className="text-[10px] bg-sky-500/20 text-sky-400 px-1.5 py-0.5 rounded font-bold">{allShops.length}</span>
-            </button>
-            <button onClick={() => setActiveTab('subscriptions')} className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg transition-all ${activeTab === 'subscriptions' ? 'bg-[#1b222d] text-white border-l-4 border-[#e74c3c]' : 'text-slate-400 hover:text-white hover:bg-[#283548]'}`}>
-              <span className="flex items-center gap-3"><CreditCard size={16} /> Subscriptions</span>
-              {pendingPayments.length > 0 && <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 text-[10px] font-bold rounded-full">{pendingPayments.length}</span>}
-            </button>
-            <button onClick={() => setActiveTab('reports')} className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg transition-all ${activeTab === 'reports' ? 'bg-[#1b222d] text-white border-l-4 border-[#e74c3c]' : 'text-slate-400 hover:text-white hover:bg-[#283548]'}`}>
-              <span className="flex items-center gap-3"><AlertTriangle size={16} /> Reports</span>
-              {openReports.length > 0 && <span className="px-2 py-0.5 bg-rose-500/20 text-rose-400 text-[10px] font-bold rounded-full">{openReports.length}</span>}
-            </button>
-            <button onClick={() => setActiveTab('countries')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-all ${activeTab === 'countries' ? 'bg-[#1b222d] text-white border-l-4 border-[#e74c3c]' : 'text-slate-400 hover:text-white hover:bg-[#283548]'}`}>
-              <Globe size={16} /> Countries & Regions
-            </button>
-            <button onClick={() => setActiveTab('settings')} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-all ${activeTab === 'settings' ? 'bg-[#1b222d] text-white border-l-4 border-[#e74c3c]' : 'text-slate-400 hover:text-white hover:bg-[#283548]'}`}>
-              <SettingsIcon size={16} /> Platform Settings
+
+            <p className="text-[10px] font-bold text-slate-500 uppercase px-3 pt-4 tracking-wider">Components</p>
+            <button onClick={() => setActiveTab('settings')} className="w-full flex items-center justify-between px-3.5 py-2.5 rounded text-slate-400 hover:text-white hover:bg-[#242f3e]">
+              <span className="flex items-center gap-3"><Settings size={15} /> UI Kits</span>
+              <span className="text-[10px] text-slate-500 font-bold">►</span>
             </button>
           </nav>
         </div>
 
-        <div className="p-4 border-t border-[#2a3649] bg-[#18202b]">
-          <button onClick={() => signOut()} className="w-full py-2.5 bg-rose-950/40 hover:bg-rose-900/50 text-rose-300 border border-rose-800/40 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all">
+        <div className="p-4 border-t border-[#293548] bg-[#18202b]">
+          <button onClick={() => signOut()} className="w-full py-2.5 bg-rose-950/40 hover:bg-rose-900/50 text-rose-300 border border-rose-800/40 rounded text-xs font-semibold flex items-center justify-center gap-2 transition-all">
             <LogOut size={14} /> Secure Sign Out
           </button>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#eaedf1]">
-        {/* Top Header matching ATLANT */}
-        <header className="h-16 bg-[#202938] text-white px-6 flex items-center justify-between sticky top-0 z-20 shadow-md">
+      <div className="flex-1 flex flex-col min-w-0 bg-[#eef2f5]">
+        {/* Top Header Bar (#242f3e) */}
+        <header className="h-16 bg-[#242f3e] text-white px-6 flex items-center justify-between sticky top-0 z-20 shadow-md">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
-              <span>Home</span> <span className="text-slate-600">/</span> <span className="text-white capitalize">{activeTab}</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
+            <button className="p-1.5 text-slate-300 hover:text-white rounded hover:bg-[#1d2531]">
+              <Menu size={18} />
+            </button>
             <div className="relative hidden sm:block">
               <Search className="absolute left-3 top-2.5 text-slate-400" size={15} />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search telemetry..."
-                className="pl-9 pr-4 py-1.5 bg-[#1b222d] border border-[#2a3649] rounded-md text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#e74c3c] w-64 shadow-inner"
+                placeholder="Search..."
+                className="pl-9 pr-4 py-1.5 bg-[#1d2531] border border-[#2d3b4e] rounded text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#e04b4a] w-56 shadow-inner"
               />
             </div>
-            <button onClick={loadData} className="p-2 bg-[#1b222d] hover:bg-[#2a3649] text-slate-300 rounded-md border border-[#2a3649] transition-all" title="Sync Telemetry">
-              <RefreshCw size={15} />
+          </div>
+
+          <div className="flex items-center gap-4">
+            {/* UK Flag icon */}
+            <div className="flex items-center gap-1 cursor-pointer" title="Language: English">
+              <span className="text-base">🇬🇧</span>
+            </div>
+
+            {/* Notification badge 3 */}
+            <div className="relative cursor-pointer">
+              <div className="w-8 h-8 rounded bg-[#1d2531] flex items-center justify-center text-slate-300 hover:text-white">
+                <Bell size={16} />
+              </div>
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 text-black text-[10px] font-black rounded-full flex items-center justify-center">3</span>
+            </div>
+
+            {/* Message badge 4 */}
+            <div className="relative cursor-pointer">
+              <div className="w-8 h-8 rounded bg-[#1d2531] flex items-center justify-center text-slate-300 hover:text-white">
+                <Mail size={16} />
+              </div>
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white text-[10px] font-black rounded-full flex items-center justify-center">4</span>
+            </div>
+
+            {/* User profile icon */}
+            <div className="w-8 h-8 rounded-full overflow-hidden border border-white/20 cursor-pointer">
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="User" className="w-full h-full object-cover" />
+            </div>
+
+            {/* Power / Logout icon */}
+            <button onClick={() => signOut()} className="w-8 h-8 rounded bg-[#1d2531] hover:bg-rose-950 text-slate-300 hover:text-rose-400 flex items-center justify-center transition-all" title="Logout">
+              <Power size={16} />
             </button>
           </div>
         </header>
@@ -210,78 +262,79 @@ export function AdminPage() {
 
           {!loading && activeTab === 'overview' && (
             <>
-              {/* Top Row: 4 Stat Cards matching ATLANT template */}
+              {/* Top Summary KPI Cards (4 Grid Columns) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                {/* Visitors Card */}
-                <div className="bg-white border border-[#dce2e8] rounded-md p-5 shadow-sm relative overflow-hidden group">
+                {/* Card 1: New Visitors */}
+                <div className="bg-white border border-[#d6dee6] rounded-md p-5 shadow-sm relative overflow-hidden">
                   <div className="flex items-start justify-between">
                     <div>
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">NEW Visitors</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">NEW Visitors</span>
                       <h3 className="text-3xl font-black text-slate-800 mt-1">{analytics?.totalUsers?.toLocaleString() || '1,977'}</h3>
                     </div>
-                    <button className="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-xs">×</button>
+                    <button className="w-5 h-5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-xs">×</button>
                   </div>
                   <div className="mt-4 flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-slate-400"></span>
-                    <span className="w-2 h-2 rounded-full bg-[#e74c3c]"></span>
+                    <span className="w-2 h-2 rounded-full bg-slate-300"></span>
+                    <span className="w-2 h-2 rounded-full bg-[#e04b4a]"></span>
                     <span className="w-2 h-2 rounded-full bg-slate-300"></span>
                   </div>
                 </div>
 
-                {/* New Messages Card */}
-                <div className="bg-white border border-[#dce2e8] rounded-md p-5 shadow-sm relative overflow-hidden group">
+                {/* Card 2: New Messages */}
+                <div className="bg-white border border-[#d6dee6] rounded-md p-5 shadow-sm relative overflow-hidden">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded bg-slate-100 flex items-center justify-center text-slate-600">
-                        <Mail size={24} />
+                        <Mail size={22} />
                       </div>
                       <div>
                         <h3 className="text-2xl font-black text-slate-800">48</h3>
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">NEW MESSAGES</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">NEW MESSAGES</span>
                         <span className="text-[10px] text-slate-400">In your mailbox</span>
                       </div>
                     </div>
-                    <button className="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-xs">×</button>
+                    <button className="w-5 h-5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-xs">×</button>
                   </div>
                 </div>
 
-                {/* Registered Users Card */}
-                <div className="bg-white border border-[#dce2e8] rounded-md p-5 shadow-sm relative overflow-hidden group">
+                {/* Card 3: Registered Users */}
+                <div className="bg-white border border-[#d6dee6] rounded-md p-5 shadow-sm relative overflow-hidden">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded bg-slate-100 flex items-center justify-center text-slate-600">
-                        <Users size={24} />
+                        <Users size={22} />
                       </div>
                       <div>
                         <h3 className="text-2xl font-black text-slate-800">{analytics?.totalShops || '375'}</h3>
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">REGISTERED USERS</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">REGISTRED USERS</span>
                         <span className="text-[10px] text-slate-400">On your website</span>
                       </div>
                     </div>
-                    <button className="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-xs">×</button>
+                    <button className="w-5 h-5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-xs">×</button>
                   </div>
                 </div>
 
-                {/* Time / Clock Card (Red ATLANT style) */}
-                <div className="bg-[#c0392b] text-white rounded-md p-5 shadow-md relative overflow-hidden flex flex-col justify-between">
+                {/* Card 4: Live Clock Widget (Solid Red #e04b4a) */}
+                <div className="bg-[#e04b4a] text-white rounded-md p-5 shadow-md relative overflow-hidden flex flex-col justify-between">
                   <div className="flex items-start justify-between">
                     <div>
                       <h3 className="text-3xl font-black tracking-tight">{timeString || '13:09'}</h3>
-                      <span className="text-[11px] text-white/80 block mt-0.5">{dateString || 'Saturday, December 9, 2023'}</span>
+                      <span className="text-[11px] text-white/90 block mt-0.5">{dateString || 'Saturday, December 9, 2023'}</span>
                     </div>
-                    <button className="w-6 h-6 rounded-full bg-black/10 hover:bg-black/20 text-white flex items-center justify-center text-xs">×</button>
+                    <button className="w-5 h-5 rounded-full bg-black/10 hover:bg-black/20 text-white flex items-center justify-center text-xs">×</button>
                   </div>
-                  <div className="flex items-center gap-4 mt-4 pt-3 border-t border-white/15 text-white/80 text-xs">
+                  <div className="flex items-center gap-4 mt-4 pt-3 border-t border-white/20 text-white/90 text-xs">
                     <Clock size={15} />
+                    <Bell size={15} />
                     <Calendar size={15} />
                   </div>
                 </div>
               </div>
 
-              {/* Middle Row: Sales Activity & World Map simulation + Projects Table */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Left 2 cols: Sales Activity & Progress */}
-                <div className="lg:col-span-2 bg-white border border-[#dce2e8] rounded-md p-6 shadow-sm">
+              {/* Middle Row (Sales & World Map + Projects Table) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                {/* Left Column (Sales & Map - 8 cols) */}
+                <div className="lg:col-span-8 bg-white border border-[#d6dee6] rounded-md p-6 shadow-sm">
                   <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
                     <div>
                       <h3 className="font-bold text-sm text-slate-800 uppercase">SALES</h3>
@@ -292,49 +345,63 @@ export function AdminPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-4 mb-6">
-                    <div>
-                      <div className="flex justify-between text-xs font-semibold text-slate-600 mb-1">
-                        <span>In Queue</span> <span>75%</span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                    {/* Progress Bars */}
+                    <div className="space-y-4">
+                      <div>
+                        <div className="flex justify-between text-xs font-semibold text-slate-600 mb-1">
+                          <span>In Queue</span> <span>75%</span>
+                        </div>
+                        <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-slate-700 rounded-full" style={{ width: '75%' }}></div>
+                        </div>
                       </div>
-                      <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-slate-700 rounded-full" style={{ width: '75%' }}></div>
+                      <div>
+                        <div className="flex justify-between text-xs font-semibold text-slate-600 mb-1">
+                          <span>Shipped Products</span> <span>450/500</span>
+                        </div>
+                        <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-slate-700 rounded-full" style={{ width: '90%' }}></div>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex justify-between text-xs font-semibold text-slate-600 mb-1">
+                          <span className="text-rose-600 font-bold">Returned Products</span> <span>25/500</span>
+                        </div>
+                        <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-rose-500 rounded-full" style={{ width: '5%' }}></div>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex justify-between text-xs font-semibold text-slate-600 mb-1">
+                          <span className="text-amber-600 font-bold">Progress Today</span> <span>75/150</span>
+                        </div>
+                        <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-amber-500 rounded-full" style={{ width: '50%' }}></div>
+                        </div>
                       </div>
                     </div>
-                    <div>
-                      <div className="flex justify-between text-xs font-semibold text-slate-600 mb-1">
-                        <span>Shipped Products</span> <span>450/500</span>
-                      </div>
-                      <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-slate-700 rounded-full" style={{ width: '90%' }}></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-xs font-semibold text-slate-600 mb-1">
-                        <span className="text-rose-600">Returned Products</span> <span>25/500</span>
-                      </div>
-                      <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-rose-500 rounded-full" style={{ width: '5%' }}></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-xs font-semibold text-slate-600 mb-1">
-                        <span className="text-amber-600">Progress Today</span> <span>75/150</span>
-                      </div>
-                      <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-amber-500 rounded-full" style={{ width: '50%' }}></div>
+
+                    {/* Interactive World Map graphic simulation */}
+                    <div className="bg-[#1d2531] rounded-md p-4 relative h-48 flex items-center justify-center overflow-hidden border border-slate-700 shadow-inner">
+                      <div className="absolute inset-0 opacity-25 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:12px_12px]"></div>
+                      <div className="text-center z-15 space-y-2">
+                        <div className="inline-block px-3 py-1 bg-sky-500/20 text-sky-400 text-[10px] font-bold rounded-full border border-sky-500/30 animate-pulse">
+                          🌍 Global Telemetry Active
+                        </div>
+                        <p className="text-[11px] text-slate-300">East Africa (Kampala) · Europe · North America · Asia</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="p-4 bg-[#202938] text-white rounded-md text-xs flex items-center justify-between">
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
                     <span>⚠ Data update in end of each hour. You can update it manually by pressing update button.</span>
-                    <button onClick={loadData} className="px-3 py-1 bg-[#e74c3c] hover:bg-[#d63031] text-white rounded font-bold transition-all">Update</button>
+                    <button onClick={loadData} className="px-3 py-1 bg-[#e04b4a] hover:bg-[#cc3c3b] text-white rounded font-bold transition-all shadow-sm">Update</button>
                   </div>
                 </div>
 
-                {/* Right col: Projects Table */}
-                <div className="bg-white border border-[#dce2e8] rounded-md p-6 shadow-sm">
+                {/* Right Column (Projects Table - 4 cols) */}
+                <div className="lg:col-span-4 bg-white border border-[#d6dee6] rounded-md p-6 shadow-sm">
                   <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
                     <div>
                       <h3 className="font-bold text-sm text-slate-800 uppercase">PROJECTS</h3>
@@ -345,36 +412,41 @@ export function AdminPage() {
                     <table className="w-full text-xs">
                       <thead>
                         <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase text-[10px]">
-                          <th className="pb-2 text-left">Project</th>
-                          <th className="pb-2 text-left">Status</th>
-                          <th className="pb-2 text-right">Activity</th>
+                          <th className="pb-2 text-left">PROJECT</th>
+                          <th className="pb-2 text-left">STATUS</th>
+                          <th className="pb-2 text-right">ACTIVITY</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         <tr>
                           <td className="py-2.5 font-semibold text-slate-700">Atlant</td>
-                          <td className="py-2.5"><span className="px-2 py-0.5 bg-rose-500 text-white rounded text-[10px] font-bold">Developing</span></td>
-                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-rose-200 ml-auto rounded"><div className="w-3/4 h-full bg-rose-500 rounded"></div></div></td>
+                          <td className="py-2.5"><span className="px-2 py-0.5 bg-rose-600 text-white rounded text-[10px] font-bold">Developing</span></td>
+                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-rose-100 ml-auto rounded"><div className="w-3/4 h-full bg-rose-600 rounded"></div></div></td>
                         </tr>
                         <tr>
                           <td className="py-2.5 font-semibold text-slate-700">Gemini</td>
                           <td className="py-2.5"><span className="px-2 py-0.5 bg-amber-500 text-white rounded text-[10px] font-bold">Updating</span></td>
-                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-amber-200 ml-auto rounded"><div className="w-1/2 h-full bg-amber-500 rounded"></div></div></td>
+                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-amber-100 ml-auto rounded"><div className="w-1/2 h-full bg-amber-500 rounded"></div></div></td>
                         </tr>
                         <tr>
                           <td className="py-2.5 font-semibold text-slate-700">Taurus</td>
                           <td className="py-2.5"><span className="px-2 py-0.5 bg-amber-500 text-white rounded text-[10px] font-bold">Updating</span></td>
-                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-amber-200 ml-auto rounded"><div className="w-2/3 h-full bg-amber-500 rounded"></div></div></td>
+                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-amber-100 ml-auto rounded"><div className="w-2/3 h-full bg-amber-500 rounded"></div></div></td>
                         </tr>
                         <tr>
                           <td className="py-2.5 font-semibold text-slate-700">Leo</td>
                           <td className="py-2.5"><span className="px-2 py-0.5 bg-emerald-600 text-white rounded text-[10px] font-bold">Support</span></td>
-                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-emerald-200 ml-auto rounded"><div className="w-5/6 h-full bg-emerald-600 rounded"></div></div></td>
+                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-emerald-100 ml-auto rounded"><div className="w-5/6 h-full bg-emerald-600 rounded"></div></div></td>
                         </tr>
                         <tr>
                           <td className="py-2.5 font-semibold text-slate-700">Virgo</td>
                           <td className="py-2.5"><span className="px-2 py-0.5 bg-emerald-600 text-white rounded text-[10px] font-bold">Support</span></td>
-                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-emerald-200 ml-auto rounded"><div className="w-4/5 h-full bg-emerald-600 rounded"></div></div></td>
+                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-emerald-100 ml-auto rounded"><div className="w-4/5 h-full bg-emerald-600 rounded"></div></div></td>
+                        </tr>
+                        <tr>
+                          <td className="py-2.5 font-semibold text-slate-700">Aquarius</td>
+                          <td className="py-2.5"><span className="px-2 py-0.5 bg-emerald-600 text-white rounded text-[10px] font-bold">Support</span></td>
+                          <td className="py-2.5 text-right"><div className="w-16 h-1.5 bg-emerald-100 ml-auto rounded"><div className="w-full h-full bg-emerald-600 rounded"></div></div></td>
                         </tr>
                       </tbody>
                     </table>
@@ -382,19 +454,98 @@ export function AdminPage() {
                 </div>
               </div>
 
-              {/* Quick Actions Panel for Storefronts & Subscriptions */}
-              <div className="bg-white border border-[#dce2e8] rounded-md p-6 shadow-sm">
-                <h3 className="font-bold text-sm text-slate-800 uppercase mb-4">Priority Operations</h3>
+              {/* Bottom Row (Data Charts - 3 Columns) */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Chart 1: Sales & Event */}
+                <div className="bg-white border border-[#d6dee6] rounded-md p-6 shadow-sm">
+                  <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
+                    <div>
+                      <h3 className="font-bold text-sm text-slate-800 uppercase">SALES & EVENT</h3>
+                      <p className="text-[11px] text-slate-400">Event "Purchase Button"</p>
+                    </div>
+                  </div>
+                  <div className="h-60 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                        <XAxis dataKey="month" stroke="#64748b" fontSize={10} />
+                        <YAxis stroke="#64748b" fontSize={10} />
+                        <Tooltip />
+                        <Area type="monotone" dataKey="Users" stroke="#0ea5e9" fill="#0ea5e9" fillOpacity={0.15} strokeWidth={2} />
+                        <Area type="monotone" dataKey="Revenue" stroke="#10b981" fill="#10b981" fillOpacity={0.15} strokeWidth={2} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Chart 2: Users Activity */}
+                <div className="bg-white border border-[#d6dee6] rounded-md p-6 shadow-sm">
+                  <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
+                    <div>
+                      <h3 className="font-bold text-sm text-slate-800 uppercase">USERS ACTIVITY</h3>
+                      <p className="text-[11px] text-slate-400">Users vs returning</p>
+                    </div>
+                  </div>
+                  <div className="h-60 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={userActivityData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                        <XAxis dataKey="date" stroke="#64748b" fontSize={10} />
+                        <YAxis stroke="#64748b" fontSize={10} />
+                        <Tooltip />
+                        <Bar dataKey="new" fill="#334155" radius={[2, 2, 0, 0]} />
+                        <Bar dataKey="returning" fill="#0ea5e9" radius={[2, 2, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Chart 3: Visitors Gauge / Donut */}
+                <div className="bg-white border border-[#d6dee6] rounded-md p-6 shadow-sm flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
+                    <div>
+                      <h3 className="font-bold text-sm text-slate-800 uppercase">VISITORS</h3>
+                      <p className="text-[11px] text-slate-400">Visitors (last month)</p>
+                    </div>
+                  </div>
+                  <div className="h-48 w-full relative flex items-center justify-center">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RePieChart>
+                        <Pie
+                          data={donutData}
+                          innerRadius={55}
+                          outerRadius={75}
+                          paddingAngle={5}
+                          dataKey="value"
+                        >
+                          {donutData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </RePieChart>
+                    </ResponsiveContainer>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Returned</span>
+                      <span className="text-xl font-black text-slate-800">2,513</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Priority Operations Panel for Storefronts & Subscriptions */}
+              <div className="bg-white border border-[#d6dee6] rounded-md p-6 shadow-sm">
+                <h3 className="font-bold text-sm text-slate-800 uppercase mb-4">Storefront & Payment Operations</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <button onClick={() => setActiveTab('subscriptions')} className="p-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-left transition-all">
+                  <button onClick={() => setActiveTab('subscriptions')} className="p-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-left transition-all shadow-sm">
                     <span className="text-xs font-bold text-amber-600 block mb-1">MTN MoMo Queue</span>
                     <span className="text-xs text-slate-600">{pendingPayments.length} pending payment proofs</span>
                   </button>
-                  <button onClick={() => setActiveTab('sellers')} className="p-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-left transition-all">
+                  <button onClick={() => setActiveTab('sellers')} className="p-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-left transition-all shadow-sm">
                     <span className="text-xs font-bold text-sky-600 block mb-1">Storefront Verification</span>
                     <span className="text-xs text-slate-600">{allShops.filter(s => !s.isVerified).length} awaiting Blue Tick</span>
                   </button>
-                  <button onClick={() => setActiveTab('reports')} className="p-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-left transition-all">
+                  <button onClick={() => setActiveTab('reports')} className="p-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-left transition-all shadow-sm">
                     <span className="text-xs font-bold text-rose-600 block mb-1">Safety Moderation</span>
                     <span className="text-xs text-slate-600">{openReports.length} open reports</span>
                   </button>
@@ -404,7 +555,7 @@ export function AdminPage() {
           )}
 
           {!loading && activeTab === 'analytics' && (
-            <div className="bg-white border border-[#dce2e8] rounded-md p-6 shadow-sm space-y-6">
+            <div className="bg-white border border-[#d6dee6] rounded-md p-6 shadow-sm space-y-6">
               <h3 className="font-bold text-sm text-slate-800 uppercase">Marketplace Revenue & Order Trends (UGX)</h3>
               <div className="h-80 w-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -412,8 +563,8 @@ export function AdminPage() {
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
                     <YAxis stroke="#64748b" fontSize={12} tickFormatter={v => `${(v/1000000).toFixed(0)}M`} />
-                    <Tooltip formatter={(v: any) => [`UGX ${Number(v).toLocaleString()}`, 'Revenue']} />
-                    <Area type="monotone" dataKey="Revenue" stroke="#e74c3c" fill="#e74c3c" fillOpacity={0.2} />
+                    <Tooltip />
+                    <Area type="monotone" dataKey="Revenue" stroke="#e04b4a" fill="#e04b4a" fillOpacity={0.2} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -421,7 +572,7 @@ export function AdminPage() {
           )}
 
           {!loading && activeTab === 'sellers' && (
-            <div className="bg-white border border-[#dce2e8] rounded-md p-6 shadow-sm">
+            <div className="bg-white border border-[#d6dee6] rounded-md p-6 shadow-sm">
               <h3 className="font-bold text-sm text-slate-800 uppercase mb-4">Storefront Verification Manager (Blue Tick ✓)</h3>
               <div className="space-y-3">
                 {allShops.map((shop) => (
@@ -448,7 +599,7 @@ export function AdminPage() {
           )}
 
           {!loading && activeTab === 'subscriptions' && (
-            <div className="bg-white border border-[#dce2e8] rounded-md p-6 shadow-sm">
+            <div className="bg-white border border-[#d6dee6] rounded-md p-6 shadow-sm">
               <h3 className="font-bold text-sm text-slate-800 uppercase mb-2">MTN MoMo Subscription Review Queue (0773927881)</h3>
               <p className="text-xs text-slate-500 mb-4">Recipient: <strong>Kabesha Bankenga</strong> · Fee: UGX 10,000 / month</p>
               <div className="space-y-3">
@@ -471,7 +622,7 @@ export function AdminPage() {
           )}
 
           {!loading && (activeTab === 'reports' || activeTab === 'countries' || activeTab === 'settings') && (
-            <div className="bg-white border border-[#dce2e8] rounded-md p-8 text-center text-slate-500 text-xs shadow-sm">
+            <div className="bg-white border border-[#d6dee6] rounded-md p-8 text-center text-slate-500 text-xs shadow-sm">
               {activeTab === 'reports' && <p>Review reported listings and customer disputes in the moderation queue.</p>}
               {activeTab === 'countries' && <p>Configure regional currencies and payment instructions for East Africa.</p>}
               {activeTab === 'settings' && <p>FashionHub enterprise tier settings are fully synchronized with Supabase.</p>}
