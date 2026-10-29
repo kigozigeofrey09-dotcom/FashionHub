@@ -222,6 +222,13 @@ export function AdminPage() {
           </div>
 
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate('/admin/dashboard')}
+              className="px-3 py-1.5 bg-[#1d2531] hover:bg-[#2d3b4e] text-sky-400 border border-sky-500/30 rounded text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+            >
+              <Zap size={14} /> Super Admin Radar
+            </button>
+
             <div className="cursor-pointer text-base" title="English">🇬🇧</div>
 
             {/* Notification badge 3 */}

@@ -15,6 +15,9 @@ import { MessagesPage } from './pages/MessagesPage';
 import { SupportPage, InformationPage } from './pages/InfoPages';
 import { DripAiPage } from './pages/DripAiPage';
 import { StyleSwipePage } from './pages/StyleSwipePage';
+import { EnquiriesPage } from './pages/EnquiriesPage';
+import { DayBookApp } from './src/daybook/DayBookApp';
+import { AdminDashboardPage } from './pages/AdminDashboardPage';
 
 export function App() {
   return (
@@ -23,6 +26,7 @@ export function App() {
         <Route element={<Shell />}>
           <Route path="/" element={<MarketplacePage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
           <Route path="/admin/advertisements" element={<AdminAdsPage />} />
           <Route path="/seller/setup" element={<SellerOnboardingPage />} />
           <Route path="/seller/dashboard" element={<SellerDashboardPage />} />
@@ -31,6 +35,9 @@ export function App() {
           <Route path="/shops/:shopId" element={<ShopPage />} />
           <Route path="/drip-ai" element={<DripAiPage />} />
           <Route path="/style-swipe" element={<StyleSwipePage />} />
+          <Route path="/enquiries" element={<EnquiriesPage />} />
+          <Route path="/orders" element={<EnquiriesPage />} />
+          <Route path="/daybook" element={<DayBookApp />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/subscriptions" element={<SubscriptionsPage />} />

@@ -3,6 +3,7 @@ import { accountService } from './accountService';
 import { adminService } from './adminService';
 import { authService } from './authService';
 import { countryService } from './countryService';
+import { currencyService } from './currencyService';
 import { enquiryService } from './enquiryService';
 import { errorMessage } from './http';
 import { listingService } from './listingService';
@@ -10,8 +11,11 @@ import { marketplaceService } from './marketplaceService';
 import { notificationService } from './notificationService';
 import { orderService } from './orderService';
 import { paymentSubmissionService } from './paymentSubmissionService';
+import { reportService } from './reportService';
+import { reviewService } from './reviewService';
 import { shopService } from './shopService';
 import { subscriptionService } from './subscriptionService';
+import { uploadService } from './uploadService';
 
 export { ApiError } from './http';
 export { errorMessage } from './http';
@@ -25,6 +29,7 @@ export const api = {
   whoAmI: authService.whoAmI,
   signOut: authService.signOut,
   listCountries: countryService.list,
+  getCurrencySymbol: currencyService.symbol,
   listListings: marketplaceService.searchListings,
   listShops: marketplaceService.searchShops,
   getListing: listingService.get,
@@ -72,6 +77,11 @@ export const api = {
   getListingsReport: adminService.listingsReport,
   updateCountryInstructions: adminService.updatePaymentInstructions,
   addCountry: adminService.createCountry,
+  submitReport: reportService.submit,
+  getListingReviews: reviewService.forListing,
+  submitOrderReview: reviewService.submitForOrder,
+  uploadImage: uploadService.image,
+  uploadFiles: uploadService.uploadFiles,
 };
 
 export type {

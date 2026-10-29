@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import { useNavigate } from 'react-router-dom';
+import {
   LayoutDashboard, Store, Globe2, Megaphone, Users, CreditCard, 
   Search, Bell, TrendingUp, ShieldCheck, Zap, MapPin, Activity, CheckCircle2, XCircle
 } from 'lucide-react';
 
 export const AdminDashboardPage = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedRegion, setSelectedRegion] = useState('Kampala Central');
   const adminEmail = "kigozigeofrey09@gmail.com";
@@ -126,11 +128,20 @@ export const AdminDashboardPage = () => {
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
             </button>
 
-            <button 
-              onClick={() => window.location.href = '/'}
-              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium transition"
-            >
-              Exit to Storefront
+            <div className="flex gap-2">
+              <button
+                onClick={() => navigate('/admin')}
+                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold transition"
+              >
+                âš¡ Admin Center
+              </button>
+              <button
+                onClick={() => navigate('/')}
+                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium transition"
+              >
+                Exit to Storefront
+              </button>
+            </div>
             </button>
           </div>
         </header>
@@ -269,7 +280,7 @@ export const AdminDashboardPage = () => {
                       <span className="text-slate-300 font-medium">Homepage Banner Ad</span>
                       <span className="text-emerald-400">Active</span>
                     </div>
-                    <p className="text-[11px] text-slate-500">Urban Wear Boutique • Expires in 4 days</p>
+                    <p className="text-[11px] text-slate-500">Urban Wear Boutique ï¿½ Expires in 4 days</p>
                   </div>
 
                   <div className="p-3 bg-[#0b0f19] border border-slate-800 rounded-lg">
@@ -277,7 +288,7 @@ export const AdminDashboardPage = () => {
                       <span className="text-slate-300 font-medium">Featured Shop Slot</span>
                       <span className="text-amber-400">Pending Review</span>
                     </div>
-                    <p className="text-[11px] text-slate-500">Kampala Thrift Hub • UGX 25,000 paid</p>
+                    <p className="text-[11px] text-slate-500">Kampala Thrift Hub ï¿½ UGX 25,000 paid</p>
                   </div>
                 </div>
               </div>
