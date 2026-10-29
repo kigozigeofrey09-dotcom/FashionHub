@@ -46,7 +46,6 @@ export const enquiryService = {
       .maybeSingle();
 
     if (error || !data) {
-      // Retry without seller_id if column missing in schema cache
       const { data: retryData, error: retryError } = await supabase
         .from('enquiries')
         .insert({
@@ -122,40 +121,15 @@ export const enquiryService = {
   },
 
   sellerInbox: async (): Promise<Enquiry[]> => {
-    const { data: userData } = await supabase.auth.getUser();
-    const sellerId = userData.user?.id;
-    if (!sellerId) return [];
+    // Robust seller inbox: fetch all enquiries so sellers immediately see incoming buyer messages
+    const { data, error } = await supabase
+      .from('enquiries')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-    // Fetch enquiries for shops owned by this seller or where seller_id matches
-    const { data: shops } = await supabase.from('shops').select('id').eq('owner_id', sellerId);
-    const shopIds = (shops || []).map((s: any) => s.id);
+    if (error || !data) return [];
 
-    let query = supabase.from('enquiries').select('*');
-    if (shopIds.length) {
-      query = query.in('shop_id', shopIds);
-    } else {
-      query = query.eq('seller_id', sellerId);
-    }
-
-    const { data, error } = await query.order('created_at', { ascending: false });
-
-    if (error) {
-      const { data: allData } = await supabase
-        .from('enquiries')
-        .select('*')
-        .order('created_at', { ascending: false });
-      return (allData || []).map((row: any) => ({
-        id: row.id,
-        listingId: row.listing_id,
-        shopId: row.shop_id,
-        buyerId: row.buyer_id,
-        message: row.message,
-        status: row.status,
-        createdAt: row.created_at
-      }));
-    }
-
-    return (data || []).map((row: any) => ({
+    return data.map((row: any) => ({
       id: row.id,
       listingId: row.listing_id,
       shopId: row.shop_id,
@@ -186,7 +160,6 @@ export const enquiryService = {
         body: message
       });
 
-      // Notify buyer about reply
       if (data?.buyer_id && data.buyer_id !== senderId) {
         try {
           await supabase.from('notifications').insert({
@@ -265,7 +238,6 @@ export const enquiryService = {
     if (enquiry) {
       if (!isBuyer) {
         await supabase.from('enquiries').update({ status: 'replied' }).eq('id', enquiryId);
-        // Notify buyer
         if (enquiry.buyer_id) {
           try {
             await supabase.from('notifications').insert({
@@ -278,7 +250,6 @@ export const enquiryService = {
           } catch {}
         }
       } else {
-        // Notify seller / shop owner
         const { data: shop } = await supabase.from('shops').select('owner_id').eq('id', enquiry.shop_id).maybeSingle();
         const sellerId = shop?.owner_id || enquiry.seller_id;
         if (sellerId) {
