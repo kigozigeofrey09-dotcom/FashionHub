@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ATLANT Admin Dashboard - FashionHub</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { background-color: #eef2f5; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; }
+  </style>
+</head>
+<body class="bg-[#eef2f5] text-slate-800 antialiased min-h-screen flex flex-col md:flex-row">
+
+  <!-- Fixed Dark Sidebar (#1d2531) -->
+  <aside class="w-64 bg-[#1d2531] text-slate-300 flex flex-col justify-between shrink-0 min-h-screen shadow-2xl">
+    <div>
+      <!-- Branded Orange Header ("ATLANT") -->
+      <div class="h-16 bg-[#e04b4a] text-white flex items-center justify-center font-black tracking-widest text-xl uppercase shadow-md">
+        ATLANT
+      </div>
+
+      <!-- Top Profile Block -->
+      <div class="p-5 bg-[#18202b] border-b border-[#293548] flex flex-col items-center text-center relative">
+        <div class="relative mb-3">
+          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80" alt="John Doe" class="w-20 h-20 rounded-full object-cover border-2 border-white/20 shadow-lg">
+          <span class="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 border-2 border-[#18202b] rounded-full"></span>
+        </div>
+        <h3 class="font-bold text-white text-sm">John Doe</h3>
+        <span class="text-[11px] text-slate-400 mt-0.5">Web Developer/Designer</span>
+        <div class="flex items-center gap-2 mt-3">
+          <button class="w-7 h-7 rounded bg-[#242f3e] hover:bg-[#2d3a4d] text-slate-300 flex items-center justify-center text-xs" title="Info"><i class="fas fa-info"></i></button>
+          <button class="w-7 h-7 rounded bg-[#242f3e] hover:bg-[#2d3a4d] text-slate-300 flex items-center justify-center text-xs" title="Messages"><i class="fas fa-envelope"></i></button>
+        </div>
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav class="p-3 space-y-1 text-xs font-semibold">
+        <p class="text-[10px] font-bold text-slate-500 uppercase px-3 pt-2 tracking-wider">Navigation</p>
+
+        <div class="space-y-0.5">
+          <a href="#" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded bg-[#242f3e] text-white border-l-4 border-[#e04b4a]">
+            <span class="flex items-center gap-3"><i class="fas fa-desktop w-4"></i> Dashboards</span>
+            <span class="text-[10px] text-slate-400 font-bold">▼</span>
+          </a>
+          <div class="pl-8 py-1 space-y-1 bg-[#18202b]/50">
+            <a href="#" class="block py-1 text-[#e04b4a] font-bold text-xs">Dashboard 1</a>
+            <a href="#" class="block py-1 text-slate-400 hover:text-white text-xs">Dashboard 2</a>
+            <a href="#" class="block py-1 text-slate-400 hover:text-white text-xs">Dashboard 3</a>
+          </div>
+        </div>
+
+        <a href="#" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded text-slate-400 hover:text-white hover:bg-[#242f3e]">
+          <span class="flex items-center gap-3"><i class="fas fa-file-alt w-4"></i> Pages</span>
+          <span class="text-[10px] text-slate-500 font-bold">►</span>
+        </a>
+        <a href="#" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded text-slate-400 hover:text-white hover:bg-[#242f3e]">
+          <span class="flex items-center gap-3"><i class="fas fa-th-large w-4"></i> Layouts</span>
+          <span class="text-[10px] text-slate-500 font-bold">►</span>
+        </a>
+
+        <p class="text-[10px] font-bold text-slate-500 uppercase px-3 pt-4 tracking-wider">Components</p>
+        <a href="#" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded text-slate-400 hover:text-white hover:bg-[#242f3e]">
+          <span class="flex items-center gap-3"><i class="fas fa-cubes w-4"></i> UI Kits</span>
+          <span class="text-[10px] text-slate-500 font-bold">►</span>
+        </a>
+      </nav>
+    </div>
+
+    <div class="p-4 border-t border-[#293548] bg-[#18202b]">
+      <a href="#" class="w-full py-2.5 bg-rose-950/40 hover:bg-rose-900/50 text-rose-300 border border-rose-800/40 rounded text-xs font-semibold flex items-center justify-center gap-2 transition-all">
+        <i class="fas fa-power-off"></i> Secure Sign Out
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content Wrapper -->
+  <div class="flex-1 flex flex-col min-w-0">
+
+    <!-- Dark Header Bar (#242f3e) -->
+    <header class="h-16 bg-[#242f3e] text-white px-6 flex items-center justify-between sticky top-0 z-20 shadow-md">
+      <div class="flex items-center gap-4">
+        <button class="p-1.5 text-slate-300 hover:text-white rounded hover:bg-[#1d2531]">
+          <i class="fas fa-bars text-lg"></i>
+        </button>
+        <div class="relative hidden sm:block">
+          <i class="fas fa-search absolute left-3 top-3 text-slate-400 text-xs"></i>
+          <input type="text" placeholder="Search..." class="pl-9 pr-4 py-1.5 bg-[#1d2531] border border-[#2d3b4e] rounded text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#e04b4a] w-56 shadow-inner">
+        </div>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <div class="cursor-pointer text-base" title="English">🇬🇧</div>
+
+        <!-- Notification Counter Badge (3) -->
+        <div class="relative cursor-pointer">
+          <div class="w-8 h-8 rounded bg-[#1d2531] flex items-center justify-center text-slate-300 hover:text-white">
+            <i class="fas fa-bell text-sm"></i>
+          </div>
+          <span class="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 text-black text-[10px] font-black rounded-full flex items-center justify-center">3</span>
+        </div>
+
+        <!-- Notification Counter Badge (4) -->
+        <div class="relative cursor-pointer">
+          <div class="w-8 h-8 rounded bg-[#1d2531] flex items-center justify-center text-slate-300 hover:text-white">
+            <i class="fas fa-envelope text-sm"></i>
+          </div>
+          <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center">4</span>
+        </div>
+
+        <div class="w-8 h-8 rounded-full overflow-hidden border border-white/20 cursor-pointer">
+          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="Profile" class="w-full h-full object-cover">
+        </div>
+
+        <a href="#" class="w-8 h-8 rounded bg-[#1d2531] hover:bg-rose-950 text-slate-300 hover:text-rose-400 flex items-center justify-center transition-all" title="Logout">
+          <i class="fas fa-power-off text-sm"></i>
+        </a>
+      </div>
+    </header>
+
+    <!-- Dashboard Body -->
+    <main class="flex-1 p-6 space-y-6 overflow-y-auto">
+
+      <!-- Breadcrumbs -->
+      <div class="text-xs text-slate-500 font-medium">
+        Home <span class="mx-1">/</span> <span class="text-slate-800 font-bold">Dashboard</span>
+      </div>
+
+      <!-- 4-Column Metric Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <!-- Card 1: New Visitors -->
+        <div class="bg-white border border-[#d6dee6] rounded-md p-5 shadow-sm hover:shadow transition-shadow relative">
+          <div class="flex items-start justify-between">
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">NEW Visitors</span>
+              <h3 class="text-3xl font-black text-slate-800 mt-1">1,977</h3>
+            </div>
+            <button class="w-5 h-5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-xs">×</button>
+          </div>
+          <div class="mt-4 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-slate-300"></span>
+            <span class="w-2 h-2 rounded-full bg-[#e04b4a]"></span>
+            <span class="w-2 h-2 rounded-full bg-slate-300"></span>
+          </div>
+        </div>
+
+        <!-- Card 2: New Messages -->
+        <div class="bg-white border border-[#d6dee6] rounded-md p-5 shadow-sm hover:shadow transition-shadow relative">
+          <div class="flex items-start justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded bg-slate-100 flex items-center justify-center text-slate-600 text-lg">
+                <i class="fas fa-envelope"></i>
+              </div>
+              <div>
+                <h3 class="text-2xl font-black text-slate-800">48</h3>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">NEW MESSAGES</span>
+                <span class="text-[10px] text-slate-400">In your mailbox</span>
+              </div>
+            </div>
+            <button class="w-5 h-5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-xs">×</button>
+          </div>
+        </div>
+
+        <!-- Card 3: Registered Users -->
+        <div class="bg-white border border-[#d6dee6] rounded-md p-5 shadow-sm hover:shadow transition-shadow relative">
+          <div class="flex items-start justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded bg-slate-100 flex items-center justify-center text-slate-600 text-lg">
+                <i class="fas fa-user"></i>
+              </div>
+              <div>
+                <h3 class="text-2xl font-black text-slate-800">375</h3>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">REGISTRED USERS</span>
+                <span class="text-[10px] text-slate-400">On your website</span>
+              </div>
+            </div>
+            <button class="w-5 h-5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-xs">×</button>
+          </div>
+        </div>
+
+        <!-- Card 4: Live Clock Widget (Solid Red #e04b4a) -->
+        <div class="bg-[#e04b4a] text-white rounded-md p-5 shadow-md relative overflow-hidden flex flex-col justify-between">
+          <div class="flex items-start justify-between">
+            <div>
+              <h3 id="live-clock" class="text-3xl font-black tracking-tight">13:09:00</h3>
+              <span id="live-date" class="text-[11px] text-white/90 block mt-0.5">Saturday, December 9, 2023</span>
+            </div>
+            <button class="w-5 h-5 rounded-full bg-black/10 hover:bg-black/20 text-white flex items-center justify-center text-xs">×</button>
+          </div>
+          <div class="flex items-center gap-4 mt-4 pt-3 border-t border-white/20 text-white/90 text-sm">
+            <i class="fas fa-clock"></i>
+            <i class="fas fa-bell"></i>
+            <i class="fas fa-calendar-alt"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Middle Flex/Grid Split (Sales & World Map + Projects Table) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        {/* Left Column (Sales & Map - 8 cols) */}
+        <div class="lg:col-span-8 bg-white border border-[#d6dee6] rounded-md p-6 shadow-sm">
+          <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+            <div>
+              <h3 class="font-bold text-sm text-slate-800 uppercase">SALES</h3>
+              <p class="text-[11px] text-slate-400">Sales activity by period you selected</p>
+            </div>
+            <div class="text-xs bg-slate-100 px-3 py-1 rounded border border-slate-200 text-slate-600 font-medium">
+              November 10, 2023 - December 9, 2023
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+            {/* Progress Bars */}
+            <div class="space-y-4">
+              <div>
+                <div class="flex justify-between text-xs font-semibold text-slate-600 mb-1">
+                  <span>In Queue</span> <span>75%</span>
+                </div>
+                <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                  <div class="h-full bg-slate-700 rounded-full" style="width: 75%;"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-xs font-semibold text-slate-600 mb-1">
+                  <span>Shipped Products</span> <span>450/500</span>
+                </div>
+                <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                  <div class="h-full bg-slate-700 rounded-full" style="width: 90%;"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-xs font-semibold text-slate-600 mb-1">
+                  <span class="text-rose-600 font-bold">Returned Products</span> <span>25/500</span>
+                </div>
+                <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                  <div class="h-full bg-rose-500 rounded-full" style="width: 5%;"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-xs font-semibold text-slate-600 mb-1">
+                  <span class="text-amber-600 font-bold">Progress Today</span> <span>75/150</span>
+                </div>
+                <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                  <div class="h-full bg-amber-500 rounded-full" style="width: 50%;"></div>
+                </div>
+              </div>
+            </div>
+
+            {/* World Map Container */}
+            <div class="bg-[#1d2531] rounded-md p-4 relative h-48 flex items-center justify-center overflow-hidden border border-slate-700 shadow-inner">
+              <div class="absolute inset-0 opacity-25 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:14px_14px]"></div>
+              <div class="text-center z-10 space-y-2">
+                <div class="inline-block px-3 py-1 bg-sky-500/20 text-sky-400 text-[10px] font-bold rounded-full border border-sky-500/30 animate-pulse">
+                  🌍 Interactive Global Telemetry
+                </div>
+                <p class="text-[11px] text-slate-300">East Africa · Europe · North America · Asia</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+            <span>Data update in end of each hour. You can update it manually by pressing update button.</span>
+            <button onclick="alert('Telemetry updated successfully!')" class="px-3 py-1 bg-[#e04b4a] hover:bg-[#cc3c3b] text-white rounded font-bold transition-all shadow-sm">Update</button>
+          </div>
+        </div>
+
+        {/* Right Column (Projects Table - 4 cols) */}
+        <div class="lg:col-span-4 bg-white border border-[#d6dee6] rounded-md p-6 shadow-sm">
+          <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+            <div>
+              <h3 class="font-bold text-sm text-slate-800 uppercase">PROJECTS</h3>
+              <p class="text-[11px] text-slate-400">Projects activity</p>
+            </div>
+            <div class="flex items-center gap-1.5 text-slate-400 text-xs">
+              <i class="fas fa-expand cursor-pointer hover:text-slate-600"></i>
+              <i class="fas fa-sync cursor-pointer hover:text-slate-600"></i>
+              <i class="fas fa-cog cursor-pointer hover:text-slate-600"></i>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr class="border-b border-slate-200 text-slate-400 font-bold uppercase text-[10px]">
+                  <th class="pb-2 text-left">PROJECT</th>
+                  <th class="pb-2 text-left">STATUS</th>
+                  <th class="pb-2 text-right">ACTIVITY</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <tr>
+                  <td class="py-2.5 font-semibold text-slate-700">Atlant</td>
+                  <td class="py-2.5"><span class="px-2 py-0.5 bg-red-100 text-red-600 rounded text-[10px] font-bold">Developing</span></td>
+                  <td class="py-2.5 text-right"><div class="w-16 h-1.5 bg-red-100 ml-auto rounded"><div class="w-3/4 h-full bg-red-600 rounded"></div></div></td>
+                </tr>
+                <tr>
+                  <td class="py-2.5 font-semibold text-slate-700">Gemini</td>
+                  <td class="py-2.5"><span class="px-2 py-0.5 bg-yellow-100 text-yellow-600 rounded text-[10px] font-bold">Updating</span></td>
+                  <td class="py-2.5 text-right"><div class="w-16 h-1.5 bg-yellow-100 ml-auto rounded"><div class="w-1/2 h-full bg-yellow-500 rounded"></div></div></td>
+                </tr>
+                <tr>
+                  <td class="py-2.5 font-semibold text-slate-700">Taurus</td>
+                  <td class="py-2.5"><span class="px-2 py-0.5 bg-yellow-100 text-yellow-600 rounded text-[10px] font-bold">Updating</span></td>
+                  <td class="py-2.5 text-right"><div class="w-16 h-1.5 bg-yellow-100 ml-auto rounded"><div class="w-2/3 h-full bg-yellow-500 rounded"></div></div></td>
+                </tr>
+                <tr>
+                  <td class="py-2.5 font-semibold text-slate-700">Leo</td>
+                  <td class="py-2.5"><span class="px-2 py-0.5 bg-green-100 text-green-600 rounded text-[10px] font-bold">Support</span></td>
+                  <td class="py-2.5 text-right"><div class="w-16 h-1.5 bg-green-100 ml-auto rounded"><div class="w-5/6 h-full bg-green-600 rounded"></div></div></td>
+                </tr>
+                <tr>
+                  <td class="py-2.5 font-semibold text-slate-700">Virgo</td>
+                  <td class="py-2.5"><span class="px-2 py-0.5 bg-green-100 text-green-600 rounded text-[10px] font-bold">Support</span></td>
+                  <td class="py-2.5 text-right"><div class="w-16 h-1.5 bg-green-100 ml-auto rounded"><div class="w-4/5 h-full bg-green-600 rounded"></div></div></td>
+                </tr>
+                <tr>
+                  <td class="py-2.5 font-semibold text-slate-700">Aquarius</td>
+                  <td class="py-2.5"><span class="px-2 py-0.5 bg-green-100 text-green-600 rounded text-[10px] font-bold">Support</span></td>
+                  <td class="py-2.5 text-right"><div class="w-16 h-1.5 bg-green-100 ml-auto rounded"><div class="w-full h-full bg-green-600 rounded"></div></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Chart Row (3 Styled Cards Hosting Canvas Elements) -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Chart 1: Line Chart (Sales & Event) -->
+        <div class="bg-white border border-[#d6dee6] rounded-md p-6 shadow-sm">
+          <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
+            <div>
+              <h3 class="font-bold text-sm text-slate-800 uppercase">SALES & EVENT</h3>
+              <p class="text-[11px] text-slate-400">Event "Purchase Button"</p>
+            </div>
+            <div class="flex items-center gap-1.5 text-slate-400 text-xs">
+              <i class="fas fa-expand cursor-pointer"></i>
+              <i class="fas fa-sync cursor-pointer"></i>
+              <i class="fas fa-cog cursor-pointer"></i>
+            </div>
+          </div>
+          <div class="h-60 relative">
+            <canvas id="lineChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 2: Bar Chart (Users Activity) -->
+        <div class="bg-white border border-[#d6dee6] rounded-md p-6 shadow-sm">
+          <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
+            <div>
+              <h3 class="font-bold text-sm text-slate-800 uppercase">USERS ACTIVITY</h3>
+              <p class="text-[11px] text-slate-400">Users vs returning</p>
+            </div>
+            <div class="flex items-center gap-1.5 text-slate-400 text-xs">
+              <i class="fas fa-expand cursor-pointer"></i>
+              <i class="fas fa-sync cursor-pointer"></i>
+              <i class="fas fa-cog cursor-pointer"></i>
+            </div>
+          </div>
+          <div class="h-60 relative">
+            <canvas id="barChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 3: Donut Gauge Chart (Visitors) -->
+        <div class="bg-white border border-[#d6dee6] rounded-md p-6 shadow-sm flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
+            <div>
+              <h3 class="font-bold text-sm text-slate-800 uppercase">VISITORS</h3>
+              <p class="text-[11px] text-slate-400">Visitors (last month)</p>
+            </div>
+            <div class="flex items-center gap-1.5 text-slate-400 text-xs">
+              <i class="fas fa-expand cursor-pointer"></i>
+              <i class="fas fa-sync cursor-pointer"></i>
+              <i class="fas fa-chevron-up cursor-pointer"></i>
+            </div>
+          </div>
+          <div class="h-48 relative flex items-center justify-center">
+            <canvas id="donutChart"></canvas>
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Returned</span>
+              <span class="text-2xl font-black text-slate-800">2,513</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* FashionHub Local Operations Panel */}
+      <div class="bg-white border border-[#d6dee6] rounded-md p-6 shadow-sm">
+        <h3 class="font-bold text-sm text-slate-800 uppercase mb-4 flex items-center gap-2">
+          <i class="fas fa-shield-alt text-[#e04b4a]"></i> FashionHub Local Operations Feed
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded">
+            <span class="text-xs font-bold text-amber-600 block mb-1">MTN MoMo Queue</span>
+            <span class="text-xs text-slate-600">0 pending payment proofs (0773927881)</span>
+          </div>
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded">
+            <span class="text-xs font-bold text-sky-600 block mb-1">Storefront Verification</span>
+            <span class="text-xs text-slate-600">All merchant storefronts synchronized</span>
+          </div>
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded">
+            <span class="text-xs font-bold text-rose-600 block mb-1">Safety Moderation</span>
+            <span class="text-xs text-slate-600">0 open moderation reports</span>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- JavaScript for Live Clock and Chart.js initialization -->
+  <script>
+    // Live Clock Widget Script
+    function updateLiveClock() {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      const dateStr = now.toLocaleDateString([], options);
+
+      const clockEl = document.getElementById('live-clock');
+      const dateEl = document.getElementById('live-date');
+      if (clockEl) clockEl.textContent = timeStr;
+      if (dateEl) dateEl.textContent = dateStr;
+    }
+    setInterval(updateLiveClock, 1000);
+    updateLiveClock();
+
+    // Chart.js Initializations
+    window.addEventListener('DOMContentLoaded', () => {
+      // 1. Line Chart (Sales & Event)
+      const lineCtx = document.getElementById('lineChart').getContext('2d');
+      new Chart(lineCtx, {
+        type: 'line',
+        data: {
+          labels: ['2014-10-11', '2014-10-12', '2014-10-13', '2014-10-14', '2014-10-15'],
+          datasets: [
+            {
+              label: 'Series 1',
+              data: [4, 10, 7, 12, 20],
+              borderColor: '#0ea5e9',
+              backgroundColor: 'rgba(14, 165, 233, 0.1)',
+              fill: true,
+              tension: 0.3
+            },
+            {
+              label: 'Series 2',
+              data: [1, 7, 5, 9, 15],
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              fill: true,
+              tension: 0.3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+
+      // 2. Bar Chart (Users Activity)
+      const barCtx = document.getElementById('barChart').getContext('2d');
+      new Chart(barCtx, {
+        type: 'bar',
+        data: {
+          labels: ['Oct 10', 'Oct 11', 'Oct 12', 'Oct 13', 'Oct 14', 'Oct 15', 'Oct 16'],
+          datasets: [
+            {
+              label: 'New Users',
+              data: [70, 40, 85, 60, 90, 95, 75],
+              backgroundColor: '#334155'
+            },
+            {
+              label: 'Returning',
+              data: [35, 20, 40, 30, 45, 50, 38],
+              backgroundColor: '#0ea5e9'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+
+      // 3. Donut Gauge Chart (Visitors)
+      const donutCtx = document.getElementById('donutChart').getContext('2d');
+      new Chart(donutCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Returned', 'Remaining'],
+          datasets: [{
+            data: [2513, 1200],
+            backgroundColor: ['#0ea5e9', '#f97316'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '75%',
+          plugins: { legend: { display: false } }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
