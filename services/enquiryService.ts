@@ -9,56 +9,92 @@ export const enquiryService = {
 
     const { data: listing, error: listingError } = await supabase
       .from('listings')
-      .select('id, shop_id')
+      .select('id, shop_id, name')
       .eq('id', input.listingId)
       .maybeSingle();
 
     if (listingError || !listing) throw new Error('Listing could not be found.');
     const shopId = listing.shop_id;
 
-    const { data: shop, error: shopError } = await supabase
+    const { data: shop } = await supabase
       .from('shops')
-      .select('owner_id')
+      .select('owner_id, name')
       .eq('id', shopId)
       .maybeSingle();
 
-    if (shopError || !shop) throw new Error('Seller shop could not be found.');
-    const sellerId = shop.owner_id;
+    const sellerId = shop?.owner_id;
 
-    if (sellerId === buyerId) {
+    if (sellerId && sellerId === buyerId) {
       throw new Error('You cannot send an enquiry to your own listing.');
     }
 
+    // Insert into enquiries with fallback if seller_id column is missing in schema cache
+    let enquiryRecord: any = null;
+    const insertPayload: Record<string, any> = {
+      listing_id: input.listingId,
+      shop_id: shopId,
+      buyer_id: buyerId,
+      message: input.message,
+      status: 'pending'
+    };
+    if (sellerId) insertPayload.seller_id = sellerId;
+
     const { data, error } = await supabase
       .from('enquiries')
-      .insert({
-        listing_id: input.listingId,
-        shop_id: shopId,
-        buyer_id: buyerId,
-        seller_id: sellerId,
-        message: input.message,
-        status: 'pending'
-      })
+      .insert(insertPayload)
       .select('*')
-      .single();
+      .maybeSingle();
 
-    if (error) throw new Error(error.message || 'Could not send your enquiry.');
+    if (error || !data) {
+      // Retry without seller_id if column missing in schema cache
+      const { data: retryData, error: retryError } = await supabase
+        .from('enquiries')
+        .insert({
+          listing_id: input.listingId,
+          shop_id: shopId,
+          buyer_id: buyerId,
+          message: input.message,
+          status: 'pending'
+        })
+        .select('*')
+        .single();
 
-    // Also insert initial message into enquiry_messages
-    await supabase.from('enquiry_messages').insert({
-      enquiry_id: data.id,
-      sender_id: buyerId,
-      body: input.message
-    });
+      if (retryError) throw new Error(retryError.message || 'Could not send your enquiry.');
+      enquiryRecord = retryData;
+    } else {
+      enquiryRecord = data;
+    }
+
+    // Insert initial message into enquiry_messages
+    try {
+      await supabase.from('enquiry_messages').insert({
+        enquiry_id: enquiryRecord.id,
+        sender_id: buyerId,
+        body: input.message
+      });
+    } catch {}
+
+    // Trigger notification to seller
+    if (sellerId) {
+      try {
+        await supabase.from('notifications').insert({
+          user_id: sellerId,
+          title: 'New Product Enquiry 💬',
+          body: `You received a new enquiry about "${listing.name || 'your listing'}": "${input.message}"`,
+          type: 'enquiry',
+          is_read: false
+        });
+      } catch {}
+    }
 
     return {
-      id: data.id,
-      listingId: data.listing_id,
-      shopId: data.shop_id,
-      buyerId: data.buyer_id,
-      message: data.message,
-      status: data.status,
-      createdAt: data.created_at
+      id: enquiryRecord.id,
+      listingId: enquiryRecord.listing_id,
+      shopId: enquiryRecord.shop_id,
+      buyerId: enquiryRecord.buyer_id,
+      message: enquiryRecord.message,
+      status: enquiryRecord.status,
+      createdAt: enquiryRecord.created_at
     };
   },
 
@@ -90,14 +126,20 @@ export const enquiryService = {
     const sellerId = userData.user?.id;
     if (!sellerId) return [];
 
-    const { data, error } = await supabase
-      .from('enquiries')
-      .select('*')
-      .eq('seller_id', sellerId)
-      .order('created_at', { ascending: false });
+    // Fetch enquiries for shops owned by this seller or where seller_id matches
+    const { data: shops } = await supabase.from('shops').select('id').eq('owner_id', sellerId);
+    const shopIds = (shops || []).map((s: any) => s.id);
+
+    let query = supabase.from('enquiries').select('*');
+    if (shopIds.length) {
+      query = query.in('shop_id', shopIds);
+    } else {
+      query = query.eq('seller_id', sellerId);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) {
-      // Fallback to all if seller_id column is missing or restricted
       const { data: allData } = await supabase
         .from('enquiries')
         .select('*')
@@ -143,6 +185,19 @@ export const enquiryService = {
         sender_id: senderId,
         body: message
       });
+
+      // Notify buyer about reply
+      if (data?.buyer_id && data.buyer_id !== senderId) {
+        try {
+          await supabase.from('notifications').insert({
+            user_id: data.buyer_id,
+            title: 'Seller Replied to Enquiry 💬',
+            body: `The seller replied: "${message}"`,
+            type: 'enquiry',
+            is_read: false
+          });
+        } catch {}
+      }
     }
 
     return {
@@ -189,7 +244,7 @@ export const enquiryService = {
 
     const { data: enquiry } = await supabase
       .from('enquiries')
-      .select('id, buyer_id, seller_id')
+      .select('id, buyer_id, seller_id, shop_id')
       .eq('id', enquiryId)
       .maybeSingle();
 
@@ -205,16 +260,46 @@ export const enquiryService = {
 
     if (error) throw new Error(error.message || 'Could not send message.');
 
-    // Update enquiry status to replied if seller sent it
-    if (enquiry && enquiry.seller_id === senderId) {
-      await supabase.from('enquiries').update({ status: 'replied' }).eq('id', enquiryId);
+    const isBuyer = senderId === enquiry?.buyer_id;
+
+    if (enquiry) {
+      if (!isBuyer) {
+        await supabase.from('enquiries').update({ status: 'replied' }).eq('id', enquiryId);
+        // Notify buyer
+        if (enquiry.buyer_id) {
+          try {
+            await supabase.from('notifications').insert({
+              user_id: enquiry.buyer_id,
+              title: 'New Message from Seller 💬',
+              body: `"${message}"`,
+              type: 'enquiry',
+              is_read: false
+            });
+          } catch {}
+        }
+      } else {
+        // Notify seller / shop owner
+        const { data: shop } = await supabase.from('shops').select('owner_id').eq('id', enquiry.shop_id).maybeSingle();
+        const sellerId = shop?.owner_id || enquiry.seller_id;
+        if (sellerId) {
+          try {
+            await supabase.from('notifications').insert({
+              user_id: sellerId,
+              title: 'New Message from Buyer 💬',
+              body: `"${message}"`,
+              type: 'enquiry',
+              is_read: false
+            });
+          } catch {}
+        }
+      }
     }
 
     return {
       id: data.id,
       enquiryId: data.enquiry_id,
       senderId: data.sender_id,
-      senderRole: senderId === enquiry?.buyer_id ? 'buyer' : 'seller',
+      senderRole: isBuyer ? 'buyer' : 'seller',
       body: data.body,
       createdAt: data.created_at
     };
