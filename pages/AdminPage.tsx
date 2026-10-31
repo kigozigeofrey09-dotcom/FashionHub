@@ -3,7 +3,7 @@ import {
   LayoutDashboard, TrendingUp, Store, ShieldCheck, Layers, ShoppingBag,
   CreditCard, Megaphone, AlertTriangle, Globe, Settings as SettingsIcon, LogOut,
   Search, RefreshCw, Check, X, ArrowUpRight, DollarSign, Award, ShieldAlert,
-  Mail, Users, Clock, Calendar, BarChart2, PieChart, Menu, Bell, Power, Info, MessageSquare, Settings
+  Mail, Users, Clock, Calendar, BarChart2, PieChart, Menu, Bell, Power, Info, MessageSquare, Settings, Zap
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar, PieChart as RePieChart, Pie, Cell } from 'recharts';
 import { useNavigate } from 'react-router-dom';
