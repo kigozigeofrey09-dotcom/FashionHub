@@ -7,12 +7,12 @@ import { useStorefrontAccess } from '../hooks/useStorefrontAccess';
 import { seedListings, seedShops } from '../data/seed';
 import { errorMessage } from '../services/http';
 import { accountService } from '../services/accountService';
-import { enquiryService } from '../services/enquiryService';
 import { listingService } from '../services/listingService';
 import { shopService } from '../services/shopService';
 import { reportService } from '../services/reportService';
 import { reviewService } from '../services/reviewService';
 import { demoDataEnabled } from '../config/features';
+import { getWhatsAppLink } from '../lib/whatsapp';
 import type { Listing, Review, Shop } from '../types';
 
 export function ListingDetailPage() {
@@ -68,9 +68,10 @@ export function ListingDetailPage() {
 
   function openWhatsAppOrder(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!sellerWhatsapp) { setError('Seller WhatsApp is not available.'); return; }
-    const text = `Hi ${listing?.shopName}, I found this ${listing?.type} on FashionHub:\n\n*${listing?.name}*\nPrice: UGX ${listing?.price.toLocaleString()}\nQty: ${quantity}${size ? `\nSize: ${size}` : ''}${colour ? `\nFinish: ${colour}` : ''}\nFulfillment: ${fulfillment}${fulfillmentDetails ? `\nDetails: ${fulfillmentDetails}` : ''}${buyerNote ? `\nNote: ${buyerNote}` : ''}\n\nPlease confirm availability!`;
-    window.open(whatsappHref(sellerWhatsapp, text), '_blank', 'noopener,noreferrer');
+    const targetPhone = sellerWhatsapp || '256773927881';
+    const text = `Hi ${listing?.shopName || 'Seller'}, I am inquiring about "${listing?.name || 'this item'}" listed for UGX ${(listing?.price || 0).toLocaleString()} on FashionHub:\nQty: ${quantity}${size ? `\nSize: ${size}` : ''}${colour ? `\nFinish: ${colour}` : ''}\nFulfillment: ${fulfillment}${fulfillmentDetails ? `\nDetails: ${fulfillmentDetails}` : ''}${buyerNote ? `\nNote: ${buyerNote}` : ''}\n\nIs it available?`;
+    const waUrl = getWhatsAppLink(targetPhone, listing?.name, listing?.price);
+    window.open(`https://wa.me/${targetPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
   }
 
   async function submitListingReport(event: FormEvent<HTMLFormElement>) {
@@ -89,12 +90,11 @@ export function ListingDetailPage() {
   function handleMakeOffer(e: FormEvent) {
     e.preventDefault();
     if (!offerPrice) return;
-    setOfferSubmitted(true);
-    setTimeout(() => {
-      setShowOffer(false);
-      setOfferSubmitted(false);
-      setOfferPrice('');
-    }, 2000);
+    const targetPhone = sellerWhatsapp || '256773927881';
+    const message = `Hello! I am offering UGX ${Number(offerPrice).toLocaleString()} for "${listing?.name}" listed on FashionHub.`;
+    const url = `https://wa.me/${targetPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+    setShowOffer(false);
   }
 
   if (loading) return <section className="content-page"><Loading label="Loading listing…" /></section>;

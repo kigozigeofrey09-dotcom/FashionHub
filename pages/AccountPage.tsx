@@ -14,12 +14,11 @@ import { subscriptionService } from '../services/subscriptionService';
 import { errorMessage } from '../services/http';
 import type { AccountSettings, Enquiry, Listing, Order, SubscriptionRecord } from '../types';
 
-type AccountTab = 'profile' | 'saved' | 'enquiries' | 'orders' | 'settings';
+type AccountTab = 'profile' | 'saved' | 'orders' | 'settings';
 
 export function AccountPage() {
   const { session, countries, refreshSession } = useAppContext();
   const [saved, setSaved] = useState<Listing[]>([]);
-  const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [settings, setSettings] = useState<AccountSettings | null>(null);
   const [subscriptions, setSubscriptions] = useState<SubscriptionRecord[]>([]);
@@ -41,17 +40,15 @@ export function AccountPage() {
     try {
       const results = await Promise.allSettled([
         accountService.savedListings(),
-        enquiryService.mine(),
         orderService.mine(),
         accountService.settings(),
         subscriptionsEnabled ? subscriptionService.mine() : Promise.resolve([] as SubscriptionRecord[]),
       ]);
       if (results[0].status === 'fulfilled') setSaved(results[0].value || []);
-      if (results[1].status === 'fulfilled') setEnquiries(results[1].value || []);
-      if (results[2].status === 'fulfilled') setOrders(results[2].value || []);
-      if (results[3].status === 'fulfilled') setSettings(results[3].value || null);
-      else setSettingsError(errorMessage(results[3].reason));
-      if (results[4].status === 'fulfilled') setSubscriptions(results[4].value || []);
+      if (results[1].status === 'fulfilled') setOrders(results[1].value || []);
+      if (results[2].status === 'fulfilled') setSettings(results[2].value || null);
+      else setSettingsError(errorMessage(results[2].reason));
+      if (results[3].status === 'fulfilled') setSubscriptions(results[3].value || []);
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -123,13 +120,12 @@ export function AccountPage() {
     {session && <>
       <div className="account-summary"><span className="shop-initial">{settings?.avatarUrl ? <img src={settings.avatarUrl} alt="Your profile" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} /> : (session?.user?.name || 'U').slice(0, 1)}</span><div><p className="eyebrow">{session?.user?.role?.toUpperCase() || 'BUYER'} ACCOUNT</p><h2>{session?.user?.name || 'User'}</h2><p>{session?.user?.email || ''}</p><MegaMemberBadge /></div>{(session?.user?.role === 'seller' || subscriptionsEnabled) && <Link className="button button-outline" to={session?.user?.role === 'seller' ? '/seller/dashboard' : '/subscriptions'}>{session?.user?.role === 'seller' ? 'Seller studio' : 'Subscription status'}</Link>}</div>
       {subscriptionsEnabled && <section className="current-plan-strip"><div><p className="eyebrow">CURRENT PLAN</p>{currentSubscription ? <><h3>{currentSubscription.planName ?? currentSubscription.planId ?? 'Membership'}</h3><StatusBadge status={currentSubscription.status}>{currentSubscription.status.replaceAll('_', ' ')}</StatusBadge><p>Renewal date: {currentSubscription.renewalDate ? new Date(currentSubscription.renewalDate).toLocaleDateString() : 'Awaiting backend confirmation'}</p></> : <p>No active or pending plan returned by the subscription service.</p>}</div><Link className="text-button" to="/subscriptions">Manage plan <span>↗</span></Link></section>}
-      <div className="account-tabs" role="tablist" aria-label="Account sections">{(['profile', 'saved', 'enquiries', 'orders', 'settings'] as const).map((item) => <button key={item} role="tab" aria-selected={tab === item} className={tab === item ? 'is-active' : ''} onClick={() => setTab(item)}>{item === 'profile' ? 'Profile details' : item === 'saved' ? 'Saved items' : item === 'enquiries' ? 'Enquiries' : item === 'orders' ? 'Order status' : 'Settings'}</button>)}</div>
+      <div className="account-tabs" role="tablist" aria-label="Account sections">{(['profile', 'saved', 'orders', 'settings'] as const).map((item) => <button key={item} role="tab" aria-selected={tab === item} className={tab === item ? 'is-active' : ''} onClick={() => setTab(item)}>{item === 'profile' ? 'Profile details' : item === 'saved' ? 'Saved items' : item === 'orders' ? 'Order status' : 'Settings'}</button>)}</div>
       {error && <Notice tone="error" title="Account action unavailable">{error}<button className="text-button" onClick={() => void loadAccount()}>Retry</button></Notice>}
       {message && <Notice tone="success">{message}</Notice>}
       {loading && <Loading label="Loading account details…" />}
       {!loading && tab === 'profile' && (settings ? <section className="subsection"><p className="eyebrow">ACCOUNT PROFILE</p><h2>Your profile details.</h2><div className="settings-layout"><div><p><strong>Name</strong><br />{settings?.name || session?.user?.name || 'User'}</p><p><strong>Email</strong><br />{settings?.email || session?.user?.email || ''}</p></div><div><p><strong>Account type</strong><br />{session?.user?.role || 'buyer'}</p><p><strong>Country</strong><br />{countryOptions.find((country) => country.code === settings?.countryCode)?.name ?? settings?.countryCode ?? 'Uganda'}</p><p><strong>City</strong><br />{settings?.city || 'Add your city in settings'}</p></div></div><button className="button button-outline" onClick={handleEditProfile}>Edit profile & settings</button></section> : <Notice tone="error" title="Profile details unavailable">{settingsError || 'Sign in and load your profile through the account service.'}<button className="text-button" onClick={() => void loadAccount()}>Retry</button></Notice>)}
       {!loading && tab === 'saved' && (saved.length ? <div className="saved-grid">{saved.map((item) => <article className="saved-item" key={item?.id}><Link to={`/listings/${item?.id}`}><img src={item?.image} alt={item?.name} /></Link><div><Link to={`/listings/${item?.id}`}><h3>{item?.name}</h3></Link><p>{item?.currency} {(item?.price || 0).toLocaleString()} · {item?.city}, {item?.countryName}</p><button className="text-button" onClick={() => void removeSaved(item)}><Bookmark size={14} /> Remove saved item</button></div></article>)}</div> : <EmptyState title="No saved finds yet">Saved listings appear here when the account API is connected.</EmptyState>)}
-      {!loading && tab === 'enquiries' && (enquiries.length ? <div className="seller-listings">{enquiries.map((item) => <article className="seller-listing-row" key={item?.id}><div><span className="listing-type">ENQUIRY · {item?.status}</span><h3>{item?.message}</h3><p>Reference {item?.id} · {item?.createdAt ? new Date(item.createdAt).toLocaleDateString() : ''}</p>{item?.reply && <p><strong>Seller reply:</strong> {item.reply}</p>}</div></article>)}</div> : <EmptyState title="No enquiries found">Your messages and seller replies will appear here.</EmptyState>)}
       {!loading && tab === 'orders' && (orders.length ? <div className="seller-listings">{orders.map((item) => <article className="seller-listing-row" key={item?.id}><div><span className="listing-type">{(item?.fulfillment || 'pickup').toUpperCase()} · {(item?.status || '').replaceAll('_', ' ')}</span><h3>Order {item?.id}</h3><p>{item?.quantity ? `Quantity ${item.quantity} · ` : ''}{item?.unitPrice && item?.currency ? `${item.currency} ${item.unitPrice.toLocaleString()} each · ` : ''}Updated {item?.updatedAt || item?.createdAt ? new Date(item.updatedAt ?? item.createdAt).toLocaleDateString() : ''}</p>{item?.fulfillmentDetails && <p>{item.fulfillmentDetails}</p>}{item?.status === 'completed' && <OrderReview orderId={item.id} />}</div></article>)}</div> : <EmptyState title="No order history">Order requests and pickup or delivery status will appear here.</EmptyState>)}
       {!loading && tab === 'settings' && (settings ? <div className="settings-layout">
         <section className="subsection"><p className="eyebrow">PROFILE & NOTIFICATIONS</p><h2>Account settings.</h2><form className="form-stack" onSubmit={saveSettings}><label className="field"><span>Profile photo</span><input type="file" accept="image/jpeg,image/png,image/webp,image/avif" disabled={uploadingAvatar} onChange={(event) => void uploadAvatar(event.target.files?.[0])} /><small className="field-note">{uploadingAvatar ? 'Uploading…' : 'JPG, PNG, WebP, or AVIF · up to 10 MB'}</small></label>
