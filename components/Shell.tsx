@@ -57,7 +57,6 @@ export function Shell() {
       <nav className={`main-nav ${menuOpen ? 'is-open' : ''}`} aria-label="Main navigation">
         {links.map(link => <NavLink key={link.to} to={link.to} end={link.end} onClick={() => setMenuOpen(false)}>{link.label}</NavLink>)}
         {subscriptionsEnabled && <NavLink to="/subscriptions" onClick={() => setMenuOpen(false)}>Subscriptions</NavLink>}
-        {session && <NavLink to="/messages" onClick={() => setMenuOpen(false)}>Chat</NavLink>}
         {session && <NavLink to="/notifications" onClick={() => setMenuOpen(false)}>Notifications</NavLink>}
         {session?.user.role === 'seller' && <NavLink to="/seller/dashboard" onClick={() => setMenuOpen(false)}>Seller studio</NavLink>}
         {session?.user.role === 'admin' && <NavLink to="/admin" onClick={() => setMenuOpen(false)}>Admin</NavLink>}

@@ -11,11 +11,9 @@ import { ListingDetailPage, ShopPage } from './pages/DetailsPages';
 import { AccountPage } from './pages/AccountPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { SubscriptionsPage } from './pages/SubscriptionsPage';
-import { MessagesPage } from './pages/MessagesPage';
 import { SupportPage, InformationPage } from './pages/InfoPages';
 import { DripAiPage } from './pages/DripAiPage';
 import { StyleSwipePage } from './pages/StyleSwipePage';
-import { EnquiriesPage } from './pages/EnquiriesPage';
 import { DayBookApp } from './src/daybook/DayBookApp';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 
@@ -35,13 +33,10 @@ export function App() {
           <Route path="/shops/:shopId" element={<ShopPage />} />
           <Route path="/drip-ai" element={<DripAiPage />} />
           <Route path="/style-swipe" element={<StyleSwipePage />} />
-          <Route path="/enquiries" element={<EnquiriesPage />} />
-          <Route path="/orders" element={<EnquiriesPage />} />
           <Route path="/daybook" element={<DayBookApp />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/subscriptions" element={<SubscriptionsPage />} />
-          <Route path="/messages" element={<MessagesPage />} />
           <Route path="/support" element={<SupportPage />} />
           <Route path="/policies" element={<InformationPage />} />
           <Route path="/auth/:mode" element={<AuthPage />} />
