@@ -271,7 +271,7 @@ export function SellerDashboardPage() {
   if (session.user.role !== 'seller') return <section className="content-page"><Notice tone="error" title="Seller role required">Your backend session role is {session.user.role}. Use a seller account to access the seller studio.</Notice><Link className="button button-outline" to="/account">Back to account</Link></section>;
 
   return <section className="content-page dashboard-page">
-    <PageTitle eyebrow="SELLER STUDIO & SUBSCRIPTION" title={<>Your work, <em>in one place.</em></>} action={<><Link className="button button-dark" to="/daybook" style={{ background: '#059669', color: '#fff' }}>📊 DayBook Accounting</Link><Link className="button button-outline" to="/seller/setup">Setup shop</Link>{subscriptionsEnabled && <Link className="button button-dark" to="/subscriptions">Subscription status</Link>}</>}>Shop and listing information is loaded from your seller account.</PageTitle>
+    <PageTitle eyebrow="SELLER STUDIO & SUBSCRIPTION" title={<>Your work, <em>in one place.</em></>} action={<><Link className="button button-outline" to="/seller/setup">Setup shop</Link>{subscriptionsEnabled && <Link className="button button-dark" to="/subscriptions">Subscription status</Link>}</>}>Shop and listing information is loaded from your seller account.</PageTitle>
 
     {isExpiringSoon && <Notice tone="warning" title="Free Trial Ending Soon">Your 1-month free trial ends on {trialEndDate.toLocaleDateString()}. Subscribe now for UGX 10,000/month to keep your shop live.</Notice>}
     {isTrialExpired && <Notice tone="error" title="Free Trial Expired">Your 1-month free trial has expired. Adding new products or receiving orders is restricted until payment is confirmed.</Notice>}

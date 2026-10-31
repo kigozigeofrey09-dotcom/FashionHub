@@ -9,9 +9,7 @@ import { notificationService } from '../services/notificationService';
 const links = [
   { to: '/', label: 'Discover', end: true },
   { to: '/style-swipe', label: '🔥 Style Swipe' },
-  { to: '/drip-ai', label: '✨ Drip AI' },
-  { to: '/enquiries', label: '💬 Enquiries & Orders' },
-  { to: '/daybook', label: '📊 DayBook UG' },
+  { to: '/drip-ai', label: '✨ Drip AI Stylist' },
   { to: '/seller/setup', label: 'Open a shop' },
 ];
 
@@ -66,14 +64,9 @@ export function Shell() {
       </nav>
       <div className="header-actions">
         {(session?.user.role === 'admin' || session?.user.email?.toLowerCase() === 'kigozigeofrey09@gmail.com') && (
-          <>
-            <Link className="button button-dark" to="/admin/dashboard" style={{ background: '#111827', color: '#38bdf8', fontSize: '10px', padding: '0 10px' }}>
-              📡 Live Radar
-            </Link>
-            <Link className="button button-dark" to="/admin" style={{ background: '#315039', color: '#c7df77', fontSize: '10px', padding: '0 10px' }}>
-              ⚡ Admin Center
-            </Link>
-          </>
+          <Link className="button button-dark" to="/admin" style={{ background: '#315039', color: '#c7df77', fontSize: '10px', padding: '0 12px' }}>
+            ⚡ Admin Center
+          </Link>
         )}
         <button type="button" className="icon-button" onClick={toggleDarkMode} aria-label="Toggle dark mode" title="Toggle dark mode" style={{ borderRadius: '50%' }}>
           {darkMode ? <Sun size={15} /> : <Moon size={15} />}
@@ -89,8 +82,6 @@ export function Shell() {
     <footer className="site-footer">
       <Link className="brand brand-footer" to="/"><span className="brand-mark">F<span>h</span></span><span>fashion<span className="brand-light">hub</span></span></Link>
       <nav aria-label="Footer links">
-        <Link to="/enquiries">Enquiries & Orders</Link>
-        <Link to="/daybook">DayBook UG</Link>
         {subscriptionsEnabled && <Link to="/subscriptions">Subscriptions</Link>}
         <Link to="/notifications">Notifications</Link>
         <Link to="/support">FAQ & support</Link>
