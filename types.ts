@@ -2,7 +2,7 @@ export type AccountRole = 'buyer' | 'seller' | 'admin';
 export type ListingType = 'product' | 'service';
 export type SubscriptionStatus = 'pending_verification' | 'pending' | 'approved' | 'declined' | 'expired' | 'cancelled';
 export type SubscriptionRequestType = 'new' | 'renewal';
-export type Category = 'Clothing' | 'Shoes' | 'Bags' | 'Jewellery' | 'Beauty' | 'Tailoring' | 'Accessories' | 'Pet Fashion (PAW)' | 'Other';
+export type Category = 'Clothing' | 'Shoes' | 'Bags' | 'Jewellery' | 'Beauty' | 'Tailoring' | 'Accessories' | 'Beds & Curtains' | 'Pet Fashion (PAW)' | 'Other';
 
 export interface Country {
   code: string;

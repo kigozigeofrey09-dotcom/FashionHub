@@ -11,7 +11,7 @@ import { demoDataEnabled } from '../config/features';
 import type { Listing, Shop } from '../types';
 import './marketplace-3d.css';
 
-const categoryOptions = ['All finds', 'Clothing', 'Shoes', 'Bags', 'Jewellery', 'Beauty', 'Tailoring', 'Accessories', 'Other'];
+const categoryOptions = ['All finds', 'Clothing', 'Shoes', 'Bags', 'Jewellery', 'Beauty', 'Tailoring', 'Accessories', 'Beds & Curtains', 'Pet Fashion (PAW)', 'Other'];
 
 export function MarketplacePage() {
   const { countries } = useAppContext();

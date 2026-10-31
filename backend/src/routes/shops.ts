@@ -4,7 +4,7 @@ import { supabase } from "../lib/supabase.js";
 import { authenticatedAccount } from "../lib/requestAuth.js";
 
 export const shopsRouter = Router();
-const categories = ["Clothing", "Shoes", "Bags", "Jewellery", "Beauty", "Tailoring", "Accessories", "Other"] as const;
+const categories = ["Clothing", "Shoes", "Bags", "Jewellery", "Beauty", "Tailoring", "Accessories", "Beds & Curtains", "Pet Fashion (PAW)", "Other"] as const;
 const imageReference = z.string().trim().max(2048).refine((value) => {
   if (/^\/api\/uploads\/images\/[a-f0-9-]+\.(jpg|png|webp|avif)$/i.test(value)) return true;
   try { const url = new URL(value); return url.protocol === "https:" || url.protocol === "http:"; }
