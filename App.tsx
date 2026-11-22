@@ -1,0 +1,49 @@
+import { Routes, Route } from 'react-router-dom';
+import { AppProvider } from './context/AppContext';
+import { Shell } from './components/Shell';
+import { MarketplacePage } from './pages/MarketplacePage';
+import { AdminPage } from './pages/AdminPage';
+import { AuthPage } from './pages/AuthPage';
+import { SellerOnboardingPage, SellerDashboardPage } from './pages/SellerPages';
+import { SellerPromotionsPage } from './pages/SellerPromotionsPage';
+import { AdminAdsPage } from './pages/AdminAdsPage';
+import { ListingDetailPage, ShopPage } from './pages/DetailsPages';
+import { AccountPage } from './pages/AccountPage';
+import { NotificationsPage } from './pages/NotificationsPage';
+import { SubscriptionsPage } from './pages/SubscriptionsPage';
+import { SupportPage, InformationPage } from './pages/InfoPages';
+import { DripAiPage } from './pages/DripAiPage';
+import { StyleSwipePage } from './pages/StyleSwipePage';
+import { DayBookApp } from './src/daybook/DayBookApp';
+import { AdminDashboardPage } from './pages/AdminDashboardPage';
+
+export function App() {
+  return (
+    <AppProvider>
+      <Routes>
+        <Route element={<Shell />}>
+          <Route path="/" element={<MarketplacePage />} />
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+          <Route path="/admin/advertisements" element={<AdminAdsPage />} />
+          <Route path="/seller/setup" element={<SellerOnboardingPage />} />
+          <Route path="/seller/dashboard" element={<SellerDashboardPage />} />
+          <Route path="/seller/promotions" element={<SellerPromotionsPage />} />
+          <Route path="/listings/:listingId" element={<ListingDetailPage />} />
+          <Route path="/shops/:shopId" element={<ShopPage />} />
+          <Route path="/drip-ai" element={<DripAiPage />} />
+          <Route path="/style-swipe" element={<StyleSwipePage />} />
+          <Route path="/daybook" element={<DayBookApp />} />
+          <Route path="/account" element={<AccountPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/subscriptions" element={<SubscriptionsPage />} />
+          <Route path="/support" element={<SupportPage />} />
+          <Route path="/policies" element={<InformationPage />} />
+          <Route path="/auth/:mode" element={<AuthPage />} />
+          <Route path="/auth" element={<AuthPage />} />
+        </Route>
+      </Routes>
+    </AppProvider>
+  );
+}
+export default App;

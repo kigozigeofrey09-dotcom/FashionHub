@@ -1,0 +1,159 @@
+﻿import { useEffect, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
+import { Bookmark, RefreshCw, Trash2 } from 'lucide-react';
+import { EmptyState, Loading, Notice, PageTitle, StatusBadge } from '../components/ui';
+import { MegaMemberBadge } from '../components/AccessPrompt';
+import { useAppContext } from '../context/AppContext';
+import { subscriptionsEnabled } from '../config/features';
+import { accountService } from '../services/accountService';
+import { uploadService } from '../services/uploadService';
+import { enquiryService } from '../services/enquiryService';
+import { orderService } from '../services/orderService';
+import { reviewService } from '../services/reviewService';
+import { subscriptionService } from '../services/subscriptionService';
+import { errorMessage } from '../services/http';
+import type { AccountSettings, Enquiry, Listing, Order, SubscriptionRecord } from '../types';
+
+type AccountTab = 'profile' | 'saved' | 'orders' | 'settings';
+
+export function AccountPage() {
+  const { session, countries, refreshSession } = useAppContext();
+  const [saved, setSaved] = useState<Listing[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [settings, setSettings] = useState<AccountSettings | null>(null);
+  const [subscriptions, setSubscriptions] = useState<SubscriptionRecord[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [settingsError, setSettingsError] = useState('');
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [message, setMessage] = useState('');
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const [tab, setTab] = useState<AccountTab>('profile');
+  const countryOptions = countries || [];
+
+  async function loadAccount() {
+    if (!session) return;
+    setLoading(true);
+    setError('');
+    setSettingsError('');
+    try {
+      const results = await Promise.allSettled([
+        accountService.savedListings(),
+        orderService.mine(),
+        accountService.settings(),
+        subscriptionsEnabled ? subscriptionService.mine() : Promise.resolve([] as SubscriptionRecord[]),
+      ]);
+      if (results[0].status === 'fulfilled') setSaved(results[0].value || []);
+      if (results[1].status === 'fulfilled') setOrders(results[1].value || []);
+      if (results[2].status === 'fulfilled') setSettings(results[2].value || null);
+      else setSettingsError(errorMessage(results[2].reason));
+      if (results[3].status === 'fulfilled') setSubscriptions(results[3].value || []);
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { void loadAccount(); }, [session]);
+
+  const handleEditProfile = () => {
+    try {
+      if (!session) return;
+      setTab('settings');
+    } catch (err) {
+      console.error("Edit profile error:", err);
+    }
+  };
+
+  async function removeSaved(listing: Listing) {
+    try {
+      await accountService.removeSavedListing(listing.id);
+      setSaved((current) => current.filter((item) => item.id !== listing.id));
+    } catch (caught) { setError(errorMessage(caught)); }
+  }
+
+  async function saveSettings(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!settings) return;
+    setBusy(true); setError(''); setMessage('');
+    try {
+      const updated = await accountService.updateSettings(settings);
+      setSettings(updated);
+      setMessage('Account settings were saved successfully.');
+    } catch (caught) { setError(errorMessage(caught)); }
+    finally { setBusy(false); }
+  }
+
+  async function uploadAvatar(file: File | undefined) {
+    if (!file || !settings) return;
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/avif'].includes(file.type) || file.size > 10 * 1024 * 1024) {
+      setError('Choose a JPG, PNG, WebP, or AVIF image up to 10 MB.'); return;
+    }
+    setUploadingAvatar(true); setError(''); setMessage('');
+    try {
+      const uploaded = await uploadService.image(file, 'avatar');
+      const updated = await accountService.updateSettings({ avatarUrl: uploaded.url });
+      setSettings(updated); setMessage('Your profile photo was saved.');
+    } catch (caught) { setError(errorMessage(caught)); }
+    finally { setUploadingAvatar(false); }
+  }
+
+  async function deleteAccount(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (deleteConfirmation !== 'DELETE') { setError('Type DELETE exactly to request account deletion.'); return; }
+    setBusy(true); setError(''); setMessage('');
+    try {
+      await accountService.deleteAccount(deleteConfirmation);
+      setMessage('The account deletion request was accepted by the backend.');
+      await refreshSession();
+    } catch (caught) { setError(errorMessage(caught)); }
+    finally { setBusy(false); }
+  }
+
+  const currentSubscription = subscriptions.find((record) => ['approved', 'pending', 'pending_verification'].includes(record?.status));
+  return <section className="content-page account-page">
+    <PageTitle eyebrow="YOUR FASHIONHUB" title={<>Your corner of <em>the hub.</em></>} action={session && <span className="role-pill">{session.user.role}</span>}>Saved items, enquiries, orders and settings come from your authenticated account services.</PageTitle>
+    {!session && <Notice tone="warning" title="Sign in to load account data">Authentication must be confirmed by the backend.</Notice>}
+    {!session && <Link className="button button-dark" to="/auth/sign-in">Sign in securely</Link>}
+    {session && <>
+      <div className="account-summary"><span className="shop-initial">{settings?.avatarUrl ? <img src={settings.avatarUrl} alt="Your profile" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} /> : (session?.user?.name || 'U').slice(0, 1)}</span><div><p className="eyebrow">{session?.user?.role?.toUpperCase() || 'BUYER'} ACCOUNT</p><h2>{session?.user?.name || 'User'}</h2><p>{session?.user?.email || ''}</p><MegaMemberBadge /></div>{(session?.user?.role === 'seller' || subscriptionsEnabled) && <Link className="button button-outline" to={session?.user?.role === 'seller' ? '/seller/dashboard' : '/subscriptions'}>{session?.user?.role === 'seller' ? 'Seller studio' : 'Subscription status'}</Link>}</div>
+      {subscriptionsEnabled && <section className="current-plan-strip"><div><p className="eyebrow">CURRENT PLAN</p>{currentSubscription ? <><h3>{currentSubscription.planName ?? currentSubscription.planId ?? 'Membership'}</h3><StatusBadge status={currentSubscription.status}>{currentSubscription.status.replaceAll('_', ' ')}</StatusBadge><p>Renewal date: {currentSubscription.renewalDate ? new Date(currentSubscription.renewalDate).toLocaleDateString() : 'Awaiting backend confirmation'}</p></> : <p>No active or pending plan returned by the subscription service.</p>}</div><Link className="text-button" to="/subscriptions">Manage plan <span>↗</span></Link></section>}
+      <div className="account-tabs" role="tablist" aria-label="Account sections">{(['profile', 'saved', 'orders', 'settings'] as const).map((item) => <button key={item} role="tab" aria-selected={tab === item} className={tab === item ? 'is-active' : ''} onClick={() => setTab(item)}>{item === 'profile' ? 'Profile details' : item === 'saved' ? 'Saved items' : item === 'orders' ? 'Order status' : 'Settings'}</button>)}</div>
+      {error && <Notice tone="error" title="Account action unavailable">{error}<button className="text-button" onClick={() => void loadAccount()}>Retry</button></Notice>}
+      {message && <Notice tone="success">{message}</Notice>}
+      {loading && <Loading label="Loading account details…" />}
+      {!loading && tab === 'profile' && (settings ? <section className="subsection"><p className="eyebrow">ACCOUNT PROFILE</p><h2>Your profile details.</h2><div className="settings-layout"><div><p><strong>Name</strong><br />{settings?.name || session?.user?.name || 'User'}</p><p><strong>Email</strong><br />{settings?.email || session?.user?.email || ''}</p></div><div><p><strong>Account type</strong><br />{session?.user?.role || 'buyer'}</p><p><strong>Country</strong><br />{countryOptions.find((country) => country.code === settings?.countryCode)?.name ?? settings?.countryCode ?? 'Uganda'}</p><p><strong>City</strong><br />{settings?.city || 'Add your city in settings'}</p></div></div><button className="button button-outline" onClick={handleEditProfile}>Edit profile & settings</button></section> : <Notice tone="error" title="Profile details unavailable">{settingsError || 'Sign in and load your profile through the account service.'}<button className="text-button" onClick={() => void loadAccount()}>Retry</button></Notice>)}
+      {!loading && tab === 'saved' && (saved.length ? <div className="saved-grid">{saved.map((item) => <article className="saved-item" key={item?.id}><Link to={`/listings/${item?.id}`}><img src={item?.image} alt={item?.name} /></Link><div><Link to={`/listings/${item?.id}`}><h3>{item?.name}</h3></Link><p>{item?.currency} {(item?.price || 0).toLocaleString()} · {item?.city}, {item?.countryName}</p><button className="text-button" onClick={() => void removeSaved(item)}><Bookmark size={14} /> Remove saved item</button></div></article>)}</div> : <EmptyState title="No saved finds yet">Saved listings appear here when the account API is connected.</EmptyState>)}
+      {!loading && tab === 'orders' && (orders.length ? <div className="seller-listings">{orders.map((item) => <article className="seller-listing-row" key={item?.id}><div><span className="listing-type">{(item?.fulfillment || 'pickup').toUpperCase()} · {(item?.status || '').replaceAll('_', ' ')}</span><h3>Order {item?.id}</h3><p>{item?.quantity ? `Quantity ${item.quantity} · ` : ''}{item?.unitPrice && item?.currency ? `${item.currency} ${item.unitPrice.toLocaleString()} each · ` : ''}Updated {item?.updatedAt || item?.createdAt ? new Date(item.updatedAt ?? item.createdAt).toLocaleDateString() : ''}</p>{item?.fulfillmentDetails && <p>{item.fulfillmentDetails}</p>}{item?.status === 'completed' && <OrderReview orderId={item.id} />}</div></article>)}</div> : <EmptyState title="No order history">Order requests and pickup or delivery status will appear here.</EmptyState>)}
+      {!loading && tab === 'settings' && (settings ? <div className="settings-layout">
+        <section className="subsection"><p className="eyebrow">PROFILE & NOTIFICATIONS</p><h2>Account settings.</h2><form className="form-stack" onSubmit={saveSettings}><label className="field"><span>Profile photo</span><input type="file" accept="image/jpeg,image/png,image/webp,image/avif" disabled={uploadingAvatar} onChange={(event) => void uploadAvatar(event.target.files?.[0])} /><small className="field-note">{uploadingAvatar ? 'Uploading…' : 'JPG, PNG, WebP, or AVIF · up to 10 MB'}</small></label>
+          <label className="field"><span>Display name</span><input value={settings?.name || ''} onChange={(event) => setSettings({ ...settings, name: event.target.value })} required maxLength={80} /></label>
+          <label className="field"><span>Email</span><input type="email" value={settings?.email || ''} readOnly /></label>
+          <label className="field"><span>Country</span><select value={settings?.countryCode || 'UG'} onChange={(event) => setSettings({ ...settings, countryCode: event.target.value })}>{countryOptions.map((country) => <option key={country.code} value={country.code}>{country.name}</option>)}</select></label>
+          <label className="field"><span>City</span><input value={settings?.city ?? ''} onChange={(event) => setSettings({ ...settings, city: event.target.value })} /></label>
+          <fieldset className="payer-options"><legend>In-app notification preferences</legend>{(subscriptionsEnabled ? ['subscription', 'enquiry', 'order', 'product-updates'] : ['enquiry', 'order', 'product-updates']).map((key) => <label key={key}><input type="checkbox" checked={settings?.notificationPreferences?.[key] ?? false} onChange={(event) => setSettings({ ...settings, notificationPreferences: { ...settings.notificationPreferences, [key]: event.target.checked } })} /><span>{key.replaceAll('-', ' ')}</span></label>)}</fieldset>
+          <button className="button button-dark" disabled={busy}>{busy ? 'Saving…' : 'Save through account API'}</button>
+        </form><Link className="text-button" to="/notifications">Open notifications ↗</Link></section>
+        <section className="subsection danger-zone"><p className="eyebrow">ACCOUNT CONTROL</p><h2>Delete your account.</h2><Notice tone="warning">Deletion is handled by the backend and may be irreversible.</Notice><form className="form-stack" onSubmit={deleteAccount}><label className="field"><span>Type DELETE to request deletion</span><input value={deleteConfirmation} onChange={(event) => setDeleteConfirmation(event.target.value)} autoComplete="off" required /></label><button className="button button-outline danger-action" disabled={busy || deleteConfirmation !== 'DELETE'}>{busy ? 'Requesting deletion…' : <>Request account deletion <Trash2 size={14} /></>}</button></form></section>
+      </div> : <Notice tone="error" title="Account settings unavailable">{settingsError || 'The account service did not return your profile.'}<button className="text-button" onClick={() => void loadAccount()}>Retry settings</button></Notice>)}
+      <button className="text-button reload-link" onClick={() => void loadAccount()} disabled={loading}><RefreshCw size={14} /> Refresh account</button>
+    </>}
+  </section>;
+}
+
+function OrderReview({ orderId }: { orderId: string }) {
+  const [rating, setRating] = useState('5');
+  const [body, setBody] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setBusy(true); setError(''); setMessage('');
+    try { await reviewService.submitForOrder(orderId, { rating: Number(rating), body: body.trim() }); setMessage('Your verified order review was saved.'); setBody(''); }
+    catch (caught) { setError(errorMessage(caught)); }
+    finally { setBusy(false); }
+  }
+  return <form className="form-stack" onSubmit={submit}><h4>Review this completed order</h4>{error && <Notice tone="error">{error}</Notice>}{message && <Notice tone="success">{message}</Notice>}<label className="field"><span>Rating</span><select value={rating} onChange={(event) => setRating(event.target.value)}>{[5, 4, 3, 2, 1].map((value) => <option value={value} key={value}>{value} star{value === 1 ? '' : 's'}</option>)}</select></label><label className="field"><span>Review <small>optional</small></span><textarea value={body} onChange={(event) => setBody(event.target.value)} maxLength={2000} rows={2} /></label><button className="button button-outline" disabled={busy}>{busy ? 'Saving review…' : 'Submit review'}</button></form>;
+}
