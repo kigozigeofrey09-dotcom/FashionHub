@@ -285,3 +285,96 @@ body:not(.dark-mode) .segmented input:checked + span {
 .seller-listing-row {
   border-radius: 8px;
 }
+
+/* Warm Minimalist Editorial Storefront Override */
+:root {
+  --bg: #FAF9F6;
+  --surface: #FAF9F6;
+  --white: #FFFFFF;
+  --ink: #141414;
+  --muted: #6E6D68;
+  --line: #E6E3DC;
+}
+
+body {
+  background-color: #FAF9F6;
+  color: #141414;
+}
+
+.market-hero {
+  background: #FAF9F6;
+  border-bottom: 1px solid #E6E3DC;
+}
+
+.market-hero-copy h1,
+.section-heading h2,
+.maker-band h2,
+.page-title h1 {
+  font-family: var(--serif);
+  color: #141414;
+  letter-spacing: -0.02em;
+}
+
+.button-dark {
+  background: #141414;
+  color: #FFFFFF;
+  border: 1px solid #141414;
+}
+
+.button-dark:hover {
+  background: #2B2B2B;
+  border-color: #2B2B2B;
+}
+
+.button-outline {
+  background: #FFFFFF;
+  color: #141414;
+  border: 1px solid #DCD8CE;
+}
+
+.button-outline:hover {
+  background: #F3F1EC;
+  border-color: #141414;
+}
+
+.filter-chip {
+  background: #FFFFFF;
+  color: #4A4945;
+  border: 1px solid #E6E3DC;
+}
+
+.filter-chip.is-selected {
+  background: #141414;
+  color: #FFFFFF;
+  border-color: #141414;
+}
+
+.listing-card {
+  background: transparent;
+}
+
+.listing-image {
+  background: #F2EFE9;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.listing-name-price h3 {
+  color: #141414;
+  font-weight: 500;
+}
+
+.listing-name-price strong {
+  color: #141414;
+}
+
+.shop-card {
+  background: #FFFFFF;
+  border: 1px solid #E6E3DC;
+  border-radius: 8px;
+}
+
+.maker-band {
+  background: #F3F1EC;
+  border-top: 1px solid #E6E3DC;
+}
