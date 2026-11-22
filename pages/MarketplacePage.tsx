@@ -144,79 +144,76 @@ export function MarketplacePage() {
 
   return (
     <>
-      <section className="market-hero">
+      <section className="hero-grid">
         <div className="market-hero-copy">
           <p className="eyebrow">
-            <span className="eyebrow-line" />
-            CURATED EDITORIAL · KAMPALA &amp; BEYOND
+            <span className="eyebrow-rule" />
+            KAMPALA &amp; UGANDA · EDITORIAL MARKETPLACE
           </p>
-          <h1>
+          <h1 className="hero-title">
             Effortless style,
             <br />
             <em>made to be found.</em>
           </h1>
-          <p>
+          <p className="hero-copy">
             Discover independent designers, everyday essentials, and custom makers across Uganda. Clean silhouettes, direct ordering, and instant sign-in.
           </p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
-            <a href="#discover" className="button button-dark">
-              Shop the collection <ArrowDown size={15} />
+          <div className="hero-actions">
+            <a href="#discover" className="btn-primary">
+              Explore the edit <ArrowDown size={15} />
             </a>
-            <Link to="/auth/sign-in" className="button button-outline">
-              Quick sign in <ArrowUpRight size={15} />
+            <Link to="/seller/setup" className="btn-secondary">
+              Open a shop <ArrowUpRight size={15} />
             </Link>
           </div>
-          <div className="hero-foot">
+          <div className="hero-note">
             <span className="hero-dot" />
-            Direct Mobile Money &amp; independent shop checkout
+            Direct WhatsApp &amp; independent maker storefronts across Kampala
           </div>
         </div>
 
-        <div className="market-hero-art">
+        <div className="hero-frame">
           <img
             src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=1200&q=88"
-            alt="Editorial fashion lookbook piece"
+            alt="Editorial lookbook piece in warm natural light"
           />
-          <div className="hero-stamp">
-            <span>NEW</span>
-            <strong>
-              SEASON
-              <br />
-              EDIT
-            </strong>
-            <span>2026</span>
+          <div className="hero-caption-strip">
+            <span>
+              <strong>Kampala Edit</strong> · Independent makers
+            </span>
+            <span>Season 2026</span>
           </div>
-          <p>
-            Kampala Studio Edit <span>01 / 04</span>
-          </p>
         </div>
       </section>
 
-      <section id="discover" className="discover-section">
-        <div className="section-heading">
+      <section id="discover" className="section-block">
+        <div className="section-head">
           <div>
-            <p className="eyebrow">THE COLLECTION</p>
-            <h2>
-              Curated pieces <em>for you.</em>
+            <p className="eyebrow">
+              <span className="eyebrow-rule" />
+              CURATED COLLECTION
+            </p>
+            <h2 className="section-title">
+              Pieces worth <em>keeping.</em>
             </h2>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: '1', justifyContent: 'flex-end', minWidth: '240px' }}>
-            <label className="search-box" style={{ width: '100%', maxWidth: '340px' }}>
-              <Search size={16} />
+          <div className="controls-row">
+            <label className="search-wrap">
+              <Search size={15} className="search-icon" />
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 type="search"
-                placeholder="Search pieces, brands, cities..."
+                placeholder="Search pieces, studios, cities..."
                 aria-label="Search listings"
               />
             </label>
             <button
               type="button"
-              className="button button-outline"
+              className="btn-secondary"
               onClick={() => setShowMoreFilters((prev) => !prev)}
-              style={{ minHeight: '42px', padding: '0 14px', whiteSpace: 'nowrap' }}
+              style={{ height: '40px', padding: '0 14px' }}
             >
               <SlidersHorizontal size={14} />
               <span>Filters</span>
@@ -224,12 +221,12 @@ export function MarketplacePage() {
           </div>
         </div>
 
-        <div className="filter-row" aria-label="Filter by category">
+        <div className="category-bar" aria-label="Filter by category">
           {categoryOptions.map((item) => (
             <button
               key={item}
               type="button"
-              className={`filter-chip ${category === item ? 'is-selected' : ''}`}
+              className={`cat-pill ${category === item ? 'is-active' : ''}`}
               onClick={() => setCategory(item)}
             >
               {item}
@@ -238,10 +235,14 @@ export function MarketplacePage() {
         </div>
 
         {showMoreFilters && (
-          <div className="discovery-filters">
-            <label>
-              Country
-              <select value={countryCode} onChange={(event) => setCountryCode(event.target.value)}>
+          <div className="filter-panel">
+            <div>
+              <label htmlFor="fh-filter-country">Country</label>
+              <select
+                id="fh-filter-country"
+                value={countryCode}
+                onChange={(event) => setCountryCode(event.target.value)}
+              >
                 <option value="">All countries</option>
                 {countries.map((country) => (
                   <option value={country.code} key={country.code}>
@@ -249,12 +250,16 @@ export function MarketplacePage() {
                   </option>
                 ))}
               </select>
-            </label>
+            </div>
 
-            <label>
-              City
+            <div>
+              <label htmlFor="fh-filter-city">City</label>
               {cities.length ? (
-                <select value={city} onChange={(event) => setCity(event.target.value)}>
+                <select
+                  id="fh-filter-city"
+                  value={city}
+                  onChange={(event) => setCity(event.target.value)}
+                >
                   <option value="">Any city</option>
                   {cities.map((item) => (
                     <option key={item}>{item}</option>
@@ -262,39 +267,50 @@ export function MarketplacePage() {
                 </select>
               ) : (
                 <input
+                  id="fh-filter-city"
                   value={city}
                   onChange={(event) => setCity(event.target.value)}
                   placeholder="Any city"
                 />
               )}
-            </label>
+            </div>
 
-            <label>
-              Type
-              <select value={kind} onChange={(event) => setKind(event.target.value)}>
+            <div>
+              <label htmlFor="fh-filter-type">Type</label>
+              <select
+                id="fh-filter-type"
+                value={kind}
+                onChange={(event) => setKind(event.target.value)}
+              >
                 <option value="all">Products &amp; services</option>
                 <option value="product">Products only</option>
                 <option value="service">Services only</option>
               </select>
-            </label>
+            </div>
 
-            <label>
-              Sort
-              <select value={sort} onChange={(event) => setSort(event.target.value)}>
+            <div>
+              <label htmlFor="fh-filter-sort">Sort</label>
+              <select
+                id="fh-filter-sort"
+                value={sort}
+                onChange={(event) => setSort(event.target.value)}
+              >
                 <option value="curated">Curated</option>
                 <option value="price-asc">Price: Low to High</option>
                 <option value="price-desc">Price: High to Low</option>
               </select>
-            </label>
+            </div>
 
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', paddingBottom: '8px' }}>
-              <input
-                type="checkbox"
-                checked={verifiedOnly}
-                onChange={(e) => setVerifiedOnly(e.target.checked)}
-              />
-              <span>Verified shops only</span>
-            </label>
+            <div>
+              <label className="checkbox-inline">
+                <input
+                  type="checkbox"
+                  checked={verifiedOnly}
+                  onChange={(e) => setVerifiedOnly(e.target.checked)}
+                />
+                <span>Verified shops only</span>
+              </label>
+            </div>
           </div>
         )}
 
@@ -303,7 +319,11 @@ export function MarketplacePage() {
           <Notice tone={demoDataEnabled ? 'warning' : 'error'}>
             {apiNotice}
             {!demoDataEnabled && (
-              <button className="text-button" type="button" onClick={() => setRetryCount((count) => count + 1)}>
+              <button
+                className="text-button"
+                type="button"
+                onClick={() => setRetryCount((count) => count + 1)}
+              >
                 Retry
               </button>
             )}
@@ -311,7 +331,7 @@ export function MarketplacePage() {
         )}
         {feedback && <Notice tone="info">{feedback}</Notice>}
 
-        <div className="results-meta">
+        <div className="results-strip">
           <span>
             {loading
               ? 'Loading collection...'
@@ -319,7 +339,7 @@ export function MarketplacePage() {
             {hasActiveFilters && (
               <button
                 type="button"
-                className="text-button"
+                className="link-btn"
                 style={{ marginLeft: '12px' }}
                 onClick={() => {
                   setQuery('');
@@ -334,7 +354,7 @@ export function MarketplacePage() {
               </button>
             )}
           </span>
-          <Link to="/seller/setup">
+          <Link to="/seller/setup" className="link-btn">
             Open your shop <span aria-hidden="true">↗</span>
           </Link>
         </div>
@@ -349,13 +369,12 @@ export function MarketplacePage() {
           </div>
         ) : (
           !loading && (
-            <div className="empty-state">
-              <span className="empty-mark">*</span>
-              <h2>No pieces match your search</h2>
+            <div className="empty-box">
+              <h3>No pieces match your search</h3>
               <p>Try clearing your filters or searching for another style.</p>
               <button
                 type="button"
-                className="button button-outline"
+                className="btn-secondary"
                 onClick={() => {
                   setQuery('');
                   setCategory('All finds');
@@ -371,10 +390,13 @@ export function MarketplacePage() {
           )
         )}
 
-        <div className="section-heading compact">
+        <div className="section-head" style={{ marginTop: '52px' }}>
           <div>
-            <p className="eyebrow">INDEPENDENT STUDIOS</p>
-            <h2>
+            <p className="eyebrow">
+              <span className="eyebrow-rule" />
+              INDEPENDENT STUDIOS
+            </p>
+            <h2 className="section-title">
               Featured <em>shops.</em>
             </h2>
           </div>
@@ -383,82 +405,52 @@ export function MarketplacePage() {
         {visibleShops.length ? (
           <div className="shop-grid">
             {visibleShops.map((shop) => (
-              <article
-                className="shop-card"
-                key={shop.id}
-                style={{
-                  border: '1px solid var(--line)',
-                  background: 'var(--white)',
-                  overflow: 'hidden',
-                  position: 'relative',
-                }}
-              >
-                <div style={{ height: '130px', background: '#eceae4', position: 'relative' }}>
+              <article className="shop-card" key={shop.id}>
+                <div className="shop-cover">
                   <img
                     src={
                       shop.coverUrl ||
-                      'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80'
+                      'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=900&q=80'
                     }
                     alt={shop.name}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
-                  <div
-                    style={{
-                      position: 'absolute',
-                      bottom: '-18px',
-                      left: '16px',
-                      width: '42px',
-                      height: '42px',
-                      borderRadius: '50%',
-                      border: '2px solid var(--white)',
-                      overflow: 'hidden',
-                      background: 'var(--white)',
-                      display: 'grid',
-                      placeItems: 'center',
-                    }}
-                  >
+                  <div className="shop-badge-avatar">
                     {shop.logoUrl ? (
-                      <img src={shop.logoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img
+                        src={shop.logoUrl}
+                        alt=""
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                      />
                     ) : (
-                      <span style={{ fontFamily: 'var(--serif)', fontWeight: 700, color: 'var(--ink)' }}>
-                        {shop.name.slice(0, 1)}
-                      </span>
+                      shop.name.slice(0, 1)
                     )}
                   </div>
                 </div>
-                <div style={{ padding: '24px 16px 16px' }}>
+
+                <div className="shop-card-body">
                   <p className="eyebrow" style={{ margin: '0 0 4px' }}>
-                    {shop.countryCode} · {shop.city}
+                    {shop.countryCode || 'UG'} · {shop.city || 'Kampala'}
                   </p>
-                  <h3 style={{ margin: '0 0 4px', font: '500 18px var(--serif)' }}>
-                    {shop.name}{' '}
+                  <h3 className="shop-card-title">
+                    <span>{shop.name}</span>
                     {shop.isVerified && (
-                      <span style={{ color: '#141414', fontSize: '12px' }} title="Verified Storefront">
+                      <span className="verified-chip" title="Verified Storefront">
                         ✓
                       </span>
                     )}
                   </h3>
-                  <p style={{ margin: '0 0 12px', fontSize: '11px', color: 'var(--muted)', lineHeight: '1.5' }}>
-                    {shop.tagline || (shop.story ? `${shop.story.slice(0, 65)}...` : 'Independent studio')}
+                  <p className="shop-story">
+                    {shop.tagline || (shop.story ? `${shop.story.slice(0, 80)}...` : 'Independent studio')}
                   </p>
-                  <div className="preview-collections" style={{ marginBottom: '12px' }}>
+                  <div className="chip-list">
                     {shop.categories.map((item) => (
-                      <span key={item}>{item}</span>
+                      <span className="mini-chip" key={item}>
+                        {item}
+                      </span>
                     ))}
                   </div>
-                  <Link
-                    to={`/shops/${shop.id}`}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      color: 'var(--ink)',
-                      fontSize: '11px',
-                      fontWeight: 600,
-                      textDecoration: 'none',
-                    }}
-                  >
-                    Visit shop <span>↗</span>
+                  <Link to={`/shops/${shop.id}`} className="link-btn" style={{ marginTop: 'auto' }}>
+                    Visit shop <span aria-hidden="true">↗</span>
                   </Link>
                 </div>
               </article>
@@ -474,19 +466,20 @@ export function MarketplacePage() {
       </section>
 
       <section className="maker-band">
-        <span className="maker-icon">*</span>
         <div>
-          <p className="eyebrow">SELL ON FASHIONHUB</p>
+          <p className="eyebrow">
+            <span className="eyebrow-rule" />
+            SELL ON FASHIONHUB
+          </p>
           <h2>
             Launch your <em>own storefront.</em>
           </h2>
+          <p>List your pieces in minutes and reach shoppers directly across Kampala and Uganda.</p>
         </div>
-        <p>List your pieces in minutes and reach shoppers directly across Uganda.</p>
-        <Link className="button button-dark" to="/seller/setup">
-          Open a shop <span>↗</span>
+        <Link className="btn-primary" to="/seller/setup">
+          Open a shop <span aria-hidden="true">↗</span>
         </Link>
       </section>
     </>
   );
 }
-
