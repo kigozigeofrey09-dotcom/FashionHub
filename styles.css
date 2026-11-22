@@ -265,3 +265,23 @@ body:not(.dark-mode) .segmented input:checked + span {
 .setup-page .setup-step h2 {
   margin-top: 6px;
 }
+
+/* Buyer & Seller Experience Polish */
+.marketplace-quick-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.shop-card {
+  border-radius: 10px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.shop-card:hover {
+  transform: translateY(-2px);
+  border-color: #141414;
+}
+.seller-listing-row {
+  border-radius: 8px;
+}
