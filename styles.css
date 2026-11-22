@@ -378,3 +378,112 @@ body {
   background: #F3F1EC;
   border-top: 1px solid #E6E3DC;
 }
+
+/* Editorial Lookbook & Studio Card Refinement */
+.site-header .brand,
+.brand-mark {
+  gap: 10px;
+}
+.brand-badge,
+.fh-mark {
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+.editorial-lookbook-card {
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+}
+.editorial-lookbook-media {
+  aspect-ratio: 4 / 4.6;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #F3F1EC;
+}
+.editorial-lookbook-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+.editorial-lookbook-card:hover .editorial-lookbook-media img {
+  transform: scale(1.03);
+}
+.editorial-lookbook-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 10px 0 0;
+  gap: 5px;
+}
+.editorial-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  color: #6E6D68;
+}
+.editorial-city {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #6E6D68;
+}
+.editorial-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+.editorial-wa-pill {
+  flex: 1;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid #141414;
+  background: #141414;
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+.editorial-wa-pill:hover {
+  background: #2C2C2A;
+}
+.editorial-details-pill {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid #E2DFD7;
+  background: #FFFFFF;
+  color: #141414;
+  font-size: 11px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+.editorial-details-pill:hover {
+  border-color: #141414;
+  background: #F6F4EF;
+}
+
+.shop-grid {
+  gap: 24px;
+}
+.shop-card {
+  border-radius: 8px !important;
+  border-color: #E6E3DC !important;
+  box-shadow: 0 1px 2px rgba(20, 20, 20, 0.03);
+}

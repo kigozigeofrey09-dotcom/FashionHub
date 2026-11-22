@@ -107,9 +107,9 @@ export function ListingCard({
   };
 
   return (
-    <article className="listing-card editorial-card">
+    <article className="listing-card editorial-lookbook-card">
       <Link
-        className="listing-image"
+        className="listing-image editorial-lookbook-media"
         to={`/listings/${listing?.id ?? ''}`}
         aria-label={`View ${listing?.name ?? 'listing'}`}
       >
@@ -137,11 +137,11 @@ export function ListingCard({
           aria-label={saved ? `Remove ${listing?.name} from saved items` : `Save ${listing?.name}`}
           onClick={() => onSave(listing)}
         >
-          <Heart size={16} fill={saved ? 'currentColor' : 'none'} />
+          <Heart size={15} fill={saved ? 'currentColor' : 'none'} />
         </button>
       )}
 
-      <div className="listing-card-body">
+      <div className="listing-card-body editorial-lookbook-body">
         <div className="listing-name-price">
           <Link to={`/listings/${listing?.id ?? ''}`}>
             <h3>{listing?.name || 'Listing'}</h3>
@@ -151,28 +151,28 @@ export function ListingCard({
           </strong>
         </div>
 
-        <Link className="listing-shop" to={`/shops/${listing?.shopId ?? ''}`}>
-          {listing?.shopName || 'Store'}
-          <ArrowUpRight size={13} />
-        </Link>
-
-        <div className="listing-location">
-          <MapPin size={12} />
-          {listing?.city || 'Kampala'}, {listing?.countryName || 'Uganda'}
-          <span>· {listing?.type || 'product'}</span>
+        <div className="editorial-meta-row">
+          <Link className="listing-shop" to={`/shops/${listing?.shopId ?? ''}`}>
+            {listing?.shopName || 'Store'}
+            <ArrowUpRight size={12} />
+          </Link>
+          <span className="editorial-city">
+            <MapPin size={11} />
+            {listing?.city || 'Kampala'}
+          </span>
         </div>
 
         <div className="editorial-card-actions">
           <button
             type="button"
             onClick={handleWhatsAppClick}
-            className="editorial-wa-button"
+            className="editorial-wa-pill"
           >
-            <MessageCircle size={14} />
+            <MessageCircle size={13} />
             <span>WhatsApp</span>
           </button>
-          <Link to={`/listings/${listing?.id ?? ''}`} className="editorial-view-link">
-            Details
+          <Link to={`/listings/${listing?.id ?? ''}`} className="editorial-details-pill">
+            View piece
           </Link>
         </div>
       </div>
