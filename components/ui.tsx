@@ -107,9 +107,9 @@ export function ListingCard({
   };
 
   return (
-    <article className="listing-card editorial-lookbook-card">
+    <article className="listing-card editorial-card">
       <Link
-        className="listing-image editorial-lookbook-media"
+        className="listing-image editorial-card-media"
         to={`/listings/${listing?.id ?? ''}`}
         aria-label={`View ${listing?.name ?? 'listing'}`}
       >
@@ -121,7 +121,7 @@ export function ListingCard({
             (e.target as HTMLImageElement).src = fallbackImage;
           }}
         />
-        <span className="listing-category">{listing?.category || 'Product'}</span>
+        <span className="listing-category editorial-card-tag">{listing?.category || 'Product'}</span>
         {listing?.isSeed && <span className="sample-corner">SAMPLE</span>}
         {listing?.promotionLabel && (
           <span className="paid-promotion-badge">
@@ -141,7 +141,7 @@ export function ListingCard({
         </button>
       )}
 
-      <div className="listing-card-body editorial-lookbook-body">
+      <div className="listing-card-body editorial-card-body">
         <div className="listing-name-price">
           <Link to={`/listings/${listing?.id ?? ''}`}>
             <h3>{listing?.name || 'Listing'}</h3>
@@ -151,27 +151,27 @@ export function ListingCard({
           </strong>
         </div>
 
-        <div className="editorial-meta-row">
-          <Link className="listing-shop" to={`/shops/${listing?.shopId ?? ''}`}>
-            {listing?.shopName || 'Store'}
-            <ArrowUpRight size={12} />
-          </Link>
-          <span className="editorial-city">
-            <MapPin size={11} />
-            {listing?.city || 'Kampala'}
-          </span>
+        <Link className="listing-shop" to={`/shops/${listing?.shopId ?? ''}`}>
+          {listing?.shopName || 'Store'}
+          <ArrowUpRight size={13} />
+        </Link>
+
+        <div className="listing-location">
+          <MapPin size={12} />
+          {listing?.city || 'Kampala'}, {listing?.countryName || 'Uganda'}
+          <span>· {listing?.type || 'product'}</span>
         </div>
 
         <div className="editorial-card-actions">
           <button
             type="button"
             onClick={handleWhatsAppClick}
-            className="editorial-wa-pill"
+            className="editorial-wa-btn"
           >
-            <MessageCircle size={13} />
+            <MessageCircle size={14} />
             <span>WhatsApp</span>
           </button>
-          <Link to={`/listings/${listing?.id ?? ''}`} className="editorial-details-pill">
+          <Link to={`/listings/${listing?.id ?? ''}`} className="editorial-view-btn">
             View piece
           </Link>
         </div>
