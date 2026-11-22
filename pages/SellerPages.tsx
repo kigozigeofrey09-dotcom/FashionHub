@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+﻿import { useEffect, useState, type FormEvent } from 'react';
 import { ArrowLeft, ArrowRight, Eye, EyeOff, Pencil, Plus, Store, Trash2, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { EmptyState, FormError, Loading, Notice, PageTitle } from '../components/ui';
@@ -393,3 +393,4 @@ export function SellerDashboardPage() {
     )}
   </section>;
 }
+

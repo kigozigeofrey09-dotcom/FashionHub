@@ -249,3 +249,19 @@ body:not(.dark-mode) .segmented input:checked + span {
 .editorial-view-link:hover {
   background: #f2f0ea;
 }
+
+/* Streamlined Buyer Order & Seller Setup Polish */
+.editorial-order-card {
+  background: #ffffff;
+  border: 1px solid #e6e4de;
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 18px;
+}
+.editorial-submit-btn {
+  width: 100%;
+  margin-top: 6px;
+}
+.setup-page .setup-step h2 {
+  margin-top: 6px;
+}
