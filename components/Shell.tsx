@@ -68,7 +68,7 @@ export function Shell() {
     <>
       <header className="site-header">
         <Link className="brand" to="/" aria-label="FashionHub home">
-          <span className="brand-mark">F<span>h</span></span>
+          <span className="brand-mark" style={{ marginRight: '2px' }}>F<span>h</span></span>
           <span>fashion<span className="brand-light">hub</span></span>
         </Link>
 
@@ -182,7 +182,7 @@ export function Shell() {
 
       <footer className="site-footer">
         <Link className="brand brand-footer" to="/">
-          <span className="brand-mark">F<span>h</span></span>
+          <span className="brand-mark" style={{ marginRight: '2px' }}>F<span>h</span></span>
           <span>fashion<span className="brand-light">hub</span></span>
         </Link>
         <nav aria-label="Footer links">
@@ -196,3 +196,4 @@ export function Shell() {
     </>
   );
 }
+

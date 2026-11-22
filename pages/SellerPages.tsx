@@ -356,6 +356,20 @@ export function SellerDashboardPage() {
           <label className="field"><span>Public WhatsApp number</span><input type="tel" autoComplete="tel" value={whatsappDraft} onChange={(event) => setWhatsappDraft(event.target.value)} required maxLength={24} placeholder="+256 773 927 881" /><small className="field-note">Buyers can use this number to ask about listings.</small></label>
           <button className="button button-outline" disabled={busyId === "whatsapp"}>{busyId === "whatsapp" ? "Saving…" : "Save WhatsApp contact"}</button>
         </form>
+                <div className="seller-summary-strip" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
+          <div style={{ background: '#ffffff', border: '1px solid #e6e4de', borderRadius: '10px', padding: '14px 16px' }}>
+            <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#6e6d68' }}>ACTIVE LISTINGS</div>
+            <div style={{ fontSize: '22px', fontWeight: 600, color: '#141414', marginTop: '4px' }}>{listings.filter((i) => i.isActive !== false).length}</div>
+          </div>
+          <div style={{ background: '#ffffff', border: '1px solid #e6e4de', borderRadius: '10px', padding: '14px 16px' }}>
+            <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#6e6d68' }}>HIDDEN ITEMS</div>
+            <div style={{ fontSize: '22px', fontWeight: 600, color: '#141414', marginTop: '4px' }}>{listings.filter((i) => i.isActive === false).length}</div>
+          </div>
+          <div style={{ background: '#ffffff', border: '1px solid #e6e4de', borderRadius: '10px', padding: '14px 16px' }}>
+            <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#6e6d68' }}>TRIAL WINDOW</div>
+            <div style={{ fontSize: '22px', fontWeight: 600, color: isTrialExpired ? '#8b2626' : '#2c4734', marginTop: '4px' }}>{isTrialExpired ? 'Expired' : `${daysRemaining}d left`}</div>
+          </div>
+        </div>
         <div className="section-heading compact">
           <div><p className="eyebrow">YOUR CATALOG</p><h2>Products & <em>services.</em></h2></div>
           <span className="listing-count">{listings.length} listings</span>
@@ -393,5 +407,6 @@ export function SellerDashboardPage() {
     )}
   </section>;
 }
+
 
 

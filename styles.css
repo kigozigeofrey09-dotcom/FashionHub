@@ -1052,3 +1052,15 @@ body {
     padding: 24px 18px;
   }
 }
+
+/* Storefront Header & Seller Studio Polish */
+.site-header .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.seller-listings .seller-listing-row {
+  background: #ffffff;
+  border: 1px solid #e6e4de;
+  border-radius: 10px;
+}
