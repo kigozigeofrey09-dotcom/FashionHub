@@ -24,6 +24,23 @@ const categoryOptions = [
   'Other',
 ];
 
+function resolveShopCover(shop: Shop): string {
+  if (shop.coverUrl && shop.coverUrl.trim()) return shop.coverUrl.trim();
+  const primary = (shop.categories?.[0] || '').toLowerCase();
+  if (primary.includes('shoe') || primary.includes('foot')) {
+    return 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=80';
+  }
+  if (primary.includes('bag') || primary.includes('leather')) {
+    return 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=900&q=80';
+  }
+  if (primary.includes('jewel') || primary.includes('access')) {
+    return 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=900&q=80';
+  }
+  if (primary.includes('tailor') || primary.includes('custom')) {
+    return 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=900&q=80';
+  }
+  return 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=900&q=80';
+}
 export function MarketplacePage() {
   const { countries } = useAppContext();
   const [query, setQuery] = useState('');
@@ -407,14 +424,11 @@ export function MarketplacePage() {
             {visibleShops.map((shop) => (
               <article className="shop-card" key={shop.id}>
                 <div className="shop-cover">
-                  <img
-                    src={
-                      shop.coverUrl ||
-                      'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=900&q=80'
-                    }
-                    alt={shop.name}
-                  />
-                  <div className="shop-badge-avatar">
+                  <img src={resolveShopCover(shop)} alt={shop.name} />
+                  <div
+                    className="shop-badge-avatar"
+                    style={!shop.logoUrl && shop.accent ? { backgroundColor: shop.accent } : undefined}
+                  >
                     {shop.logoUrl ? (
                       <img
                         src={shop.logoUrl}
@@ -483,3 +497,4 @@ export function MarketplacePage() {
     </>
   );
 }
+

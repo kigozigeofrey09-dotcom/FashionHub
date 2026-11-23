@@ -327,8 +327,29 @@ export function SellerDashboardPage() {
             <label className="field"><span>Floor Number</span><input value={shopDraft.floorNumber} onChange={(event) => setShopDraft({ ...shopDraft, floorNumber: event.target.value })} placeholder="e.g. First Floor" maxLength={50} /></label>
             <label className="field"><span>Shop Number / Room</span><input value={shopDraft.shopNumber} onChange={(event) => setShopDraft({ ...shopDraft, shopNumber: event.target.value })} placeholder="e.g. Shop F12" maxLength={50} /></label>
             <label className="field"><span>Storefront accent</span><select value={shopDraft.accent} onChange={(event) => setShopDraft({ ...shopDraft, accent: event.target.value })}><option value="#496a4d">Maker green</option><option value="#a94f47">Clay red</option><option value="#426c83">Lake blue</option><option value="#a37936">Warm gold</option></select></label>
-            <label className="field"><span>Storefront cover photo</span><input type="file" accept="image/jpeg,image/png,image/webp,image/avif" disabled={uploadingPhotos} onChange={(event) => void uploadDashboardPhotos(event.target.files, 'cover')} /><small className="field-note">{shopDraft.coverUrl ? 'Cover image selected; save settings to publish.' : 'Optional · max 10 MB'}</small></label>
-            <label className="field"><span>Shop logo</span><input type="file" accept="image/jpeg,image/png,image/webp,image/avif" disabled={uploadingPhotos} onChange={(event) => void uploadDashboardPhotos(event.target.files, 'logo')} /><small className="field-note">{shopDraft.logoUrl ? 'Logo selected; save settings to publish.' : 'Optional · max 10 MB'}</small></label>
+            <div className="field field-wide" style={{ background: '#FAF9F6', border: '1px solid #e6e4de', borderRadius: '10px', padding: '14px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.09em', color: '#6e6d68' }}>Live Storefront Appearance Preview</span>
+              <div style={{ marginTop: '10px', borderRadius: '9px', overflow: 'hidden', border: '1px solid #e6e4de', background: '#ffffff' }}>
+                <div style={{ position: 'relative', height: '140px', background: shopDraft.accent || '#496a4d' }}>
+                  {shopDraft.coverUrl ? (
+                    <img src={shopDraft.coverUrl} alt="Storefront cover preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ width: '100%', height: '100%', display: 'grid', placeItems: 'center', color: 'rgba(255,255,255,0.85)', fontSize: '12px' }}>
+                      Add a custom cover photo below so buyers recognize your shop
+                    </div>
+                  )}
+                  <div style={{ position: 'absolute', left: '16px', bottom: '-18px', width: '44px', height: '44px', borderRadius: '50%', background: shopDraft.accent || '#141414', color: '#ffffff', border: '2px solid #ffffff', display: 'grid', placeItems: 'center', fontWeight: 700, overflow: 'hidden' }}>
+                    {shopDraft.logoUrl ? <img src={shopDraft.logoUrl} alt="Logo preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (shopDraft.name || shop.name).slice(0, 1)}
+                  </div>
+                </div>
+                <div style={{ padding: '24px 16px 14px' }}>
+                  <strong style={{ fontSize: '15px', color: '#141414' }}>{shopDraft.name || shop.name}</strong>
+                  <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#6e6d68' }}>{shopDraft.tagline || 'Your storefront tagline appears here'}</p>
+                </div>
+              </div>
+            </div>
+            <label className="field"><span>Storefront cover photo <small>(upload or paste URL)</small></span><input type="file" accept="image/jpeg,image/png,image/webp,image/avif" disabled={uploadingPhotos} onChange={(event) => void uploadDashboardPhotos(event.target.files, 'cover')} /><input type="url" value={shopDraft.coverUrl} onChange={(event) => setShopDraft({ ...shopDraft, coverUrl: event.target.value })} placeholder="https://… cover image URL" style={{ marginTop: '6px' }} /><small className="field-note">{shopDraft.coverUrl ? 'Custom cover ready — click "Save shop settings" below to publish.' : 'Upload a banner photo or paste an image link.'}</small></label>
+            <label className="field"><span>Shop logo <small>(upload or paste URL)</small></span><input type="file" accept="image/jpeg,image/png,image/webp,image/avif" disabled={uploadingPhotos} onChange={(event) => void uploadDashboardPhotos(event.target.files, 'logo')} /><input type="url" value={shopDraft.logoUrl} onChange={(event) => setShopDraft({ ...shopDraft, logoUrl: event.target.value })} placeholder="https://… logo image URL" style={{ marginTop: '6px' }} /><small className="field-note">{shopDraft.logoUrl ? 'Custom logo ready — click "Save shop settings" below to publish.' : 'Optional · square photo works best.'}</small></label>
             <fieldset className="field field-wide category-picker">
               <legend>Shop Categories (Select all that apply)</legend>
               <div className="category-options">
@@ -407,6 +428,7 @@ export function SellerDashboardPage() {
     )}
   </section>;
 }
+
 
 
 
