@@ -43,8 +43,16 @@ export function App() {
           <Route path="/auth" element={<AuthPage />} />
         </Route>
       </Routes></Suspense>
+      <nav className="mobile-bottom-nav" aria-label="Mobile navigation">
+        <a href="#/">Discover</a>
+        <a href="#/swipe">Swipe</a>
+        <a href="#/drip-ai">Drip AI</a>
+        <a href="#/saved">Saved</a>
+        <a href="#/seller/dashboard">Studio</a>
+      </nav>
     </AppProvider>
   );
 }
 export default App;
+
 

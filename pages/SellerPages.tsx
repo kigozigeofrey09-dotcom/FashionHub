@@ -1,4 +1,5 @@
-﻿import { useEffect, useState, type FormEvent } from 'react';
+﻿import { getShopWhatsAppLeads } from '../lib/whatsappLeads';
+import { useEffect, useState, type FormEvent } from 'react';
 import { ArrowLeft, ArrowRight, Eye, EyeOff, Pencil, Plus, Store, Trash2, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { EmptyState, FormError, Loading, Notice, PageTitle } from '../components/ui';
@@ -387,6 +388,10 @@ export function SellerDashboardPage() {
             <div style={{ fontSize: '22px', fontWeight: 600, color: '#141414', marginTop: '4px' }}>{listings.filter((i) => i.isActive === false).length}</div>
           </div>
           <div style={{ background: '#ffffff', border: '1px solid #e6e4de', borderRadius: '10px', padding: '14px 16px' }}>
+            <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#6e6d68' }}>WHATSAPP LEADS</div>
+            <div style={{ fontSize: '22px', fontWeight: 600, color: '#2c4734', marginTop: '4px' }}>{getShopWhatsAppLeads(shop?.id)}</div>
+          </div>
+          <div style={{ background: '#ffffff', border: '1px solid #e6e4de', borderRadius: '10px', padding: '14px 16px' }}>
             <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#6e6d68' }}>TRIAL WINDOW</div>
             <div style={{ fontSize: '22px', fontWeight: 600, color: isTrialExpired ? '#8b2626' : '#2c4734', marginTop: '4px' }}>{isTrialExpired ? 'Expired' : `${daysRemaining}d left`}</div>
           </div>
@@ -428,6 +433,7 @@ export function SellerDashboardPage() {
     )}
   </section>;
 }
+
 
 
 
