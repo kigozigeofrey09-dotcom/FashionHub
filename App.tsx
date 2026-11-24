@@ -1,26 +1,26 @@
-import { Routes, Route } from 'react-router-dom';
+﻿import { Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import { Shell } from './components/Shell';
 import { MarketplacePage } from './pages/MarketplacePage';
-import { AdminPage } from './pages/AdminPage';
+const AdminPage = lazy(() => import('./pages/AdminPage').then((m) => ({ default: m.AdminPage })));
 import { AuthPage } from './pages/AuthPage';
 import { SellerOnboardingPage, SellerDashboardPage } from './pages/SellerPages';
 import { SellerPromotionsPage } from './pages/SellerPromotionsPage';
-import { AdminAdsPage } from './pages/AdminAdsPage';
+const AdminAdsPage = lazy(() => import('./pages/AdminAdsPage').then((m) => ({ default: m.AdminAdsPage })));
 import { ListingDetailPage, ShopPage } from './pages/DetailsPages';
 import { AccountPage } from './pages/AccountPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { SubscriptionsPage } from './pages/SubscriptionsPage';
 import { SupportPage, InformationPage } from './pages/InfoPages';
-import { DripAiPage } from './pages/DripAiPage';
-import { StyleSwipePage } from './pages/StyleSwipePage';
+const DripAiPage = lazy(() => import('./pages/DripAiPage').then((m) => ({ default: m.DripAiPage })));
+const StyleSwipePage = lazy(() => import('./pages/StyleSwipePage').then((m) => ({ default: m.StyleSwipePage })));
 import { DayBookApp } from './src/daybook/DayBookApp';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 
 export function App() {
   return (
     <AppProvider>
-      <Routes>
+      <Suspense fallback={<div style={{ padding: '48px 24px', textAlign: 'center', color: '#6E6D68' }}>Loading studio…</div>}><Routes>
         <Route element={<Shell />}>
           <Route path="/" element={<MarketplacePage />} />
           <Route path="/admin" element={<AdminPage />} />
@@ -42,8 +42,9 @@ export function App() {
           <Route path="/auth/:mode" element={<AuthPage />} />
           <Route path="/auth" element={<AuthPage />} />
         </Route>
-      </Routes>
+      </Routes></Suspense>
     </AppProvider>
   );
 }
 export default App;
+

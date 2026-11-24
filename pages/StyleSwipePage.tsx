@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { PageTitle, Notice, EmptyState, Loading } from '../components/ui';
 import { listingService } from '../services/listingService';
 import { Heart, X } from 'lucide-react';
@@ -80,3 +80,4 @@ export function StyleSwipePage() {
     </div>
   );
 }
+
