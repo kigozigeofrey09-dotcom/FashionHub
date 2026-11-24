@@ -2,6 +2,7 @@
 import { ArrowUpRight, Heart, MapPin, MessageCircle } from 'lucide-react';
 import type { Listing } from '../types';
 import { getWhatsAppLink } from '../lib/whatsapp';
+import { recordWhatsAppLead } from '../lib/whatsappLeads';
 
 export function PageTitle({
   eyebrow,
@@ -102,6 +103,7 @@ export function ListingCard({
   const handleWhatsAppClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     const targetPhone = listing?.sellerWhatsapp || '256773927881';
+    recordWhatsAppLead(listing?.shopId, listing?.id);
     const waUrl = getWhatsAppLink(targetPhone, listing?.name, listing?.price);
     window.open(waUrl, '_blank', 'noopener,noreferrer');
   };
@@ -195,3 +197,4 @@ export function FormError({ message }: { message?: string }) {
     </p>
   ) : null;
 }
+
