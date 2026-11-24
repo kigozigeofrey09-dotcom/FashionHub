@@ -1,4 +1,5 @@
-﻿import { Routes, Route } from 'react-router-dom';
+﻿import { lazy } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import { Shell } from './components/Shell';
 import { MarketplacePage } from './pages/MarketplacePage';
@@ -54,5 +55,6 @@ export function App() {
   );
 }
 export default App;
+
 
 
