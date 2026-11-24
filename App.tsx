@@ -1,4 +1,4 @@
-﻿import { lazySuspense } from 'react';
+﻿import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import { Shell } from './components/Shell';
@@ -17,7 +17,6 @@ const DripAiPage = lazy(() => import('./pages/DripAiPage').then((m) => ({ defaul
 const StyleSwipePage = lazy(() => import('./pages/StyleSwipePage').then((m) => ({ default: m.StyleSwipePage })));
 import { DayBookApp } from './src/daybook/DayBookApp';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
-
 export function App() {
   return (
     <AppProvider>
@@ -55,7 +54,3 @@ export function App() {
   );
 }
 export default App;
-
-
-
-
