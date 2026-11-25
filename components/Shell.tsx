@@ -110,16 +110,18 @@ export function Shell() {
             </NavLink>
           )}
           {session?.user.role === 'admin' && (
-            {(session?.user?.email || '').toLowerCase() === 'semmyarsene0@gmail.com' && (
-            <NavLink to="/teammate/dashboard" onClick={() => setMenuOpen(false)}>
-              Teammate Ops
-            </NavLink>
+            <>
+              {(session?.user?.email || '').toLowerCase() === 'semmyarsene0@gmail.com' && (
+                <NavLink to="/teammate/dashboard" onClick={() => setMenuOpen(false)}>
+                  Teammate Ops
+                </NavLink>
+              )}
+              <NavLink to="/admin" onClick={() => setMenuOpen(false)}>
+                Admin
+              </NavLink>
+            </>
           )}
-          <NavLink to="/admin" onClick={() => setMenuOpen(false)}>
-              Admin
-            </NavLink>
-          )}
-        </nav>
+          </nav>
 
         <div className="header-actions">
           {(session?.user.role === 'admin' || session?.user.email?.toLowerCase() === 'kigozigeofrey09@gmail.com') && (
@@ -202,6 +204,9 @@ export function Shell() {
     </>
   );
 }
+
+
+
 
 
 
