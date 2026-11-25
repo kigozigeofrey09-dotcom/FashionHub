@@ -1,9 +1,10 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { ArrowUpRight, Bell, LogOut, Menu, X, Moon, Sun } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { subscriptionsEnabled } from '../config/features';
 import { notificationService } from '../services/notificationService';
+import { TerrabokLogo } from '../components/TerrabokLogo';
 
 const links = [
   { to: '/', label: 'Discover', end: true },
@@ -70,8 +71,7 @@ export function Shell() {
     <>
       <header className="site-header">
         <Link className="brand" to="/" aria-label="Terrabok home">
-          <span className="brand-mark" style={{ marginRight: '2px' }}>F<span>h</span></span>
-          <span>Terra<span className="brand-light">bok</span></span>
+          <TerrabokLogo compact />
         </Link>
 
         <button
@@ -191,8 +191,7 @@ export function Shell() {
 
       <footer className="site-footer">
         <Link className="brand brand-footer" to="/">
-          <span className="brand-mark" style={{ marginRight: '2px' }}>F<span>h</span></span>
-          <span>Terra<span className="brand-light">bok</span></span>
+          <TerrabokLogo compact />
         </Link>
         <nav aria-label="Footer links">
           {subscriptionsEnabled && <Link to="/subscriptions">Subscriptions</Link>}
