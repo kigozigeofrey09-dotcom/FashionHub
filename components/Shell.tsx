@@ -9,6 +9,7 @@ const links = [
   { to: '/', label: 'Discover', end: true },
   { to: '/style-swipe', label: 'Style Swipe' },
   { to: '/drip-ai', label: 'Drip AI Stylist' },
+  { to: '/vault', label: 'The Vault' },
   { to: '/seller/setup', label: 'Open a shop' },
 ];
 
@@ -196,4 +197,5 @@ export function Shell() {
     </>
   );
 }
+
 

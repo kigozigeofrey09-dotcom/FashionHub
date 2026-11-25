@@ -15,6 +15,7 @@ import { SubscriptionsPage } from './pages/SubscriptionsPage';
 import { SupportPage, InformationPage } from './pages/InfoPages';
 const DripAiPage = lazy(() => import('./pages/DripAiPage').then((m) => ({ default: m.DripAiPage })));
 const StyleSwipePage = lazy(() => import('./pages/StyleSwipePage').then((m) => ({ default: m.StyleSwipePage })));
+const VaultPage = lazy(() => import('./pages/VaultPage').then((m) => ({ default: m.VaultPage })));
 import { DayBookApp } from './src/daybook/DayBookApp';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 export function App() {
@@ -34,6 +35,7 @@ export function App() {
           <Route path="/shops/:shopId" element={<ShopPage />} />
           <Route path="/drip-ai" element={<DripAiPage />} />
           <Route path="/style-swipe" element={<StyleSwipePage />} />
+          <Route path="/vault" element={<VaultPage />} />
           <Route path="/daybook" element={<DayBookApp />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
@@ -55,4 +57,5 @@ export function App() {
   );
 }
 export default App;
+
 
