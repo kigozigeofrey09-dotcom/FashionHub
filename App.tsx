@@ -18,6 +18,7 @@ const StyleSwipePage = lazy(() => import('./pages/StyleSwipePage').then((m) => (
 const VaultPage = lazy(() => import('./pages/VaultPage').then((m) => ({ default: m.VaultPage })));
 import { DayBookApp } from './src/daybook/DayBookApp';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
+const TeammateOpsPage = lazy(() => import('./pages/TeammateOpsPage').then((m) => ({ default: m.TeammateOpsPage })));
 export function App() {
   return (
     <AppProvider>
@@ -26,6 +27,7 @@ export function App() {
           <Route path="/" element={<MarketplacePage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+          <Route path="/teammate/dashboard" element={<TeammateOpsPage />} />
           <Route path="/admin/advertisements" element={<AdminAdsPage />} />
           <Route path="/seller/setup" element={<SellerOnboardingPage />} />
           <Route path="/seller/dashboard" element={<SellerDashboardPage />} />
@@ -57,5 +59,6 @@ export function App() {
   );
 }
 export default App;
+
 
 

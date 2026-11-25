@@ -110,7 +110,12 @@ export function Shell() {
             </NavLink>
           )}
           {session?.user.role === 'admin' && (
-            <NavLink to="/admin" onClick={() => setMenuOpen(false)}>
+            {(session?.user?.email || '').toLowerCase() === 'semmyarsene0@gmail.com' && (
+            <NavLink to="/teammate/dashboard" onClick={() => setMenuOpen(false)}>
+              Teammate Ops
+            </NavLink>
+          )}
+          <NavLink to="/admin" onClick={() => setMenuOpen(false)}>
               Admin
             </NavLink>
           )}
@@ -197,5 +202,6 @@ export function Shell() {
     </>
   );
 }
+
 
 
