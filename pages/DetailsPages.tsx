@@ -13,6 +13,7 @@ import { reportService } from '../services/reportService';
 import { reviewService } from '../services/reviewService';
 import { demoDataEnabled } from '../config/features';
 import { getWhatsAppLink } from '../lib/whatsapp';
+import { recordWhatsAppLead } from '../lib/whatsappLeads';
 import type { Listing, Review, Shop } from '../types';
 
 export function ListingDetailPage() {
@@ -71,6 +72,7 @@ export function ListingDetailPage() {
     const targetPhone = sellerWhatsapp || '256773927881';
     const text = `Hi ${listing?.shopName || 'Seller'}, I am inquiring about "${listing?.name || 'this item'}" listed for UGX ${(listing?.price || 0).toLocaleString()} on FashionHub:\nQty: ${quantity}${size ? `\nSize: ${size}` : ''}${colour ? `\nFinish: ${colour}` : ''}\nFulfillment: ${fulfillment}${fulfillmentDetails ? `\nDetails: ${fulfillmentDetails}` : ''}${buyerNote ? `\nNote: ${buyerNote}` : ''}\n\nIs it available?`;
     const waUrl = getWhatsAppLink(targetPhone, listing?.name, listing?.price);
+    recordWhatsAppLead(listing?.shopId, listing?.id);
     window.open(`https://wa.me/${targetPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
   }
 
@@ -228,6 +230,7 @@ export function ShopPage() {
     {listings.length ? <div className="product-grid">{listings.map((listing) => <ListingCard key={listing.id} listing={listing} onSave={saveListing} />)}</div> : <EmptyState title="No listings yet">This shop has no published listings.</EmptyState>}
   </section>;
 }
+
 
 
 
