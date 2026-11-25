@@ -1,4 +1,4 @@
-import type { AdminSettings, Country, MarketplaceReport, SafetyReport, SubscriptionRecord, SubscriptionStatus, Shop, PromotionAd, PlatformAnalytics } from '../types';
+﻿import type { AdminSettings, Country, MarketplaceReport, SafetyReport, SubscriptionRecord, SubscriptionStatus, Shop, PromotionAd, PlatformAnalytics } from '../types';
 import { supabase } from './supabaseClient';
 import { seedPlans, seedCountries } from '../data/seed';
 
@@ -27,8 +27,27 @@ export const adminService = {
     return { requiredRoles };
   },
 
-  sellersReport: async (): Promise<MarketplaceReport[]> => [{ generatedAt: new Date().toISOString(), total: 10, active: 10, pending: 0, flagged: 0 }],
-  listingsReport: async (): Promise<MarketplaceReport[]> => [{ generatedAt: new Date().toISOString(), total: 25, active: 25, pending: 0, flagged: 0 }],
+  sellersReport: async (): Promise<MarketplaceReport[]> => {
+    try {
+      const { data, error } = await supabase.from('shops').select('id, is_verified');
+      if (error || !data) return [];
+      const total = data.length;
+      const active = data.filter((s: any) => Boolean(s.is_verified)).length;
+      return [{ generatedAt: new Date().toISOString(), total, active, pending: Math.max(0, total - active), flagged: 0 }];
+    } catch {
+      return [];
+    }
+  },
+  listingsReport: async (): Promise<MarketplaceReport[]> => {
+    try {
+      const { count, error } = await supabase.from('listings').select('*', { count: 'exact', head: true });
+      if (error) return [];
+      const total = count ?? 0;
+      return [{ generatedAt: new Date().toISOString(), total, active: total, pending: 0, flagged: 0 }];
+    } catch {
+      return [];
+    }
+  },
 
   reportsQueue: async (): Promise<SafetyReport[]> => {
     try {
@@ -185,15 +204,16 @@ export const adminService = {
         supabase.from('listings').select('*', { count: 'exact', head: true })
       ]);
       return {
-        totalUsers: users.count || 120,
-        totalShops: shops.count || 15,
-        verifiedShops: verified.count || 5,
-        activeListings: listings.count || 45,
-        completedOrders: 180,
-        monthlyVolumeUgx: 45000000
+        totalUsers: users.count ?? 0,
+        totalShops: shops.count ?? 0,
+        verifiedShops: verified.count ?? 0,
+        activeListings: listings.count ?? 0,
+        completedOrders: 0,
+        monthlyVolumeUgx: 0
       };
     } catch {
-      return { totalUsers: 120, totalShops: 15, verifiedShops: 5, activeListings: 45, completedOrders: 180, monthlyVolumeUgx: 45000000 };
+      return { totalUsers: 0, totalShops: 0, verifiedShops: 0, activeListings: 0, completedOrders: 0, monthlyVolumeUgx: 0 };
     }
   },
 };
+

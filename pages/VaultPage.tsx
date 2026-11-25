@@ -112,7 +112,7 @@ export function VaultPage() {
             }}
           >
             <img
-              src={winner.image || 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=900&q=85'}
+              src={winner.image || 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=600&q=75'}
               alt={winner.name}
               style={{ width: '100%', maxHeight: '360px', objectFit: 'cover', borderRadius: '12px' }}
             />
@@ -233,3 +233,4 @@ export function VaultPage() {
 }
 
 export default VaultPage;
+
