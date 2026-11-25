@@ -2,23 +2,52 @@
 import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Store, CreditCard, AlertTriangle, RefreshCw,
-  Search, ShieldCheck, CheckCircle2, XCircle, ArrowUpRight, Check, X
+  Search, ShieldCheck, CheckCircle2, XCircle, ArrowUpRight, Check, X, Crown
 } from 'lucide-react';
 import { adminService } from '../services/adminService';
 import { shopService } from '../services/shopService';
+import { listingService } from '../services/listingService';
 import { subscriptionsEnabled } from '../config/features';
 import { errorMessage } from '../services/http';
 import { useAppContext } from '../context/AppContext';
-import type { PlatformAnalytics, SafetyReport, Shop, SubscriptionRecord } from '../types';
+import type { Listing, PlatformAnalytics, SafetyReport, Shop, SubscriptionRecord } from '../types';
+
+const VAULT_STORAGE_KEY = 'fashionhub_monthly_vault_v1';
+
+interface VaultConfig {
+  monthLabel: string;
+  editionTitle: string;
+  stockNote: string;
+  winnerId: string;
+  runnerUpIds: string[];
+}
+
+const DEFAULT_VAULT: VaultConfig = {
+  monthLabel: 'November 2026',
+  editionTitle: 'Monthly Admin Crown Drop',
+  stockNote: 'Limited monthly vault allocation · While stock lasts',
+  winnerId: '',
+  runnerUpIds: [],
+};
+
+function readInitialVault(): VaultConfig {
+  try {
+    const raw = localStorage.getItem(VAULT_STORAGE_KEY);
+    return raw ? { ...DEFAULT_VAULT, ...(JSON.parse(raw) as Partial<VaultConfig>) } : DEFAULT_VAULT;
+  } catch {
+    return DEFAULT_VAULT;
+  }
+}
 
 export const AdminDashboardPage = () => {
   const { session } = useAppContext();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'overview' | 'shops' | 'payments' | 'reports'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'shops' | 'payments' | 'reports' | 'vault'>('overview');
   const [searchTerm, setSearchTerm] = useState('');
 
   const [analytics, setAnalytics] = useState<PlatformAnalytics | null>(null);
   const [shops, setShops] = useState<Shop[]>([]);
+  const [listings, setListings] = useState<Listing[]>([]);
   const [payments, setPayments] = useState<SubscriptionRecord[]>([]);
   const [reports, setReports] = useState<SafetyReport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,20 +55,35 @@ export const AdminDashboardPage = () => {
   const [error, setError] = useState('');
   const [feedback, setFeedback] = useState('');
 
+  const initialVault = readInitialVault();
+  const [vaultWinnerId, setVaultWinnerId] = useState(initialVault.winnerId);
+  const [vaultMonth, setVaultMonth] = useState(initialVault.monthLabel);
+  const [vaultEdition, setVaultEdition] = useState(initialVault.editionTitle);
+  const [vaultStockNote, setVaultStockNote] = useState(initialVault.stockNote);
+
   async function loadRealData() {
     setLoading(true);
     setError('');
     try {
-      const [analyticsRes, shopsRes, paymentsRes, reportsRes] = await Promise.all([
+      const [analyticsRes, shopsRes, listingsRes, paymentsRes, reportsRes] = await Promise.all([
         adminService.analytics(),
         shopService.list(),
+        listingService.search(new URLSearchParams()).catch(() => [] as Listing[]),
         subscriptionsEnabled ? adminService.paymentQueue() : Promise.resolve([]),
         adminService.reportsQueue(),
       ]);
       setAnalytics(analyticsRes);
       setShops(shopsRes);
+      setListings(listingsRes);
       setPayments(paymentsRes);
       setReports(reportsRes);
+
+      const currentVault = readInitialVault();
+      const resolvedWinner =
+        currentVault.winnerId && listingsRes.some((item) => item.id === currentVault.winnerId)
+          ? currentVault.winnerId
+          : listingsRes[0]?.id ?? '';
+      setVaultWinnerId((prev) => prev || resolvedWinner);
     } catch (caught) {
       setError(errorMessage(caught));
     } finally {
@@ -50,6 +94,33 @@ export const AdminDashboardPage = () => {
   useEffect(() => {
     void loadRealData();
   }, []);
+
+  function handleSaveVaultWinner(e: React.FormEvent) {
+    e.preventDefault();
+    const chosenId = vaultWinnerId || listings[0]?.id || '';
+    if (!chosenId) {
+      setError('No catalog listings available to put in The Vault yet.');
+      return;
+    }
+    const runnerUpIds = listings
+      .filter((item) => item.id !== chosenId)
+      .slice(0, 3)
+      .map((item) => item.id);
+    const nextVault: VaultConfig = {
+      monthLabel: vaultMonth.trim() || DEFAULT_VAULT.monthLabel,
+      editionTitle: vaultEdition.trim() || DEFAULT_VAULT.editionTitle,
+      stockNote: vaultStockNote.trim() || DEFAULT_VAULT.stockNote,
+      winnerId: chosenId,
+      runnerUpIds,
+    };
+    try {
+      localStorage.setItem(VAULT_STORAGE_KEY, JSON.stringify(nextVault));
+    } catch {
+      // ignore storage errors
+    }
+    const chosenItem = listings.find((item) => item.id === chosenId);
+    setFeedback(`Saved "${chosenItem?.name ?? 'Selected item'}" as ${nextVault.monthLabel} Vault winner.`);
+  }
 
   async function handleVerifyToggle(shop: Shop) {
     setBusyId(shop.id);
@@ -99,6 +170,7 @@ export const AdminDashboardPage = () => {
   );
 
   const verifiedCount = shops.filter((s) => s.isVerified).length;
+  const selectedWinner = listings.find((item) => item.id === vaultWinnerId) ?? listings[0];
 
   return (
     <div
@@ -205,6 +277,7 @@ export const AdminDashboardPage = () => {
 
           {[
             { id: 'overview', label: 'Overview', icon: LayoutDashboard, badge: '' },
+            { id: 'vault', label: 'The Vault Winner', icon: Crown, badge: 'Monthly' },
             { id: 'shops', label: 'Shops & Verification', icon: Store, badge: String(shops.length) },
             { id: 'payments', label: 'Subscription Queue', icon: CreditCard, badge: String(payments.length) },
             { id: 'reports', label: 'Safety Reports', icon: AlertTriangle, badge: String(reports.length) },
@@ -322,13 +395,13 @@ export const AdminDashboardPage = () => {
 
             <button
               type="button"
-              onClick={() => navigate('/admin')}
+              onClick={() => navigate('/vault')}
               style={{
                 padding: '8px 14px',
                 borderRadius: '7px',
-                border: '1px solid #141414',
-                background: '#141414',
-                color: '#ffffff',
+                border: '1px solid #2c4734',
+                background: '#eef2ec',
+                color: '#2c4734',
                 fontSize: '12px',
                 fontWeight: 600,
                 display: 'inline-flex',
@@ -336,7 +409,7 @@ export const AdminDashboardPage = () => {
                 gap: '5px',
               }}
             >
-              Full Admin Center <ArrowUpRight size={13} />
+              Open The Vault <ArrowUpRight size={13} />
             </button>
 
             <button
@@ -379,7 +452,7 @@ export const AdminDashboardPage = () => {
               },
               {
                 label: 'Active Listings',
-                value: loading ? '...' : String(analytics?.totalListings ?? '—'),
+                value: loading ? '...' : String(analytics?.totalListings ?? listings.length),
                 sub: 'Live catalog items',
               },
               {
@@ -414,6 +487,118 @@ export const AdminDashboardPage = () => {
               </div>
             ))}
           </div>
+
+          {/* Monthly Vault Winner Picker */}
+          {(activeTab === 'overview' || activeTab === 'vault') && (
+            <div style={{ background: '#ffffff', border: '1px solid #e6e4de', borderRadius: '12px', padding: '22px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+                <div>
+                  <p style={{ margin: 0, fontSize: '10.5px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#6e6d68' }}>
+                    MONTHLY VAULT CURATION
+                  </p>
+                  <h2 style={{ margin: '4px 0 0', fontFamily: "var(--serif, 'Cormorant Garamond', Georgia, serif)", fontSize: '28px', fontWeight: 400 }}>
+                    Pick the monthly <em>Vault winner.</em>
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate('/vault')}
+                  style={{
+                    padding: '7px 13px',
+                    borderRadius: '999px',
+                    border: '1px solid #d4d0c5',
+                    background: '#FAF9F6',
+                    color: '#2c4734',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                  }}
+                >
+                  Preview /vault <ArrowUpRight size={13} />
+                </button>
+              </div>
+
+              {listings.length === 0 ? (
+                <p style={{ color: '#6e6d68', fontSize: '13px' }}>No catalog items found yet. Publish a listing first to feature it in The Vault.</p>
+              ) : (
+                <form onSubmit={handleSaveVaultWinner} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '14px', alignItems: 'end' }}>
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
+                    <span>Winning Product</span>
+                    <select
+                      value={vaultWinnerId}
+                      onChange={(e) => setVaultWinnerId(e.target.value)}
+                      style={{ padding: '9px 12px', borderRadius: '8px', border: '1px solid #d4d0c5', background: '#FAF9F6', fontSize: '12.5px' }}
+                    >
+                      {listings.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.name} — UGX {Number(item.price).toLocaleString()} ({item.shopName})
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
+                    <span>Month</span>
+                    <input
+                      value={vaultMonth}
+                      onChange={(e) => setVaultMonth(e.target.value)}
+                      placeholder="November 2026"
+                      style={{ padding: '9px 12px', borderRadius: '8px', border: '1px solid #d4d0c5', background: '#FAF9F6', fontSize: '12.5px' }}
+                    />
+                  </label>
+
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
+                    <span>Edition Title</span>
+                    <input
+                      value={vaultEdition}
+                      onChange={(e) => setVaultEdition(e.target.value)}
+                      placeholder="Monthly Admin Crown Drop"
+                      style={{ padding: '9px 12px', borderRadius: '8px', border: '1px solid #d4d0c5', background: '#FAF9F6', fontSize: '12.5px' }}
+                    />
+                  </label>
+
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
+                    <span>Stock / Drop Note</span>
+                    <input
+                      value={vaultStockNote}
+                      onChange={(e) => setVaultStockNote(e.target.value)}
+                      placeholder="Limited monthly vault allocation"
+                      style={{ padding: '9px 12px', borderRadius: '8px', border: '1px solid #d4d0c5', background: '#FAF9F6', fontSize: '12.5px' }}
+                    />
+                  </label>
+
+                  <button
+                    type="submit"
+                    style={{
+                      padding: '10px 16px',
+                      borderRadius: '8px',
+                      border: '1px solid #141414',
+                      background: '#141414',
+                      color: '#ffffff',
+                      fontSize: '12.5px',
+                      fontWeight: 600,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <Crown size={14} /> Set Vault Winner
+                  </button>
+                </form>
+              )}
+
+              {selectedWinner && (
+                <div style={{ marginTop: '14px', padding: '10px 14px', borderRadius: '8px', background: '#FAF9F6', border: '1px solid #e6e4de', fontSize: '12px', color: '#3b3a36', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                  <span><strong>Active selection:</strong> {selectedWinner.name} ({selectedWinner.shopName})</span>
+                  <span><strong>UGX {Number(selectedWinner.price).toLocaleString()}</strong> · {vaultMonth}</span>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Real Shops Section */}
           {(activeTab === 'overview' || activeTab === 'shops') && (
