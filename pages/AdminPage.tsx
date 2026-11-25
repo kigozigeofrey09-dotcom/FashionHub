@@ -1,7 +1,7 @@
 ﻿import { useEffect, useState } from 'react';
 import {
   LayoutDashboard, Store, CreditCard, AlertTriangle,
-  Search, RefreshCw, Check, X, ArrowUpRight, ShieldCheck
+  Search, RefreshCw, Check, X, ArrowUpRight, ShieldCheck, Crown, EyeOff
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Loading, Notice } from '../components/ui';
@@ -9,18 +9,116 @@ import { useAppContext } from '../context/AppContext';
 import { subscriptionsEnabled } from '../config/features';
 import { adminService } from '../services/adminService';
 import { shopService } from '../services/shopService';
-import { errorMessage } from '../services/http';
-import type { SafetyReport, SubscriptionRecord, Shop, PlatformAnalytics } from '../types';
+import { listingService } from '../services/listingService';
+import { errorMessage, supabase } from '../services/http';
+import { seedListings } from '../data/seed';
+import type { Listing, SafetyReport, SubscriptionRecord, Shop, PlatformAnalytics } from '../types';
+
+const VAULT_STORAGE_KEY = 'fashionhub_monthly_vault_v1';
+const VAULT_DROP_ALERT_KEY = 'fashionhub_vault_drop_alert_v1';
+const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
+
+interface VaultConfig {
+  monthLabel: string;
+  editionTitle: string;
+  stockNote: string;
+  winnerId: string;
+  runnerUpIds: string[];
+  startedAt: string;
+  expiresAt: string;
+  isActive: boolean;
+}
+
+const DEFAULT_VAULT: VaultConfig = {
+  monthLabel: 'November 2026',
+  editionTitle: 'Monthly Admin Crown Drop',
+  stockNote: 'Limited 5-day vault drop · While stock lasts',
+  winnerId: '',
+  runnerUpIds: [],
+  startedAt: '',
+  expiresAt: '',
+  isActive: false,
+};
+
+function readVaultConfig(): VaultConfig {
+  try {
+    const raw = localStorage.getItem(VAULT_STORAGE_KEY);
+    return raw ? { ...DEFAULT_VAULT, ...(JSON.parse(raw) as Partial<VaultConfig>) } : DEFAULT_VAULT;
+  } catch {
+    return DEFAULT_VAULT;
+  }
+}
+
+function formatTimeLeft(expiresAt: string, nowMs: number): string {
+  if (!expiresAt) return 'Not scheduled';
+  const diff = new Date(expiresAt).getTime() - nowMs;
+  if (diff <= 0) return 'Expired (off display)';
+  const totalHours = Math.floor(diff / (1000 * 60 * 60));
+  const days = Math.floor(totalHours / 24);
+  const hours = totalHours % 24;
+  const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  return `${days}d ${hours}h ${mins}m left`;
+}
+
+function emitVaultDropAlert(payload: {
+  dropId: string;
+  title: string;
+  message: string;
+  winnerName: string;
+  monthLabel: string;
+  expiresAt: string;
+  createdAt: string;
+}) {
+  try {
+    localStorage.setItem(VAULT_DROP_ALERT_KEY, JSON.stringify(payload));
+    window.dispatchEvent(new CustomEvent('fashionhub-vault-drop', { detail: payload }));
+  } catch {
+    // ignore storage errors
+  }
+
+  try {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      new Notification(payload.title, {
+        body: payload.message,
+        tag: payload.dropId,
+      });
+    }
+  } catch {
+    // ignore notification errors
+  }
+
+  void (async () => {
+    try {
+      await supabase.from('notifications').insert({
+        kind: 'vault_drop',
+        title: payload.title,
+        message: payload.message,
+        href: '/vault',
+      });
+    } catch {
+      // ignore if notifications table/RLS blocks insert
+    }
+  })();
+}
 
 export function AdminPage() {
   const { session } = useAppContext();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'overview' | 'shops' | 'payments' | 'reports'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'vault' | 'shops' | 'payments' | 'reports'>('overview');
 
   const [analytics, setAnalytics] = useState<PlatformAnalytics | null>(null);
   const [allShops, setAllShops] = useState<Shop[]>([]);
+  const [catalogListings, setCatalogListings] = useState<Listing[]>([]);
   const [queue, setQueue] = useState<SubscriptionRecord[]>([]);
   const [reports, setReports] = useState<SafetyReport[]>([]);
+
+  const initialVault = readVaultConfig();
+  const [vaultConfig, setVaultConfig] = useState<VaultConfig>(initialVault);
+  const [selectedWinnerId, setSelectedWinnerId] = useState(initialVault.winnerId);
+  const [vaultMonth, setVaultMonth] = useState(initialVault.monthLabel);
+  const [vaultEdition, setVaultEdition] = useState(initialVault.editionTitle);
+  const [vaultStockNote, setVaultStockNote] = useState(initialVault.stockNote);
+  const [nowMs, setNowMs] = useState(() => Date.now());
 
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState('');
@@ -28,20 +126,39 @@ export function AdminPage() {
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
+  useEffect(() => {
+    const timer = window.setInterval(() => setNowMs(Date.now()), 60000);
+    return () => window.clearInterval(timer);
+  }, []);
+
   async function loadData() {
     setLoading(true);
     setError('');
     try {
-      const [anRes, shopsRes, queueRes, repRes] = await Promise.all([
+      const [anRes, shopsRes, listingsRes, queueRes, repRes] = await Promise.all([
         adminService.analytics(),
         shopService.list(),
+        listingService.search(new URLSearchParams()).catch(() => [] as Listing[]),
         subscriptionsEnabled ? adminService.paymentQueue() : Promise.resolve([]),
         adminService.reportsQueue(),
       ]);
+      const usableListings = listingsRes.length > 0 ? listingsRes : seedListings;
       setAnalytics(anRes);
       setAllShops(shopsRes);
+      setCatalogListings(usableListings);
       setQueue(queueRes);
       setReports(repRes);
+
+      const saved = readVaultConfig();
+      setVaultConfig(saved);
+      const defaultPick =
+        saved.winnerId && usableListings.some((l) => l.id === saved.winnerId)
+          ? saved.winnerId
+          : usableListings[0]?.id ?? '';
+      setSelectedWinnerId((prev) => prev || defaultPick);
+      if (saved.monthLabel) setVaultMonth(saved.monthLabel);
+      if (saved.editionTitle) setVaultEdition(saved.editionTitle);
+      if (saved.stockNote) setVaultStockNote(saved.stockNote);
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -52,6 +169,68 @@ export function AdminPage() {
   useEffect(() => {
     void loadData();
   }, []);
+
+  function saveVaultState(next: VaultConfig) {
+    setVaultConfig(next);
+    try {
+      localStorage.setItem(VAULT_STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      // ignore storage errors
+    }
+  }
+
+  function handleLaunchVaultDrop(e: React.FormEvent) {
+    e.preventDefault();
+    const chosenId = selectedWinnerId || catalogListings[0]?.id || '';
+    if (!chosenId) {
+      setError('No product available to put in The Vault.');
+      return;
+    }
+    const now = Date.now();
+    const startedAt = new Date(now).toISOString();
+    const expiresAt = new Date(now + FIVE_DAYS_MS).toISOString();
+    const runnerUpIds = catalogListings
+      .filter((item) => item.id !== chosenId)
+      .slice(0, 3)
+      .map((item) => item.id);
+
+    const nextConfig: VaultConfig = {
+      monthLabel: vaultMonth.trim() || DEFAULT_VAULT.monthLabel,
+      editionTitle: vaultEdition.trim() || DEFAULT_VAULT.editionTitle,
+      stockNote: vaultStockNote.trim() || DEFAULT_VAULT.stockNote,
+      winnerId: chosenId,
+      runnerUpIds,
+      startedAt,
+      expiresAt,
+      isActive: true,
+    };
+
+    saveVaultState(nextConfig);
+    const chosenItem = catalogListings.find((item) => item.id === chosenId);
+    const winnerTitle = chosenItem?.name || 'Vault Winner';
+
+    emitVaultDropAlert({
+      dropId: `${chosenId}:${startedAt}`,
+      title: `The Vault is Live — ${nextConfig.monthLabel}`,
+      message: `${winnerTitle} is now in The Vault for 5 days.`,
+      winnerName: winnerTitle,
+      monthLabel: nextConfig.monthLabel,
+      expiresAt,
+      createdAt: startedAt,
+    });
+
+    setMessage(`"${winnerTitle}" is now live in The Vault for 5 days and users have been notified.`);
+  }
+
+  function handleHideVaultDrop() {
+    const nextConfig: VaultConfig = {
+      ...vaultConfig,
+      isActive: false,
+      expiresAt: new Date(Date.now() - 1000).toISOString(),
+    };
+    saveVaultState(nextConfig);
+    setMessage('Removed Vault winner from public display.');
+  }
 
   async function toggleVerification(shop: Shop) {
     setBusyId(shop.id);
@@ -117,8 +296,14 @@ export function AdminPage() {
         .includes(term)
   );
 
+  const isVaultLive =
+    Boolean(vaultConfig.isActive) &&
+    Boolean(vaultConfig.expiresAt) &&
+    new Date(vaultConfig.expiresAt).getTime() > nowMs;
+
   const navItems: Array<{ id: typeof activeTab; label: string; icon: typeof Store; count?: number }> = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'vault', label: 'The Vault', icon: Crown },
     { id: 'shops', label: 'Shops & Verification', icon: Store, count: allShops.length },
     { id: 'payments', label: 'Subscriptions & Payments', icon: CreditCard, count: pendingPayments.length },
     { id: 'reports', label: 'Safety Reports', icon: AlertTriangle, count: openReports.length },
@@ -259,7 +444,13 @@ export function AdminPage() {
             <span>Admin Studio</span>
             <span>/</span>
             <strong style={{ color: '#141414', fontWeight: 600, textTransform: 'capitalize' }}>
-              {activeTab === 'shops' ? 'Shops & Verification' : activeTab === 'payments' ? 'Subscriptions & Payments' : activeTab}
+              {activeTab === 'shops'
+                ? 'Shops & Verification'
+                : activeTab === 'payments'
+                ? 'Subscriptions & Payments'
+                : activeTab === 'vault'
+                ? 'The Vault'
+                : activeTab}
             </strong>
           </div>
 
@@ -302,6 +493,26 @@ export function AdminPage() {
               }}
             >
               <RefreshCw size={13} /> Refresh
+            </button>
+
+            <button
+              type="button"
+              onClick={() => navigate('/vault')}
+              style={{
+                padding: '7px 12px',
+                borderRadius: '8px',
+                border: '1px solid #2C4734',
+                background: '#EEF2EC',
+                color: '#2C4734',
+                fontSize: '12px',
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                cursor: 'pointer',
+              }}
+            >
+              Open Vault <ArrowUpRight size={13} />
             </button>
 
             <button
@@ -382,6 +593,122 @@ export function AdminPage() {
               </div>
             ))}
           </section>
+
+          {/* The Vault — Monthly Winner Picker (5-Day Auto-Expiry) */}
+          {(activeTab === 'overview' || activeTab === 'vault') && (
+            <section
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid #E6E4DE',
+                borderRadius: '12px',
+                padding: '22px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                <div>
+                  <h2 style={{ margin: 0, fontFamily: "var(--serif, 'Cormorant Garamond', Georgia, serif)", fontSize: '26px', fontWeight: 500 }}>
+                    The Vault — Monthly Winner
+                  </h2>
+                  <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: '#6E6D68' }}>
+                    Pick the winning product; it stays on /vault for 5 days and notifies users on launch.
+                  </p>
+                </div>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: isVaultLive ? '#2C4734' : '#6E6D68' }}>
+                  {isVaultLive ? `Live · ${formatTimeLeft(vaultConfig.expiresAt, nowMs)}` : 'Off display'}
+                </span>
+              </div>
+
+              <form onSubmit={handleLaunchVaultDrop} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '12px', alignItems: 'end' }}>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '12px', fontWeight: 600, color: '#3B3A36' }}>
+                  <span>Winning Product</span>
+                  <select
+                    value={selectedWinnerId}
+                    onChange={(e) => setSelectedWinnerId(e.target.value)}
+                    style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #D4D0C5', background: '#FAF9F6', fontSize: '13px', color: '#141414' }}
+                  >
+                    {catalogListings.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name} — UGX {Number(item.price).toLocaleString()}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '12px', fontWeight: 600, color: '#3B3A36' }}>
+                  <span>Month</span>
+                  <input
+                    value={vaultMonth}
+                    onChange={(e) => setVaultMonth(e.target.value)}
+                    placeholder="November 2026"
+                    style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #D4D0C5', background: '#FAF9F6', fontSize: '13px', color: '#141414' }}
+                  />
+                </label>
+
+                <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '12px', fontWeight: 600, color: '#3B3A36' }}>
+                  <span>Drop Title</span>
+                  <input
+                    value={vaultEdition}
+                    onChange={(e) => setVaultEdition(e.target.value)}
+                    placeholder="Monthly Admin Crown Drop"
+                    style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #D4D0C5', background: '#FAF9F6', fontSize: '13px', color: '#141414' }}
+                  />
+                </label>
+
+                <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '12px', fontWeight: 600, color: '#3B3A36' }}>
+                  <span>Drop Note</span>
+                  <input
+                    value={vaultStockNote}
+                    onChange={(e) => setVaultStockNote(e.target.value)}
+                    placeholder="Limited 5-day vault drop"
+                    style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #D4D0C5', background: '#FAF9F6', fontSize: '13px', color: '#141414' }}
+                  />
+                </label>
+
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <button
+                    type="submit"
+                    style={{
+                      padding: '9px 14px',
+                      borderRadius: '8px',
+                      border: '1px solid #2C4734',
+                      background: '#2C4734',
+                      color: '#FFFFFF',
+                      fontSize: '12.5px',
+                      fontWeight: 600,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <Crown size={14} /> Launch 5-Day Drop
+                  </button>
+
+                  {isVaultLive && (
+                    <button
+                      type="button"
+                      onClick={handleHideVaultDrop}
+                      style={{
+                        padding: '9px 12px',
+                        borderRadius: '8px',
+                        border: '1px solid #D4D0C5',
+                        background: '#FFFFFF',
+                        color: '#8B2626',
+                        fontSize: '12.5px',
+                        fontWeight: 600,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <EyeOff size={14} /> Pull Off Display
+                    </button>
+                  )}
+                </div>
+              </form>
+            </section>
+          )}
 
           {/* Main 2-Column Operational Cards (Registered Shops + Subscription Payment Queue) */}
           {(activeTab === 'overview' || activeTab === 'shops' || activeTab === 'payments') && (
