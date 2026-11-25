@@ -114,7 +114,7 @@ export function AccountPage() {
 
   const currentSubscription = subscriptions.find((record) => ['approved', 'pending', 'pending_verification'].includes(record?.status));
   return <section className="content-page account-page">
-    <PageTitle eyebrow="YOUR FASHIONHUB" title={<>Your corner of <em>the hub.</em></>} action={session && <span className="role-pill">{session.user.role}</span>}>Saved items, enquiries, orders and settings come from your authenticated account services.</PageTitle>
+    <PageTitle eyebrow="YOUR Terrabok" title={<>Your corner of <em>the hub.</em></>} action={session && <span className="role-pill">{session.user.role}</span>}>Saved items, enquiries, orders and settings come from your authenticated account services.</PageTitle>
     {!session && <Notice tone="warning" title="Sign in to load account data">Authentication must be confirmed by the backend.</Notice>}
     {!session && <Link className="button button-dark" to="/auth/sign-in">Sign in securely</Link>}
     {session && <>
@@ -163,4 +163,5 @@ function OrderReview({ orderId }: { orderId: string }) {
   }
   return <form className="form-stack" onSubmit={submit}><h4>Review this completed order</h4>{error && <Notice tone="error">{error}</Notice>}{message && <Notice tone="success">{message}</Notice>}<label className="field"><span>Rating</span><select value={rating} onChange={(event) => setRating(event.target.value)}>{[5, 4, 3, 2, 1].map((value) => <option value={value} key={value}>{value} star{value === 1 ? '' : 's'}</option>)}</select></label><label className="field"><span>Review <small>optional</small></span><textarea value={body} onChange={(event) => setBody(event.target.value)} maxLength={2000} rows={2} /></label><button className="button button-outline" disabled={busy}>{busy ? 'Saving review…' : 'Submit review'}</button></form>;
 }
+
 

@@ -1,8 +1,8 @@
-import type { CapacitorConfig } from '@capacitor/cli';
+﻿import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.fashionhub.app',
-  appName: 'FashionHub',
+  appName: 'Terrabok',
   webDir: 'dist',
   server: {
     androidScheme: 'https'
@@ -10,3 +10,4 @@ const config: CapacitorConfig = {
 };
 
 export default config;
+

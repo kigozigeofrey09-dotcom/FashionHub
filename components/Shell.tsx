@@ -69,9 +69,9 @@ export function Shell() {
   return (
     <>
       <header className="site-header">
-        <Link className="brand" to="/" aria-label="FashionHub home">
+        <Link className="brand" to="/" aria-label="Terrabok home">
           <span className="brand-mark" style={{ marginRight: '2px' }}>F<span>h</span></span>
-          <span>fashion<span className="brand-light">hub</span></span>
+          <span>Terra<span className="brand-light">bok</span></span>
         </Link>
 
         <button
@@ -192,7 +192,7 @@ export function Shell() {
       <footer className="site-footer">
         <Link className="brand brand-footer" to="/">
           <span className="brand-mark" style={{ marginRight: '2px' }}>F<span>h</span></span>
-          <span>fashion<span className="brand-light">hub</span></span>
+          <span>Terra<span className="brand-light">bok</span></span>
         </Link>
         <nav aria-label="Footer links">
           {subscriptionsEnabled && <Link to="/subscriptions">Subscriptions</Link>}
@@ -200,11 +200,12 @@ export function Shell() {
           <Link to="/support">FAQ &amp; support</Link>
           <Link to="/policies">Policies</Link>
         </nav>
-        <span>FashionHub · independent fashion marketplace</span>
+        <span>Terrabok · independent fashion marketplace</span>
       </footer>
     </>
   );
 }
+
 
 
 

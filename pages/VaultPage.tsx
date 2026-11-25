@@ -143,11 +143,11 @@ export function VaultPage() {
               </div>
 
               <p style={{ margin: 0, fontSize: '13.5px', color: '#4A4945', lineHeight: 1.55 }}>
-                {winner.description || 'Featured monthly Vault selection from FashionHub.'}
+                {winner.description || 'Featured monthly Vault selection from Terrabok.'}
               </p>
 
               <div style={{ fontSize: '12px', color: '#6E6D68' }}>
-                Sold by <strong>{winner.shopName || 'FashionHub Seller'}</strong> · {winner.city || 'Kampala'}, {winner.countryName || 'Uganda'}
+                Sold by <strong>{winner.shopName || 'Terrabok Seller'}</strong> · {winner.city || 'Kampala'}, {winner.countryName || 'Uganda'}
               </div>
 
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '6px' }}>
@@ -233,4 +233,5 @@ export function VaultPage() {
 }
 
 export default VaultPage;
+
 

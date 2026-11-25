@@ -1,8 +1,9 @@
-{
+﻿{
   "appId": "com.fashionhub.app",
-  "appName": "FashionHub",
+  "appName": "Terrabok",
   "webDir": "dist",
   "server": {
     "androidScheme": "https"
   }
 }
+

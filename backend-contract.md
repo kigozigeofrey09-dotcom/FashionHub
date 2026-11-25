@@ -1,4 +1,4 @@
-# FashionHub Backend Contract
+﻿# Terrabok Backend Contract
 
 This contract records the API paths currently wired in `src/services/` and `backend/src/`. Run the migrations listed in README against the connected Supabase project before expecting live rows. Development seeds are browse-only and marked `isSeed: true` / `SAMPLE`.
 
@@ -15,7 +15,7 @@ Photos currently use local PC disk storage and are served by the backend. This i
 - Configure `VITE_API_BASE_URL` with the backend origin plus API prefix. `.env.example` contains only a host placeholder.
 - Services send JSON with `Accept: application/json`, credentials via secure same-site cookies, and `Content-Type: application/json` for JSON mutations. Receipt submission uses multipart `FormData`.
 - Standard error shape: `{ "message": string, "details"?: Record<string,string> }`. Use `401` for unauthenticated, `403` for forbidden, `404` for unavailable resources/routes, `422` for validation and `5xx` for server errors.
-- Authentication passwords are sent only to the FashionHub backend (HTTPS in deployment) and are passed to Supabase Auth; FashionHub never stores them. Never accept/store a mobile-money PIN or OTP. Use secure HTTP-only cookies, CSRF protections and rate limits.
+- Authentication passwords are sent only to the Terrabok backend (HTTPS in deployment) and are passed to Supabase Auth; Terrabok never stores them. Never accept/store a mobile-money PIN or OTP. Use secure HTTP-only cookies, CSRF protections and rate limits.
 - The front end role gate is a usability aid only. Enforce every role, ownership and access check on the backend.
 
 ## Shared types
@@ -61,7 +61,7 @@ Photos currently use local PC disk storage and are served by the backend. This i
 - `POST /shops`: categories, name/story/tagline, country/city, sell type and visual preferences → created shop; **seller** only.
 - `PATCH /shops/:id`: partial shop update → updated shop; **owner seller** only.
 - Shop onboarding requires the seller's international WhatsApp number (`+` and country calling code). It is public, and buyers can open WhatsApp with a prefilled listing request.
-- WhatsApp requests are not FashionHub orders and do not process payment. The seller confirms stock, final price, fulfillment and direct payment in WhatsApp.
+- WhatsApp requests are not Terrabok orders and do not process payment. The seller confirms stock, final price, fulfillment and direct payment in WhatsApp.
 - `GET /listings/:id`, `GET /listings/mine`, and `GET /listings?shopId=` → listing resources.
 - `POST /listings`, `PATCH /listings/:id`, `DELETE /listings/:id` → create/update/remove listing; **owner seller** only.
 - Product fields may include size/colour/finish; services may include service details and enquiry label. Validate category/type consistency server-side.
@@ -107,3 +107,4 @@ All purchase screens and subscription access requirements remain off. The plan c
 - `POST /admin/subscriptions/:id/status`: `{ status, note? }` for administrative expiry/cancellation corrections, audited and constrained by backend transition rules.
 
 Seller-profile reporting and actual listing takedown actions are not implemented yet. Review and report records are available, with a basic admin review queue for safety reports.
+

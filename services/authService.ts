@@ -1,4 +1,4 @@
-import type { AccountRole, Session, User } from '../types';
+﻿import type { AccountRole, Session, User } from '../types';
 import { supabase } from './supabaseClient';
 
 export const authService = {
@@ -59,7 +59,7 @@ export const authService = {
 
       await supabase.from('notifications').insert({
         user_id: user.id,
-        title: 'Welcome back to FashionHub! 🎉',
+        title: 'Welcome back to Terrabok! 🎉',
         body: 'Your account session is active. Check out the latest Kampala fashion drops and active orders.',
         type: 'info',
         is_read: false
@@ -116,7 +116,7 @@ export const authService = {
 
         await supabase.from('notifications').insert({
           user_id: data.user.id,
-          title: 'Welcome to FashionHub! 🎉',
+          title: 'Welcome to Terrabok! 🎉',
           body: 'Your account is active. Explore independent fashion, connect with makers, and enjoy your 1-month free trial.',
           type: 'info',
           is_read: false
@@ -157,3 +157,4 @@ export const authService = {
     await supabase.auth.signOut();
   },
 };
+

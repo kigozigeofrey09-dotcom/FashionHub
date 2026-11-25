@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+﻿import { useEffect, useState, type FormEvent } from 'react';
 import { ArrowRight, RefreshCw, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { EmptyState, Loading, Notice, PageTitle, StatusBadge } from '../components/ui';
@@ -120,7 +120,7 @@ export function SubscriptionsPage() {
   const currentRecord = paidRecords.find((record) => record.status === 'approved') ?? paidRecords[0];
 
   return <section className="content-page subscriptions-page">
-    <PageTitle eyebrow="SUBSCRIPTIONS" title={<>A plan for <em>your FashionHub.</em></>} action={<span className="config-label">Prices are country-configured</span>}>Premium seller promotion is labelled and comparative. Mega Buyer is a paid membership badge, not identity verification. Membership does not guarantee increased sales.</PageTitle>
+    <PageTitle eyebrow="SUBSCRIPTIONS" title={<>A plan for <em>your Terrabok.</em></>} action={<span className="config-label">Prices are country-configured</span>}>Premium seller promotion is labelled and comparative. Mega Buyer is a paid membership badge, not identity verification. Membership does not guarantee increased sales.</PageTitle>
     {error && <Notice tone="error" title="Subscription action unavailable">{error}<button className="text-button" onClick={() => void load()}>Retry</button></Notice>}
     {message && <Notice tone="success" title="Subscription status">{message}</Notice>}
     <div className="subscription-layout"><div className="subscription-main">
@@ -150,3 +150,4 @@ export function SubscriptionsPage() {
 function countryServiceName(countries: ReturnType<typeof useAppContext>['countries'], code: string) {
   return countries.find((item) => item.code === code)?.name ?? code;
 }
+

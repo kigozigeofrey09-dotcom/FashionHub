@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+﻿import { useEffect, useState, type FormEvent } from 'react';
 import { Megaphone, Plus, CheckCircle, Clock, XCircle, CreditCard } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import { uploadService } from '../services/uploadService';
@@ -97,7 +97,7 @@ export function SellerPromotionsPage() {
   return (
     <div className="content-page max-w-5xl mx-auto py-8">
       <PageTitle eyebrow="SELLER PROMOTIONS & ADS" title={<>Boost your <em>brand visibility.</em></>}>
-        Book sponsored ad placements to feature your shop or listings at the top of the FashionHub marketplace.
+        Book sponsored ad placements to feature your shop or listings at the top of the Terrabok marketplace.
       </PageTitle>
 
       {error && <Notice tone="error">{error}</Notice>}
@@ -201,3 +201,4 @@ export function SellerPromotionsPage() {
     </div>
   );
 }
+

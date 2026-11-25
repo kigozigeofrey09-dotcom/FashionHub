@@ -1,11 +1,11 @@
-import { randomUUID } from "node:crypto";
+﻿import { randomUUID } from "node:crypto";
 import { mkdir, readdir, stat, writeFile } from "node:fs/promises";
 import express, { Router } from "express";
 import { join, resolve } from "node:path";
 import { authenticatedAccount } from "../lib/requestAuth.js";
 
 export const uploadsRouter = Router();
-export const imageDirectory = resolve(process.env.FASHIONHUB_STORAGE_DIR || join(process.cwd(), "backend", "storage", "images"));
+export const imageDirectory = resolve(process.env.Terrabok_STORAGE_DIR || join(process.cwd(), "backend", "storage", "images"));
 const storageLimitBytes = 10 * 1024 * 1024 * 1024;
 let reservedBytes = 0;
 const allowedTypes: Record<string, string> = {
@@ -36,16 +36,17 @@ uploadsRouter.post("/:kind", express.raw({ type: ["image/jpeg", "image/png", "im
   let reserved = false;
   try {
     const currentSize = await directorySize(imageDirectory);
-    if (currentSize + reservedBytes + req.body.length > storageLimitBytes) return res.status(507).json({ message: "FashionHub's local image storage has reached its 10 GB limit. Free disk space or change the storage directory." });
+    if (currentSize + reservedBytes + req.body.length > storageLimitBytes) return res.status(507).json({ message: "Terrabok's local image storage has reached its 10 GB limit. Free disk space or change the storage directory." });
     reservedBytes += req.body.length;
     reserved = true;
     const filename = `${randomUUID()}.${extension}`;
     await writeFile(join(imageDirectory, filename), req.body, { flag: "wx", mode: 0o600 });
     return res.status(201).json({ url: `/uploads/images/${filename}`, path: filename });
   } catch (error) {
-    console.error("Could not save FashionHub image to local disk:", error);
+    console.error("Could not save Terrabok image to local disk:", error);
     return res.status(500).json({ message: "Could not save the image on this PC. Check that the disk has free space." });
   } finally {
     if (reserved) reservedBytes -= req.body.length;
   }
 });
+

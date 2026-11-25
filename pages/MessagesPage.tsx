@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+﻿import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Send, User, CheckCheck, Paperclip, Smile, Phone, Video, Search } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
@@ -91,7 +91,7 @@ export function MessagesPage() {
   async function loadMessages(convId: string) {
     if (convId.startsWith('conv_')) {
       setMessages([
-        { id: '1', conversation_id: convId, sender_id: shopId || 'seller_1', content: 'Hello! Welcome to FashionHub chat. How can I assist you?', is_read: true, created_at: new Date().toISOString() }
+        { id: '1', conversation_id: convId, sender_id: shopId || 'seller_1', content: 'Hello! Welcome to Terrabok chat. How can I assist you?', is_read: true, created_at: new Date().toISOString() }
       ]);
       return;
     }
@@ -325,7 +325,7 @@ export function MessagesPage() {
               <div className="flex-1 overflow-y-auto p-4 space-y-2">
                 <div className="text-center my-2">
                   <span className="px-3 py-1 bg-[#e1f3fb] text-[#027eb5] text-[10px] font-medium rounded-lg shadow-sm">
-                    🔒 Messages are end-to-end encrypted with FashionHub Symmetric Realtime
+                    🔒 Messages are end-to-end encrypted with Terrabok Symmetric Realtime
                   </span>
                 </div>
 
@@ -379,3 +379,4 @@ export function MessagesPage() {
     </div>
   );
 }
+

@@ -16,9 +16,9 @@ export const TEAMMATE_EMAIL = 'semmyarsene0@gmail.com';
 
 function buildSellerNudgeMessage(shop: Shop, listingCount: number): string {
   if (listingCount === 0) {
-    return `Hi ${shop.name}, this is Seller Ops at FashionHub Kampala. We noticed your shop is set up with 0 live listings yet—reply here if you need help uploading your first pieces so buyers can discover you.`;
+    return `Hi ${shop.name}, this is Seller Ops at Terrabok Kampala. We noticed your shop is set up with 0 live listings yet—reply here if you need help uploading your first pieces so buyers can discover you.`;
   }
-  return `Hi ${shop.name}, this is Seller Ops at FashionHub Kampala. We're reviewing your storefront (${listingCount} active listing${listingCount === 1 ? '' : 's'}) for verification—let us know if you have any updates.`;
+  return `Hi ${shop.name}, this is Seller Ops at Terrabok Kampala. We're reviewing your storefront (${listingCount} active listing${listingCount === 1 ? '' : 's'}) for verification—let us know if you have any updates.`;
 }
 
 function buildSellerWhatsAppNudgeUrl(shop: Shop, listingCount: number): string {
@@ -647,3 +647,4 @@ export function TeammateOpsPage() {
 }
 
 export default TeammateOpsPage;
+

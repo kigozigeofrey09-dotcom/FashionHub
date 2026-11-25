@@ -277,7 +277,7 @@ export const AdminDashboardPage = () => {
               letterSpacing: '-0.02em',
             }}
           >
-            fashion<span style={{ fontStyle: 'italic' }}>hub</span>
+            Terra<span style={{ fontStyle: 'italic' }}>bok</span>
           </span>
           <span
             style={{
@@ -963,3 +963,4 @@ export const AdminDashboardPage = () => {
 };
 
 export default AdminDashboardPage;
+

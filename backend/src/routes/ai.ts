@@ -1,4 +1,4 @@
-import { Router } from 'express';
+﻿import { Router } from 'express';
 import { z } from 'zod';
 
 export const aiRouter = Router();
@@ -31,7 +31,7 @@ aiRouter.post('/chat', async (req, res) => {
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: 'You are Semmy, FashionHub\'s intelligent administrative AI assistant for small businesses in Uganda using UGX. Be helpful, professional, and concise.' },
+          { role: 'system', content: 'You are Semmy, Terrabok\'s intelligent administrative AI assistant for small businesses in Uganda using UGX. Be helpful, professional, and concise.' },
           { role: 'user', content: parsed.data.prompt }
         ],
         max_tokens: 300
@@ -46,3 +46,4 @@ aiRouter.post('/chat', async (req, res) => {
     return res.status(500).json({ message: 'Could not reach AI provider service.' });
   }
 });
+

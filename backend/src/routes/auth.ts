@@ -1,4 +1,4 @@
-import { Router, type Request, type Response, type NextFunction } from "express";
+﻿import { Router, type Request, type Response, type NextFunction } from "express";
 import { z } from "zod";
 import type { Session as SupabaseSession, User as SupabaseAuthUser } from "@supabase/supabase-js";
 import { createAuthenticatedSupabase, supabase, supabasePublishableKey, supabaseUrl } from "../lib/supabase.js";
@@ -81,7 +81,7 @@ function clearSessionCookies(res: Response) {
   res.clearCookie(refreshCookie, cookieOptions);
 }
 
-type FashionHubUser = {
+type TerrabokUser = {
   id: string;
   name: string;
   email: string;
@@ -89,7 +89,7 @@ type FashionHubUser = {
   countryCode?: string;
 };
 
-async function loadFashionHubUser(authUser: SupabaseAuthUser, accessToken: string): Promise<FashionHubUser> {
+async function loadTerrabokUser(authUser: SupabaseAuthUser, accessToken: string): Promise<TerrabokUser> {
   const client = createAuthenticatedSupabase(accessToken);
   const { data: profile, error } = await client
     .from("profiles")
@@ -107,12 +107,12 @@ async function loadFashionHubUser(authUser: SupabaseAuthUser, accessToken: strin
     id: profile.id,
     name: profile.name,
     email: authUser.email ?? "",
-    role: (isConfiguredAdmin(authUser.email) ? "admin" : profile.role) as FashionHubUser["role"],
+    role: (isConfiguredAdmin(authUser.email) ? "admin" : profile.role) as TerrabokUser["role"],
     countryCode: profile.country_code ?? undefined
   };
 }
 
-async function currentUser(req: Request, res: Response): Promise<FashionHubUser | null> {
+async function currentUser(req: Request, res: Response): Promise<TerrabokUser | null> {
   let accessToken = readCookie(req, accessCookie);
   const refreshToken = readCookie(req, refreshCookie);
   if (!accessToken && !refreshToken) return null;
@@ -137,7 +137,7 @@ async function currentUser(req: Request, res: Response): Promise<FashionHubUser 
     return null;
   }
 
-  return loadFashionHubUser(authUser, accessToken);
+  return loadTerrabokUser(authUser, accessToken);
 }
 
 function invalidBody(res: Response, message: string) {
@@ -197,7 +197,7 @@ authRouter.post("/sign-in", authRateLimit, async (req, res) => {
     return res.status(401).json({ message: "Email or password is incorrect, or the email has not been confirmed." });
   }
   try {
-    const user = await loadFashionHubUser(data.user, data.session.access_token);
+    const user = await loadTerrabokUser(data.user, data.session.access_token);
     if (user.role !== "admin" && user.role !== parsed.data.role) {
       return res.status(403).json({ message: `This account is registered as a ${user.role}. Choose that account type to sign in.` });
     }
@@ -302,4 +302,5 @@ authRouter.post("/sign-out", async (req, res) => {
   clearSessionCookies(res);
   return res.status(204).end();
 });
+
 

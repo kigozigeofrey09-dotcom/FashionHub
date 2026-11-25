@@ -1,4 +1,4 @@
-import "dotenv/config";
+﻿import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -143,5 +143,6 @@ app.use((req, res, next) => {
 });
 
 app.listen(port, "0.0.0.0", () => {
-  console.log(`FashionHub production server running at http://127.0.0.1:${port}`);
+  console.log(`Terrabok production server running at http://127.0.0.1:${port}`);
 });
+

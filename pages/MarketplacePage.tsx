@@ -483,7 +483,7 @@ export function MarketplacePage() {
         <div>
           <p className="eyebrow">
             <span className="eyebrow-rule" />
-            SELL ON FASHIONHUB
+            SELL ON Terrabok
           </p>
           <h2>
             Launch your <em>own storefront.</em>
@@ -497,4 +497,5 @@ export function MarketplacePage() {
     </>
   );
 }
+
 

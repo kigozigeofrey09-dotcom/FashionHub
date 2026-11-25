@@ -1,4 +1,4 @@
-import type { Listing } from '../types';
+﻿import type { Listing } from '../types';
 import { supabase } from './supabaseClient';
 import { seedListings } from '../data/seed';
 
@@ -77,7 +77,7 @@ export const listingService = {
       return {
         id,
         shopId: 'fallback-shop',
-        shopName: 'FashionHub Store',
+        shopName: 'Terrabok Store',
         name: 'Neckless (Unisex) Jewellery',
         category: 'Jewellery',
         type: 'product',
@@ -244,3 +244,4 @@ export const listingService = {
     if (error) throw error;
   },
 };
+

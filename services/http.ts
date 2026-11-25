@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+﻿import { supabase } from './supabaseClient';
 export { supabase };
 
 export class ApiError extends Error {
@@ -94,7 +94,7 @@ export const patchJson = (body: unknown): RequestInit => ({ method: 'PATCH', hea
 export function errorMessage(error: unknown): string {
   if (error instanceof Error && !(error instanceof ApiError) && error.message) return error.message;
   if (error instanceof ApiError) {
-    if (error.code === 'not-connected') return 'FashionHub’s backend is offline. Offline-cached data loaded if available.';
+    if (error.code === 'not-connected') return 'Terrabok’s backend is offline. Offline-cached data loaded if available.';
     if (error.code === 'unauthorized') return error.message || 'Please sign in to continue.';
     if (error.code === 'forbidden') return error.message || 'Your account role does not have access to this page.';
     if (error.code === 'not-found') return error.message || 'This API route or record is not available yet. Check the backend endpoint and resource ID.';
@@ -102,3 +102,4 @@ export function errorMessage(error: unknown): string {
   }
   return 'Something went wrong. Please try again.';
 }
+

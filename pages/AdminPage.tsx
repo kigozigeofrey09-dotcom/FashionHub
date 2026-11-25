@@ -260,7 +260,7 @@ export function AdminPage() {
               letterSpacing: '-0.02em',
             }}
           >
-            fashion<span style={{ fontStyle: 'italic', fontWeight: 400 }}>hub</span>
+            Terra<span style={{ fontStyle: 'italic', fontWeight: 400 }}>bok</span>
           </span>
           <span
             style={{
@@ -845,3 +845,4 @@ export function AdminPage() {
     </div>
   );
 }
+

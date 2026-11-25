@@ -114,7 +114,7 @@ export function SellerOnboardingPage() {
   }
 
   return <section className="content-page setup-page">
-    <PageTitle eyebrow="SELL ON FASHIONHUB" title={<>Make a little <em>space.</em></>}><span>Every newly registered seller receives a 1-Month Free Trial. Setup your shop and publish your first listing.</span></PageTitle>
+    <PageTitle eyebrow="SELL ON Terrabok" title={<>Make a little <em>space.</em></>}><span>Every newly registered seller receives a 1-Month Free Trial. Setup your shop and publish your first listing.</span></PageTitle>
     {!countries.length && <Notice tone="warning" title="Live country list unavailable">Start the backend API to load live country data.</Notice>}
     <ol className="stepper" aria-label="Shop setup steps">{['Your work', 'Shop details', 'First listing', 'Done'].map((label, index) => <li key={label} className={`${step === index ? 'is-active' : ''} ${step > index ? 'is-complete' : ''}`}><span>{index + 1}</span><strong>{label}</strong></li>)}</ol>
     {error && <Notice tone="error" title="Shop setup not completed">{error}{createdShop && ' Your saved shop was loaded.'}</Notice>}
@@ -436,6 +436,7 @@ export function SellerDashboardPage() {
     )}
   </section>;
 }
+
 
 
 

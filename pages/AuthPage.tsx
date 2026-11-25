@@ -33,7 +33,7 @@ export function AuthPage() {
   const isRecovery = mode === 'forgot-password' || mode === 'reset-password';
   const title =
     mode === 'sign-up'
-      ? 'Join FashionHub.'
+      ? 'Join Terrabok.'
       : mode === 'forgot-password'
         ? 'Reset your password.'
         : mode === 'reset-password'
@@ -76,7 +76,7 @@ export function AuthPage() {
   return (
     <section className="auth-page">
       <div className="auth-aside">
-        <p className="eyebrow">FASHIONHUB ACCOUNTS</p>
+        <p className="eyebrow">Terrabok ACCOUNTS</p>
         <h1>Good style.<br /><em>Made simple.</em></h1>
         <p>Sign in once to browse independent creators, manage orders, or run your shop.</p>
         <div className="auth-aside-image">
@@ -123,7 +123,7 @@ export function AuthPage() {
           </div>
         )}
 
-        <PageTitle eyebrow={isRecovery ? 'ACCOUNT RECOVERY' : 'YOUR FASHIONHUB'} title={<>{title}</>}>
+        <PageTitle eyebrow={isRecovery ? 'ACCOUNT RECOVERY' : 'YOUR Terrabok'} title={<>{title}</>}>
           {mode === 'sign-up'
             ? 'Enter your details below to start shopping or selling.'
             : mode === 'sign-in'
@@ -300,3 +300,4 @@ export function AuthPage() {
     </section>
   );
 }
+

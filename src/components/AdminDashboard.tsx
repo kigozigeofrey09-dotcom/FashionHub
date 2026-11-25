@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { 
   BarChart3, Store, Globe2, Megaphone, Users, CreditCard, Settings, 
   Search, Bell, ArrowUpRight, TrendingUp, ShieldAlert, CheckCircle2, XCircle
@@ -68,7 +68,7 @@ export const AdminDashboard = () => {
             onClick={() => setActiveTab('fashionhub')}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${activeTab === 'fashionhub' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
           >
-            <Store className="w-4 h-4" /> FashionHub Shops
+            <Store className="w-4 h-4" /> Terrabok Shops
           </button>
 
           <button 
@@ -109,7 +109,7 @@ export const AdminDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white tracking-tight">Super Admin Metrics</h1>
-              <p className="text-sm text-slate-400 mt-1">Real-time platform activity for FashionHub and Visit</p>
+              <p className="text-sm text-slate-400 mt-1">Real-time platform activity for Terrabok and Visit</p>
             </div>
             <div className="flex gap-2 bg-[#1e293b] p-1 rounded-lg border border-slate-800 text-xs">
               <button className="px-3 py-1.5 rounded bg-blue-600 text-white font-medium">Live Feed</button>
@@ -133,7 +133,7 @@ export const AdminDashboard = () => {
 
             <div className="bg-[#1e293b] border border-slate-800 p-5 rounded-xl">
               <div className="flex justify-between items-start">
-                <p className="text-xs font-medium text-slate-400">FashionHub Sellers</p>
+                <p className="text-xs font-medium text-slate-400">Terrabok Sellers</p>
                 <Store className="w-4 h-4 text-blue-400" />
               </div>
               <h3 className="text-2xl font-bold text-white mt-2">128 Shops</h3>
@@ -171,7 +171,7 @@ export const AdminDashboard = () => {
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold text-white">Sales & Messaging Activity</h3>
-                  <span className="text-xs text-slate-400">FashionHub + Visit</span>
+                  <span className="text-xs text-slate-400">Terrabok + Visit</span>
                 </div>
                 {/* Simulated Chart Line */}
                 <div className="h-48 w-full bg-[#0f172a] rounded-lg p-4 flex items-end justify-between gap-2 border border-slate-800/60">
@@ -198,7 +198,7 @@ export const AdminDashboard = () => {
                 <div className="space-y-4">
                   <div>
                     <div className="flex justify-between text-xs mb-1">
-                      <span className="text-slate-300">FashionHub Ads & Banners</span>
+                      <span className="text-slate-300">Terrabok Ads & Banners</span>
                       <span className="text-blue-400 font-semibold">62%</span>
                     </div>
                     <div className="w-full h-2 bg-[#0f172a] rounded-full overflow-hidden">
@@ -272,3 +272,4 @@ export const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+

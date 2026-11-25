@@ -162,8 +162,9 @@ export function buildWhatsAppOrderUrl(listing: Listing, isVaultWinner = false): 
   const normalizedPhone = digits.startsWith('0') && digits.length === 10 ? `256${digits.slice(1)}` : digits;
   const prefix = isVaultWinner ? '[THE VAULT 5-DAY DROP] ' : '';
   const text = encodeURIComponent(
-    `Hi ${listing.shopName || 'Seller'}, I saw "${prefix}${listing.name}" (${listing.currency || 'UGX'} ${Number(listing.price || 0).toLocaleString()}) on FashionHub in ${listing.city || 'Kampala'}. Is this still available?`
+    `Hi ${listing.shopName || 'Seller'}, I saw "${prefix}${listing.name}" (${listing.currency || 'UGX'} ${Number(listing.price || 0).toLocaleString()}) on Terrabok in ${listing.city || 'Kampala'}. Is this still available?`
   );
   return normalizedPhone ? `https://wa.me/${normalizedPhone}?text=${text}` : `https://wa.me/?text=${text}`;
 }
+
 

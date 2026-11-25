@@ -1,4 +1,4 @@
-# FashionHub API contract
+﻿# Terrabok API contract
 
 The front end uses `src/services/api.ts`. Set `VITE_API_BASE_URL` to the backend API origin (including `/api`) or leave it unset to use same-origin `/api` routes. Requests include cookies (`credentials: include`) and expect JSON unless a receipt is submitted as multipart form data.
 
@@ -71,3 +71,4 @@ A transaction reference or receipt is not proof of payment. The back end must ve
 - `PUT /admin/countries/:code/payment-instructions` updates instructions for that country.
 
 The configured administrator `kigozigeofrey09@gmail.com` is authorized server-side and by the matching SQL policies. Admin APIs support country management and aggregate seller/listing reports. Subscription plan editing and payment review remain paused and are not active APIs. Account deletion requests are not yet shown in an admin queue.
+
