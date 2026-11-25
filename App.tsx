@@ -30,6 +30,7 @@ export function App() {
           <Route path="/seller/dashboard" element={<SellerDashboardPage />} />
           <Route path="/seller/promotions" element={<SellerPromotionsPage />} />
           <Route path="/listings/:listingId" element={<ListingDetailPage />} />
+          <Route path="/shops" element={<MarketplacePage />} />
           <Route path="/shops/:shopId" element={<ShopPage />} />
           <Route path="/drip-ai" element={<DripAiPage />} />
           <Route path="/style-swipe" element={<StyleSwipePage />} />
@@ -45,12 +46,13 @@ export function App() {
       </Routes></Suspense>
       <nav className="mobile-bottom-nav" aria-label="Mobile navigation">
         <a href="#/">Discover</a>
-        <a href="#/swipe">Swipe</a>
+        <a href="#/style-swipe">Swipe</a>
         <a href="#/drip-ai">Drip AI</a>
-        <a href="#/saved">Saved</a>
+        <a href="#/account">Saved</a>
         <a href="#/seller/dashboard">Studio</a>
       </nav>
     </AppProvider>
   );
 }
 export default App;
+
