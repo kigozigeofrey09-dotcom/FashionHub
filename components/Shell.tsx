@@ -18,6 +18,7 @@ export function Shell() {
   const [unread, setUnread] = useState(0);
   const [darkMode, setDarkMode] = useState(false);
   const { session, signOut } = useAppContext();
+  const isTeammateOpsUser = (session?.user?.email || '').trim().toLowerCase() === 'semmyarsene0@gmail.com';
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -109,9 +110,9 @@ export function Shell() {
               Seller studio
             </NavLink>
           )}
-          {session?.user.role === 'admin' && (
+          {(session?.user.role === 'admin' || isTeammateOpsUser) && (
             <>
-              {(session?.user?.email || '').toLowerCase() === 'semmyarsene0@gmail.com' && (
+              {isTeammateOpsUser && (
                 <NavLink to="/teammate/dashboard" onClick={() => setMenuOpen(false)}>
                   Teammate Ops
                 </NavLink>
@@ -204,6 +205,7 @@ export function Shell() {
     </>
   );
 }
+
 
 
 
