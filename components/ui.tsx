@@ -1,7 +1,7 @@
 ﻿import { Link } from 'react-router-dom';
 import { ArrowUpRight, Heart, MapPin, MessageCircle } from 'lucide-react';
 import type { Listing } from '../types';
-import { getWhatsAppLink } from '../lib/whatsapp';
+import { getWhatsAppLink, getWhatsAppShareLink } from '../lib/whatsapp';
 import { recordWhatsAppLead } from '../lib/whatsappLeads';
 
 export function PageTitle({
@@ -108,6 +108,15 @@ export function ListingCard({
     window.open(waUrl, '_blank', 'noopener,noreferrer');
   };
 
+  const handleShareWhatsApp = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://fashion-hub-day-book3.vercel.app';
+    const listingUrl = listing?.id ? `${origin}/listing/${listing.id}` : origin;
+    const shareUrl = getWhatsAppShareLink(listing?.name, listing?.price, listingUrl, listing?.city);
+    window.open(shareUrl, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <article className="listing-card editorial-card">
       <Link
@@ -173,6 +182,7 @@ export function ListingCard({
             <MessageCircle size={14} />
             <span>WhatsApp</span>
           </button>
+          <button type="button" onClick={handleShareWhatsApp} title="Share listing on WhatsApp" aria-label="Share listing on WhatsApp" style={{ padding: '6px 10px', borderRadius: '999px', border: '1px solid #d8d4ca', background: '#fff', color: '#2c4734', fontSize: '12px', fontWeight: 500, cursor: 'pointer' }}>Share</button>
           <Link to={`/listings/${listing?.id ?? ''}`} className="editorial-view-btn">
             View piece
           </Link>
@@ -197,4 +207,6 @@ export function FormError({ message }: { message?: string }) {
     </p>
   ) : null;
 }
+
+
 
