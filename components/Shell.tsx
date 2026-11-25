@@ -71,8 +71,8 @@ export function Shell() {
     <>
       <header className="site-header">
         <Link className="brand" to="/" aria-label="Terrabok home">
-          <TerrabokLogo compact />
-        </Link>
+            <TerrabokLogo compact />
+          </Link>
 
         <button
           className="mobile-menu"
@@ -191,8 +191,8 @@ export function Shell() {
 
       <footer className="site-footer">
         <Link className="brand brand-footer" to="/">
-          <TerrabokLogo compact />
-        </Link>
+            <TerrabokLogo compact />
+          </Link>
         <nav aria-label="Footer links">
           {subscriptionsEnabled && <Link to="/subscriptions">Subscriptions</Link>}
           <Link to="/notifications">Notifications</Link>
