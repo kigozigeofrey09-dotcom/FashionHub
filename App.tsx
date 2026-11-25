@@ -1,4 +1,4 @@
-﻿import { lazy, Suspense } from 'react';
+import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import { Shell } from './components/Shell';
@@ -25,6 +25,7 @@ export function App() {
       <Suspense fallback={<div style={{ padding: '48px 24px', textAlign: 'center', color: '#6E6D68' }}>Loading studio…</div>}><Routes>
         <Route element={<Shell />}>
           <Route path="/" element={<MarketplacePage />} />
+          <Route path="/marketplace" element={<MarketplacePage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
           <Route path="/teammate/dashboard" element={<TeammateOpsPage />} />
