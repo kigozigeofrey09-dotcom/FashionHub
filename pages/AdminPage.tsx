@@ -10,96 +10,19 @@ import { subscriptionsEnabled } from '../config/features';
 import { adminService } from '../services/adminService';
 import { shopService } from '../services/shopService';
 import { listingService } from '../services/listingService';
-import { errorMessage, supabase } from '../services/http';
+import {
+  DEFAULT_VAULT,
+  FIVE_DAYS_MS,
+  type VaultConfig,
+  fetchSharedVault,
+  formatVaultTimeLeft,
+  isVaultCurrentlyLive,
+  persistVaultAndNotify,
+  readLocalVault,
+} from '../services/vaultService';
+import { errorMessage } from '../services/http';
 import { seedListings } from '../data/seed';
 import type { Listing, SafetyReport, SubscriptionRecord, Shop, PlatformAnalytics } from '../types';
-
-const VAULT_STORAGE_KEY = 'fashionhub_monthly_vault_v1';
-const VAULT_DROP_ALERT_KEY = 'fashionhub_vault_drop_alert_v1';
-const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
-
-interface VaultConfig {
-  monthLabel: string;
-  editionTitle: string;
-  stockNote: string;
-  winnerId: string;
-  runnerUpIds: string[];
-  startedAt: string;
-  expiresAt: string;
-  isActive: boolean;
-}
-
-const DEFAULT_VAULT: VaultConfig = {
-  monthLabel: 'November 2026',
-  editionTitle: 'Monthly Admin Crown Drop',
-  stockNote: 'Limited 5-day vault drop · While stock lasts',
-  winnerId: '',
-  runnerUpIds: [],
-  startedAt: '',
-  expiresAt: '',
-  isActive: false,
-};
-
-function readVaultConfig(): VaultConfig {
-  try {
-    const raw = localStorage.getItem(VAULT_STORAGE_KEY);
-    return raw ? { ...DEFAULT_VAULT, ...(JSON.parse(raw) as Partial<VaultConfig>) } : DEFAULT_VAULT;
-  } catch {
-    return DEFAULT_VAULT;
-  }
-}
-
-function formatTimeLeft(expiresAt: string, nowMs: number): string {
-  if (!expiresAt) return 'Not scheduled';
-  const diff = new Date(expiresAt).getTime() - nowMs;
-  if (diff <= 0) return 'Expired (off display)';
-  const totalHours = Math.floor(diff / (1000 * 60 * 60));
-  const days = Math.floor(totalHours / 24);
-  const hours = totalHours % 24;
-  const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  return `${days}d ${hours}h ${mins}m left`;
-}
-
-function emitVaultDropAlert(payload: {
-  dropId: string;
-  title: string;
-  message: string;
-  winnerName: string;
-  monthLabel: string;
-  expiresAt: string;
-  createdAt: string;
-}) {
-  try {
-    localStorage.setItem(VAULT_DROP_ALERT_KEY, JSON.stringify(payload));
-    window.dispatchEvent(new CustomEvent('fashionhub-vault-drop', { detail: payload }));
-  } catch {
-    // ignore storage errors
-  }
-
-  try {
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-      new Notification(payload.title, {
-        body: payload.message,
-        tag: payload.dropId,
-      });
-    }
-  } catch {
-    // ignore notification errors
-  }
-
-  void (async () => {
-    try {
-      await supabase.from('notifications').insert({
-        kind: 'vault_drop',
-        title: payload.title,
-        message: payload.message,
-        href: '/vault',
-      });
-    } catch {
-      // ignore if notifications table/RLS blocks insert
-    }
-  })();
-}
 
 export function AdminPage() {
   const { session } = useAppContext();
@@ -112,7 +35,7 @@ export function AdminPage() {
   const [queue, setQueue] = useState<SubscriptionRecord[]>([]);
   const [reports, setReports] = useState<SafetyReport[]>([]);
 
-  const initialVault = readVaultConfig();
+  const initialVault = readLocalVault();
   const [vaultConfig, setVaultConfig] = useState<VaultConfig>(initialVault);
   const [selectedWinnerId, setSelectedWinnerId] = useState(initialVault.winnerId);
   const [vaultMonth, setVaultMonth] = useState(initialVault.monthLabel);
@@ -135,12 +58,13 @@ export function AdminPage() {
     setLoading(true);
     setError('');
     try {
-      const [anRes, shopsRes, listingsRes, queueRes, repRes] = await Promise.all([
+      const [anRes, shopsRes, listingsRes, queueRes, repRes, sharedVault] = await Promise.all([
         adminService.analytics(),
         shopService.list(),
         listingService.search(new URLSearchParams()).catch(() => [] as Listing[]),
         subscriptionsEnabled ? adminService.paymentQueue() : Promise.resolve([]),
         adminService.reportsQueue(),
+        fetchSharedVault(),
       ]);
       const usableListings = listingsRes.length > 0 ? listingsRes : seedListings;
       setAnalytics(anRes);
@@ -149,16 +73,15 @@ export function AdminPage() {
       setQueue(queueRes);
       setReports(repRes);
 
-      const saved = readVaultConfig();
-      setVaultConfig(saved);
+      setVaultConfig(sharedVault);
       const defaultPick =
-        saved.winnerId && usableListings.some((l) => l.id === saved.winnerId)
-          ? saved.winnerId
+        sharedVault.winnerId && usableListings.some((l) => l.id === sharedVault.winnerId)
+          ? sharedVault.winnerId
           : usableListings[0]?.id ?? '';
       setSelectedWinnerId((prev) => prev || defaultPick);
-      if (saved.monthLabel) setVaultMonth(saved.monthLabel);
-      if (saved.editionTitle) setVaultEdition(saved.editionTitle);
-      if (saved.stockNote) setVaultStockNote(saved.stockNote);
+      if (sharedVault.monthLabel) setVaultMonth(sharedVault.monthLabel);
+      if (sharedVault.editionTitle) setVaultEdition(sharedVault.editionTitle);
+      if (sharedVault.stockNote) setVaultStockNote(sharedVault.stockNote);
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -170,16 +93,7 @@ export function AdminPage() {
     void loadData();
   }, []);
 
-  function saveVaultState(next: VaultConfig) {
-    setVaultConfig(next);
-    try {
-      localStorage.setItem(VAULT_STORAGE_KEY, JSON.stringify(next));
-    } catch {
-      // ignore storage errors
-    }
-  }
-
-  function handleLaunchVaultDrop(e: React.FormEvent) {
+  async function handleLaunchVaultDrop(e: React.FormEvent) {
     e.preventDefault();
     const chosenId = selectedWinnerId || catalogListings[0]?.id || '';
     if (!chosenId) {
@@ -205,11 +119,10 @@ export function AdminPage() {
       isActive: true,
     };
 
-    saveVaultState(nextConfig);
     const chosenItem = catalogListings.find((item) => item.id === chosenId);
     const winnerTitle = chosenItem?.name || 'Vault Winner';
 
-    emitVaultDropAlert({
+    const saved = await persistVaultAndNotify(nextConfig, {
       dropId: `${chosenId}:${startedAt}`,
       title: `The Vault is Live — ${nextConfig.monthLabel}`,
       message: `${winnerTitle} is now in The Vault for 5 days.`,
@@ -219,16 +132,18 @@ export function AdminPage() {
       createdAt: startedAt,
     });
 
-    setMessage(`"${winnerTitle}" is now live in The Vault for 5 days and users have been notified.`);
+    setVaultConfig(saved);
+    setMessage(`"${winnerTitle}" is now live in The Vault for 5 days (synced & announced).`);
   }
 
-  function handleHideVaultDrop() {
+  async function handleHideVaultDrop() {
     const nextConfig: VaultConfig = {
       ...vaultConfig,
       isActive: false,
       expiresAt: new Date(Date.now() - 1000).toISOString(),
     };
-    saveVaultState(nextConfig);
+    const saved = await persistVaultAndNotify(nextConfig);
+    setVaultConfig(saved);
     setMessage('Removed Vault winner from public display.');
   }
 
@@ -296,10 +211,7 @@ export function AdminPage() {
         .includes(term)
   );
 
-  const isVaultLive =
-    Boolean(vaultConfig.isActive) &&
-    Boolean(vaultConfig.expiresAt) &&
-    new Date(vaultConfig.expiresAt).getTime() > nowMs;
+  const isVaultLive = isVaultCurrentlyLive(vaultConfig, nowMs);
 
   const navItems: Array<{ id: typeof activeTab; label: string; icon: typeof Store; count?: number }> = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -319,7 +231,6 @@ export function AdminPage() {
         fontFamily: "var(--sans, 'Plus Jakarta Sans', sans-serif)",
       }}
     >
-      {/* Left Sidebar */}
       <aside
         style={{
           width: '248px',
@@ -422,10 +333,13 @@ export function AdminPage() {
           <div style={{ marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {session?.user?.email || 'Authenticated session'}
           </div>
+          <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #E6E4DE', fontSize: '11px', color: '#4A4945' }}>
+            <strong>Trust &amp; Sellers Admin:</strong>
+            <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>semmyarsene0@gmail.com</div>
+          </div>
         </div>
       </aside>
 
-      {/* Main Content */}
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
         <header
           style={{
@@ -542,7 +456,6 @@ export function AdminPage() {
           {error && <Notice tone="error">{error}</Notice>}
           {loading && <Loading label="Loading marketplace telemetry…" />}
 
-          {/* 4 KPI Cards */}
           <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '16px' }}>
             {[
               {
@@ -552,7 +465,7 @@ export function AdminPage() {
               },
               {
                 label: 'Active Listings',
-                value: analytics?.totalListings ?? 0,
+                value: analytics?.totalListings ?? catalogListings.length,
                 badge: 'Live catalog',
               },
               {
@@ -594,7 +507,6 @@ export function AdminPage() {
             ))}
           </section>
 
-          {/* The Vault — Monthly Winner Picker (5-Day Auto-Expiry) */}
           {(activeTab === 'overview' || activeTab === 'vault') && (
             <section
               style={{
@@ -610,15 +522,15 @@ export function AdminPage() {
                     The Vault — Monthly Winner
                   </h2>
                   <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: '#6E6D68' }}>
-                    Pick the winning product; it stays on /vault for 5 days and notifies users on launch.
+                    Pick the winning product; it stays on /vault for 5 days, syncs via Supabase settings, and notifies users on launch.
                   </p>
                 </div>
                 <span style={{ fontSize: '12px', fontWeight: 600, color: isVaultLive ? '#2C4734' : '#6E6D68' }}>
-                  {isVaultLive ? `Live · ${formatTimeLeft(vaultConfig.expiresAt, nowMs)}` : 'Off display'}
+                  {isVaultLive ? `Live · ${formatVaultTimeLeft(vaultConfig.expiresAt, nowMs)}` : 'Off display'}
                 </span>
               </div>
 
-              <form onSubmit={handleLaunchVaultDrop} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '12px', alignItems: 'end' }}>
+              <form onSubmit={(e) => void handleLaunchVaultDrop(e)} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '12px', alignItems: 'end' }}>
                 <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '12px', fontWeight: 600, color: '#3B3A36' }}>
                   <span>Winning Product</span>
                   <select
@@ -687,7 +599,7 @@ export function AdminPage() {
                   {isVaultLive && (
                     <button
                       type="button"
-                      onClick={handleHideVaultDrop}
+                      onClick={() => void handleHideVaultDrop()}
                       style={{
                         padding: '9px 12px',
                         borderRadius: '8px',
@@ -710,7 +622,6 @@ export function AdminPage() {
             </section>
           )}
 
-          {/* Main 2-Column Operational Cards (Registered Shops + Subscription Payment Queue) */}
           {(activeTab === 'overview' || activeTab === 'shops' || activeTab === 'payments') && (
             <section style={{ display: 'grid', gridTemplateColumns: activeTab === 'overview' ? 'repeat(auto-fit, minmax(380px, 1fr))' : '1fr', gap: '20px', alignItems: 'start' }}>
               {(activeTab === 'overview' || activeTab === 'shops') && (
@@ -886,7 +797,6 @@ export function AdminPage() {
             </section>
           )}
 
-          {/* Safety Reports View */}
           {activeTab === 'reports' && (
             <section
               style={{
@@ -935,4 +845,3 @@ export function AdminPage() {
     </div>
   );
 }
-

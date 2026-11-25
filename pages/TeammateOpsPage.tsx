@@ -2,7 +2,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Store, ShieldCheck, AlertTriangle, RefreshCw, Search,
-  CheckCircle2, XCircle, ArrowUpRight, Compass, Check
+  CheckCircle2, XCircle, ArrowUpRight, Compass, Check, Send, Copy
 } from 'lucide-react';
 import { Loading, Notice } from '../components/ui';
 import { useAppContext } from '../context/AppContext';
@@ -14,6 +14,20 @@ import type { Listing, SafetyReport, Shop } from '../types';
 
 export const TEAMMATE_EMAIL = 'semmyarsene0@gmail.com';
 
+function buildSellerNudgeMessage(shop: Shop, listingCount: number): string {
+  if (listingCount === 0) {
+    return `Hi ${shop.name}, this is Seller Ops at FashionHub Kampala. We noticed your shop is set up with 0 live listings yet—reply here if you need help uploading your first pieces so buyers can discover you.`;
+  }
+  return `Hi ${shop.name}, this is Seller Ops at FashionHub Kampala. We're reviewing your storefront (${listingCount} active listing${listingCount === 1 ? '' : 's'}) for verification—let us know if you have any updates.`;
+}
+
+function buildSellerWhatsAppNudgeUrl(shop: Shop, listingCount: number): string {
+  const digits = (shop.whatsappNumber || '').replace(/[^\d]/g, '');
+  const phone = digits.startsWith('0') && digits.length === 10 ? `256${digits.slice(1)}` : digits;
+  const text = encodeURIComponent(buildSellerNudgeMessage(shop, listingCount));
+  return phone ? `https://wa.me/${phone}?text=${text}` : `https://wa.me/?text=${text}`;
+}
+
 export function TeammateOpsPage() {
   const { session } = useAppContext();
   const navigate = useNavigate();
@@ -24,6 +38,7 @@ export function TeammateOpsPage() {
   const [shops, setShops] = useState<Shop[]>([]);
   const [listings, setListings] = useState<Listing[]>([]);
   const [reports, setReports] = useState<SafetyReport[]>([]);
+  const [reportNotes, setReportNotes] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState('');
   const [feedback, setFeedback] = useState('');
@@ -55,6 +70,16 @@ export function TeammateOpsPage() {
     void loadOpsData();
   }, []);
 
+  async function handleCopyNudge(shop: Shop, listingCount: number) {
+    const msg = buildSellerNudgeMessage(shop, listingCount);
+    try {
+      await navigator.clipboard.writeText(msg);
+      setFeedback(`Copied onboarding nudge for ${shop.name}.`);
+    } catch {
+      setFeedback(`Nudge ready for ${shop.name}: ${msg}`);
+    }
+  }
+
   async function handleToggleVerify(shop: Shop) {
     setBusyId(shop.id);
     setError('');
@@ -74,10 +99,17 @@ export function TeammateOpsPage() {
     setBusyId(reportId);
     setError('');
     setFeedback('');
+    const note = (reportNotes[reportId] || '').trim();
     try {
       const updated = await adminService.reviewReport(reportId, nextStatus);
-      setReports((prev) => prev.map((item) => (item.id === reportId ? { ...item, status: updated.status || nextStatus } : item)));
-      setFeedback(`Report marked as ${nextStatus}.`);
+      setReports((prev) =>
+        prev.map((item) =>
+          item.id === reportId
+            ? { ...item, status: updated.status || nextStatus, details: note ? `${item.details ? `${item.details} · ` : ''}[Note: ${note}]` : item.details }
+            : item
+        )
+      );
+      setFeedback(`Report marked as ${nextStatus}${note ? ` (${note})` : ''}.`);
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -247,7 +279,6 @@ export function TeammateOpsPage() {
         {error && <Notice tone="error">{error}</Notice>}
         {loading && <Loading label="Loading seller journey, verifications & reports..." />}
 
-        {/* Summary Metrics */}
         <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '14px' }}>
           {[
             { label: 'Total Shops in Journey', value: shops.length, sub: `${zeroListingShops} need first listing` },
@@ -265,7 +296,6 @@ export function TeammateOpsPage() {
           ))}
         </section>
 
-        {/* Section Filter Bar */}
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {[
             { id: 'all', label: 'All Workstreams' },
@@ -296,7 +326,6 @@ export function TeammateOpsPage() {
           })}
         </div>
 
-        {/* 1. Seller Journey */}
         {(section === 'all' || section === 'journey') && (
           <section style={{ background: '#FFFFFF', border: '1px solid #E6E4DE', borderRadius: '14px', padding: '22px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '14px' }}>
@@ -363,24 +392,65 @@ export function TeammateOpsPage() {
                         {shop.city}, {shop.countryName} · {count} listing{count === 1 ? '' : 's'} · Stage: <strong>{stage}</strong>
                       </div>
                     </div>
-                    <Link
-                      to={`/shops/${shop.id}`}
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: '7px',
-                        border: '1px solid #D4D0C5',
-                        background: '#FFFFFF',
-                        color: '#141414',
-                        fontSize: '12px',
-                        fontWeight: 500,
-                        textDecoration: 'none',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                      }}
-                    >
-                      Inspect Shop <ArrowUpRight size={13} />
-                    </Link>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        onClick={() => void handleCopyNudge(shop, count)}
+                        style={{
+                          padding: '6px 10px',
+                          borderRadius: '7px',
+                          border: '1px solid #D4D0C5',
+                          background: '#FFFFFF',
+                          color: '#141414',
+                          fontSize: '11.5px',
+                          fontWeight: 600,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <Copy size={12} /> Copy Nudge
+                      </button>
+                      <a
+                        href={buildSellerWhatsAppNudgeUrl(shop, count)}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{
+                          padding: '6px 10px',
+                          borderRadius: '7px',
+                          border: '1px solid #2C4734',
+                          background: '#EEF2EC',
+                          color: '#2C4734',
+                          fontSize: '11.5px',
+                          fontWeight: 600,
+                          textDecoration: 'none',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        <Send size={12} /> WhatsApp Seller
+                      </a>
+                      <Link
+                        to={`/shops/${shop.id}`}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: '7px',
+                          border: '1px solid #D4D0C5',
+                          background: '#FFFFFF',
+                          color: '#141414',
+                          fontSize: '12px',
+                          fontWeight: 500,
+                          textDecoration: 'none',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        Inspect Shop <ArrowUpRight size={13} />
+                      </Link>
+                    </div>
                   </div>
                 );
               })}
@@ -391,7 +461,6 @@ export function TeammateOpsPage() {
           </section>
         )}
 
-        {/* 2. Shop Verifications */}
         {(section === 'all' || section === 'verifications') && (
           <section style={{ background: '#FFFFFF', border: '1px solid #E6E4DE', borderRadius: '14px', padding: '22px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
@@ -464,7 +533,6 @@ export function TeammateOpsPage() {
           </section>
         )}
 
-        {/* 3. Safety Reports */}
         {(section === 'all' || section === 'reports') && (
           <section style={{ background: '#FFFFFF', border: '1px solid #E6E4DE', borderRadius: '14px', padding: '22px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
@@ -490,13 +558,27 @@ export function TeammateOpsPage() {
                     flexWrap: 'wrap',
                   }}
                 >
-                  <div>
+                  <div style={{ flex: '1 1 260px' }}>
                     <div style={{ fontWeight: 600, fontSize: '13.5px' }}>{rep.reason || 'Reported item'}</div>
                     <div style={{ fontSize: '12px', color: '#6E6D68' }}>
                       {rep.details ? `${rep.details} · ` : ''}Status: <strong>{rep.status || 'open'}</strong>
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <input
+                      value={reportNotes[rep.id] || ''}
+                      onChange={(e) => setReportNotes((prev) => ({ ...prev, [rep.id]: e.target.value }))}
+                      placeholder="Resolution note (optional)"
+                      style={{
+                        padding: '6px 10px',
+                        borderRadius: '6px',
+                        border: '1px solid #D4D0C5',
+                        background: '#FFFFFF',
+                        fontSize: '12px',
+                        color: '#141414',
+                        width: '190px',
+                      }}
+                    />
                     {rep.listingId && (
                       <Link
                         to={`/listings/${rep.listingId}`}
