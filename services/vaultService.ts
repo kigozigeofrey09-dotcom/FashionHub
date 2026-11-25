@@ -1,4 +1,4 @@
-﻿import { supabase } from './http';
+﻿import { supabase } from './supabaseClient';
 import type { Listing } from '../types';
 
 export const VAULT_STORAGE_KEY = 'fashionhub_monthly_vault_v1';
@@ -166,3 +166,4 @@ export function buildWhatsAppOrderUrl(listing: Listing, isVaultWinner = false): 
   );
   return normalizedPhone ? `https://wa.me/${normalizedPhone}?text=${text}` : `https://wa.me/?text=${text}`;
 }
+
