@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PageTitle, Notice, EmptyState, Loading } from '../components/ui';
 import { listingService } from '../services/listingService';
@@ -72,7 +72,7 @@ export function StyleSwipePage() {
   }
 
   return (
-    <div className="content-page tb-ebay-page tb-page-style-swipe-page" style={{ maxWidth: '640px', margin: '30px auto', textAlign: 'center' }}>
+    <div className="content-page" style={{ maxWidth: '640px', margin: '30px auto', textAlign: 'center' }}>
       <PageTitle eyebrow="STYLE SWIPE FEED" title={<>Drip or <em>Pass.</em></>}>
         Swipe right to save items to your wishlist, or tap WhatsApp to message the Kampala seller directly.
       </PageTitle>

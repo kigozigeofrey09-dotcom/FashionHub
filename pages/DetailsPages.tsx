@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+﻿import { useEffect, useState, type FormEvent } from 'react';
 import { ArrowLeft, ArrowUpRight, MapPin, Send, MessageCircle, Share2, Tag, Percent, Users, Store, MessageSquare } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { EmptyState, ListingCard, Loading, Notice, PageTitle, SeedNotice, whatsappHref } from '../components/ui';
@@ -227,7 +227,7 @@ export function ShopPage() {
     {shop.isSeed && <SeedNotice />}{feedback && <Notice tone="info">{feedback}</Notice>}
     <div className="shop-profile" style={{ '--shop-accent': shop.accent || '#2C4734' } as React.CSSProperties}><div className="shop-profile-cover">{shop.coverUrl || listings[0]?.image ? <img src={shop.coverUrl || listings[0]?.image} alt={`${shop.name} storefront`} /> : <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #F3F0E8 0%, #E6E4DE 100%)' }} />}</div><div className="shop-profile-body"><span className="shop-initial">{shop.logoUrl ? <img src={shop.logoUrl} alt={`${shop.name} logo`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} /> : shop.name.slice(0, 1)}</span><div><p className="eyebrow">{shop.countryCode} · {shop.categories.join(' / ')}{shop.arcadeName ? ` · ${shop.arcadeName}` : ''}{shop.floorNumber ? ` · Floor ${shop.floorNumber}` : ''}{shop.shopNumber ? ` · Shop ${shop.shopNumber}` : ''}</p>{shop.promotionLabel && <span className="promotion-badge">{shop.promotionLabel}</span>}<h2>{shop.tagline}</h2><p>{shop.story}</p><span>{shop.isSeed ? 'Sample shop · not a live seller' : 'Seller storefront'}</span></div></div></div>
     <div className="section-heading compact"><div><p className="eyebrow">THE COLLECTION</p><h2>From this <em>shop.</em></h2></div></div>
-    {listings.length ? <div className="product-grid tb-ebay-catalog">{listings.map((listing) => <ListingCard key={listing.id} listing={listing} onSave={saveListing} />)}</div> : <EmptyState title="No listings yet">This shop has no published listings.</EmptyState>}
+    {listings.length ? <div className="product-grid">{listings.map((listing) => <ListingCard key={listing.id} listing={listing} onSave={saveListing} />)}</div> : <EmptyState title="No listings yet">This shop has no published listings.</EmptyState>}
   </section>;
 }
 
