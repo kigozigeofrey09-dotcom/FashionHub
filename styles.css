@@ -1097,17 +1097,19 @@ body {
 }
 
 /* ==========================================================================
-   TerraBok Nocturnal Gold Luxury Design System
+   TerraBok Unified Luxury Multi-Device System (Watch, Phone, Laptop, TV)
    ========================================================================== */
 :root {
-  --tb-void: #0b0b0d;
-  --tb-obsidian: #121215;
-  --tb-elevated: #19191d;
-  --tb-gold: #d4a359;
-  --tb-gold-soft: rgba(212, 163, 89, 0.24);
-  --tb-ink: #f5f3ee;
-  --tb-muted: #a39e93;
-  --tb-line: rgba(245, 243, 238, 0.1);
+  --tb-obsidian: #0f0f11;
+  --tb-charcoal: #1c1b18;
+  --tb-canvas: #f6f4ef;
+  --tb-card: #ffffff;
+  --tb-ink: #161513;
+  --tb-muted: #6e6b64;
+  --tb-bronze: #c98a3b;
+  --tb-border: rgba(22, 21, 19, 0.09);
+  --tb-radius-card: 14px;
+  --tb-radius-pill: 999px;
 }
 
 *,
@@ -1124,23 +1126,23 @@ html {
 body {
   margin: 0;
   min-height: 100dvh;
-  background-color: var(--tb-void);
+  background-color: var(--tb-canvas);
   color: var(--tb-ink);
   overflow-x: hidden;
   padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px));
 }
 
+/* Serious, elevated header & pill search */
 header,
 .topbar,
 .navbar {
   position: sticky;
   top: 0;
   z-index: 35;
-  background: rgba(11, 11, 13, 0.94) !important;
-  backdrop-filter: blur(12px);
-  color: var(--tb-ink) !important;
-  border-bottom: 1px solid var(--tb-gold-soft);
-  padding: clamp(10px, 1.4vw, 18px) clamp(12px, 2.5vw, 32px) !important;
+  background: var(--tb-obsidian) !important;
+  color: #ffffff !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: clamp(10px, 1.5vw, 18px) clamp(12px, 2.5vw, 32px) !important;
 }
 
 header a,
@@ -1149,42 +1151,45 @@ header a,
 header button,
 .topbar button,
 .navbar button {
-  color: var(--tb-ink);
+  color: #ffffff;
 }
 
 input[type="search"],
 input[placeholder*="Search" i],
 .search-input {
   width: 100%;
-  background: var(--tb-elevated) !important;
+  background: #ffffff !important;
   color: var(--tb-ink) !important;
-  border: 1px solid var(--tb-gold-soft) !important;
-  border-radius: 999px !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: var(--tb-radius-pill) !important;
   padding: 10px 16px !important;
   font-size: 16px !important;
 }
 
+/* Editorial Hero Banner */
 .hero,
 .hero-banner,
 .promo-banner,
 .featured-banner {
-  background: linear-gradient(145deg, var(--tb-obsidian) 0%, var(--tb-elevated) 100%);
-  color: var(--tb-ink);
+  background: linear-gradient(135deg, var(--tb-obsidian) 0%, var(--tb-charcoal) 100%);
+  color: #ffffff;
   border-radius: 18px;
-  border: 1px solid var(--tb-gold-soft);
   overflow: hidden;
+  border: 1px solid rgba(201, 138, 59, 0.25);
 }
 
 .hero button,
 .hero a.button,
 .hero-banner button,
 .hero-banner a {
-  background: var(--tb-gold);
-  color: #0b0b0d;
+  background: var(--tb-bronze);
+  color: #12110f;
   font-weight: 700;
-  border-radius: 999px;
+  border-radius: var(--tb-radius-pill);
+  padding: 10px 20px;
 }
 
+/* Horizontal Category & Filter Chips */
 .filters,
 .filter-bar,
 .category-pills,
@@ -1206,6 +1211,7 @@ input[placeholder*="Search" i],
   display: none;
 }
 
+/* Base Mobile-First Product Grid (2 columns on phones) */
 .grid,
 .listings-grid,
 .cards-grid,
@@ -1222,19 +1228,19 @@ input[placeholder*="Search" i],
 .marketplace-grid > *,
 .saved-grid > * {
   min-width: 0;
-  background: var(--tb-obsidian);
-  border: 1px solid var(--tb-line);
-  border-radius: 14px;
+  background: var(--tb-card);
+  border: 1px solid var(--tb-border);
+  border-radius: var(--tb-radius-card);
   padding: 8px;
-  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
 }
 
 .grid > *:hover,
 .listings-grid > *:hover,
 .cards-grid > *:hover,
 .marketplace-grid > *:hover {
-  border-color: var(--tb-gold);
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.45);
+  border-color: rgba(201, 138, 59, 0.45);
+  box-shadow: 0 10px 24px rgba(15, 15, 17, 0.07);
 }
 
 .grid img,
@@ -1248,6 +1254,7 @@ input[placeholder*="Search" i],
   border-radius: 10px;
 }
 
+/* Anchored Bottom Navigation (Mobile & Watch) */
 nav[aria-label*="bottom" i],
 nav[aria-label*="mobile" i],
 .bottom-nav,
@@ -1261,9 +1268,9 @@ nav[aria-label*="mobile" i],
   display: flex;
   align-items: center;
   justify-content: space-around;
-  background: rgba(18, 18, 21, 0.96);
+  background: rgba(255, 255, 255, 0.97);
   backdrop-filter: blur(12px);
-  border-top: 1px solid var(--tb-gold-soft);
+  border-top: 1px solid var(--tb-border);
   padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
 }
 
@@ -1280,60 +1287,97 @@ nav[aria-label*="bottom" i] button,
   align-items: center;
   justify-content: center;
   gap: 2px;
-  color: var(--tb-ink);
   font-size: 0.72rem;
   font-weight: 600;
 }
 
+/* 1. Smart Watch (<= 320px) */
 @media (max-width: 320px), (max-height: 340px) and (max-width: 420px) {
-  .grid, .listings-grid, .cards-grid, .marketplace-grid, .saved-grid {
+  .grid,
+  .listings-grid,
+  .cards-grid,
+  .marketplace-grid,
+  .saved-grid {
     grid-template-columns: 1fr;
     gap: 8px;
   }
 }
 
+/* 2. Tablets & Foldables (768px - 1023px) */
 @media (min-width: 768px) {
-  .container, main, .content-page {
+  .container,
+  main,
+  .content-page {
     padding-left: 24px;
     padding-right: 24px;
   }
-  .grid, .listings-grid, .cards-grid, .marketplace-grid, .saved-grid {
+  .grid,
+  .listings-grid,
+  .cards-grid,
+  .marketplace-grid,
+  .saved-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 16px;
   }
 }
 
+/* 3. Laptops & Desktops (1024px - 1919px) */
 @media (min-width: 1024px) {
-  body { padding-bottom: 24px; }
-  .container, main, .content-page {
+  body {
+    padding-bottom: 24px;
+  }
+  .container,
+  main,
+  .content-page {
     max-width: 1320px;
     margin-left: auto;
     margin-right: auto;
     padding-left: 32px;
     padding-right: 32px;
   }
-  .grid, .listings-grid, .cards-grid, .marketplace-grid, .saved-grid {
+  .grid,
+  .listings-grid,
+  .cards-grid,
+  .marketplace-grid,
+  .saved-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 20px;
   }
-  nav[aria-label*="bottom" i], nav[aria-label*="mobile" i], .bottom-nav, .mobile-nav, .tab-bar {
+  nav[aria-label*="bottom" i],
+  nav[aria-label*="mobile" i],
+  .bottom-nav,
+  .mobile-nav,
+  .tab-bar {
     display: none;
   }
 }
 
+/* 4. Smart TVs / 10-Foot Displays (>= 1920px) */
 @media (min-width: 1920px) {
-  .container, main, .content-page {
+  .container,
+  main,
+  .content-page {
     max-width: 1760px;
     padding-left: 56px;
     padding-right: 56px;
   }
-  .grid, .listings-grid, .cards-grid, .marketplace-grid, .saved-grid {
+  .grid,
+  .listings-grid,
+  .cards-grid,
+  .marketplace-grid,
+  .saved-grid {
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 28px;
   }
-  a:focus-visible, button:focus-visible, [role="button"]:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible {
-    outline: 4px solid var(--tb-gold) !important;
+  a:focus-visible,
+  button:focus-visible,
+  [role="button"]:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 4px solid var(--tb-bronze) !important;
     outline-offset: 4px !important;
     transform: scale(1.03);
+    box-shadow: 0 14px 32px rgba(15, 15, 17, 0.28);
   }
 }
