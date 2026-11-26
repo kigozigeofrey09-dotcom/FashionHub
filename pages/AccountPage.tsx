@@ -139,7 +139,37 @@ export function AccountPage() {
     {!session && <Notice tone="warning" title="Sign in to load account data">Authentication must be confirmed by the backend.</Notice>}
     {!session && <Link className="button button-dark" to="/auth/sign-in">Sign in securely</Link>}
     {session && <>
-      <div className="account-summary"><span className="shop-initial">{settings?.avatarUrl ? <img src={settings.avatarUrl} alt="Your profile" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} /> : (session?.user?.name || 'U').slice(0, 1)}</span><div><p className="eyebrow">{session?.user?.role?.toUpperCase() || 'BUYER'} ACCOUNT</p><h2>{session?.user?.name || 'User'}</h2><p>{session?.user?.email || ''}</p><MegaMemberBadge /></div>{(session?.user?.role === 'seller' || subscriptionsEnabled) && <Link className="button button-outline" to={session?.user?.role === 'seller' ? '/seller/dashboard' : '/subscriptions'}>{session?.user?.role === 'seller' ? 'Seller studio' : 'Subscription status'}</Link>}</div>
+      <div className="account-summary"><span className="shop-initial">{settings?.avatarUrl ? <img src={settings.avatarUrl} alt="Your profile" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} /> : (session?.user?.name || 'U').slice(0, 1)}</span><div><p className="eyebrow">{session?.user?.role?.toUpperCase() || 'BUYER'} ACCOUNT</p><h2>{session?.user?.name || 'User'}</h2><p>{session?.user?.email || ''}</p><MegaMemberBadge /></div><div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+  {session?.user?.role !== 'admin' && (
+    <button
+      type="button"
+      className="button button-outline"
+      disabled={busy}
+      onClick={() => void handleRoleSwitch(session?.user?.role === 'seller' ? 'buyer' : 'seller')}
+    >
+      {busy
+        ? 'Updating role…'
+        : session?.user?.role === 'seller'
+          ? 'Switch to Buyer'
+          : 'Switch to Seller'}
+    </button>
+  )}
+  {(session?.user?.role === 'seller' || session?.user?.role === 'admin') && (
+    <>
+      <Link className="button button-dark" to="/seller/dashboard">
+        Seller studio
+      </Link>
+      <Link className="button button-outline" to="/seller/setup">
+        Storefront setup
+      </Link>
+    </>
+  )}
+  {session?.user?.role !== 'seller' && session?.user?.role !== 'admin' && subscriptionsEnabled && (
+    <Link className="button button-outline" to="/subscriptions">
+      Subscription status
+    </Link>
+  )}
+</div></div>
       {subscriptionsEnabled && <section className="current-plan-strip"><div><p className="eyebrow">CURRENT PLAN</p>{currentSubscription ? <><h3>{currentSubscription.planName ?? currentSubscription.planId ?? 'Membership'}</h3><StatusBadge status={currentSubscription.status}>{currentSubscription.status.replaceAll('_', ' ')}</StatusBadge><p>Renewal date: {currentSubscription.renewalDate ? new Date(currentSubscription.renewalDate).toLocaleDateString() : 'Awaiting backend confirmation'}</p></> : <p>No active or pending plan returned by the subscription service.</p>}</div><Link className="text-button" to="/subscriptions">Manage plan <span>↗</span></Link></section>}
             <div className="marketplace-quick-meta" style={{ marginBottom: '16px', padding: '12px 16px', background: '#ffffff', border: '1px solid #e6e4de', borderRadius: '10px' }}>
         <span style={{ fontSize: '12px', color: '#4a4945' }}>
@@ -151,7 +181,28 @@ export function AccountPage() {
       {error && <Notice tone="error" title="Account action unavailable">{error}<button className="text-button" onClick={() => void loadAccount()}>Retry</button></Notice>}
       {message && <Notice tone="success">{message}</Notice>}
       {loading && <Loading label="Loading account details…" />}
-      {!loading && tab === 'profile' && (settings ? <section className="subsection"><p className="eyebrow">ACCOUNT PROFILE</p><h2>Your profile details.</h2><div className="settings-layout"><div><p><strong>Name</strong><br />{settings?.name || session?.user?.name || 'User'}</p><p><strong>Email</strong><br />{settings?.email || session?.user?.email || ''}</p></div><div><p><strong>Account type</strong><br />{session?.user?.role || 'buyer'}</p><p><strong>Country</strong><br />{countryOptions.find((country) => country.code === settings?.countryCode)?.name ?? settings?.countryCode ?? 'Uganda'}</p><p><strong>City</strong><br />{settings?.city || 'Add your city in settings'}</p></div></div><button className="button button-outline" onClick={handleEditProfile}>Edit profile & settings</button></section> : <Notice tone="error" title="Profile details unavailable">{settingsError || 'Sign in and load your profile through the account service.'}<button className="text-button" onClick={() => void loadAccount()}>Retry</button></Notice>)}
+      {!loading && tab === 'profile' && (settings ? <section className="subsection"><p className="eyebrow">ACCOUNT PROFILE</p><h2>Your profile details.</h2><div className="settings-layout"><div><p><strong>Name</strong><br />{settings?.name || session?.user?.name || 'User'}</p><p><strong>Email</strong><br />{settings?.email || session?.user?.email || ''}</p></div><div><p><strong>Account type</strong><br />{session?.user?.role || 'buyer'}</p><p><strong>Country</strong><br />{countryOptions.find((country) => country.code === settings?.countryCode)?.name ?? settings?.countryCode ?? 'Uganda'}</p><p><strong>City</strong><br />{settings?.city || 'Add your city in settings'}</p></div></div><div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '12px' }}>
+  <button type="button" className="button button-outline" onClick={handleEditProfile}>
+    Edit profile &amp; settings
+  </button>
+  {session?.user?.role !== 'admin' && (
+    <button
+      type="button"
+      className="button button-dark"
+      disabled={busy}
+      onClick={() => void handleRoleSwitch(session?.user?.role === 'seller' ? 'buyer' : 'seller')}
+    >
+      {session?.user?.role === 'seller'
+        ? 'Switch account to Buyer'
+        : 'Become a Seller & open storefront'}
+    </button>
+  )}
+  {(session?.user?.role === 'seller' || session?.user?.role === 'admin') && (
+    <Link className="button button-outline" to="/seller/setup">
+      Manage storefront
+    </Link>
+  )}
+</div></section> : <Notice tone="error" title="Profile details unavailable">{settingsError || 'Sign in and load your profile through the account service.'}<button className="text-button" onClick={() => void loadAccount()}>Retry</button></Notice>)}
       {!loading && tab === 'saved' && (saved.length ? <div className="saved-grid">{saved.map((item) => <article className="saved-item" key={item?.id}><Link to={`/listings/${item?.id}`}><img src={item?.image} alt={item?.name} /></Link><div><Link to={`/listings/${item?.id}`}><h3>{item?.name}</h3></Link><p>{item?.currency} {(item?.price || 0).toLocaleString()} · {item?.city}, {item?.countryName}</p><button className="text-button" onClick={() => void removeSaved(item)}><Bookmark size={14} /> Remove saved item</button></div></article>)}</div> : <EmptyState title="No saved finds yet" action={<Link className="button button-outline" to="/">Browse pieces</Link>}>Tap the heart icon on any piece in the marketplace to save it here.</EmptyState>)}
       {!loading && tab === 'orders' && (orders.length ? <div className="seller-listings">{orders.map((item) => <article className="seller-listing-row" key={item?.id}><div><span className="listing-type">{(item?.fulfillment || 'pickup').toUpperCase()} · {(item?.status || '').replaceAll('_', ' ')}</span><h3>Order {item?.id}</h3><p>{item?.quantity ? `Quantity ${item.quantity} · ` : ''}{item?.unitPrice && item?.currency ? `${item.currency} ${item.unitPrice.toLocaleString()} each · ` : ''}Updated {item?.updatedAt || item?.createdAt ? new Date(item.updatedAt ?? item.createdAt).toLocaleDateString() : ''}</p>{item?.fulfillmentDetails && <p>{item.fulfillmentDetails}</p>}{item?.status === 'completed' && <OrderReview orderId={item.id} />}</div></article>)}</div> : <EmptyState title="No order history" action={<Link className="button button-outline" to="/">Find something you love</Link>}>Your order requests and pickup or delivery updates will show up here.</EmptyState>)}
       {!loading && tab === 'settings' && (settings ? <div className="settings-layout">
