@@ -1097,124 +1097,100 @@ body {
 }
 
 /* ==========================================================================
-   TerraBok eBay Product Display & Lining System
+   TerraBok eBay Fashion Visual Polish & Editorial Craft
    ========================================================================== */
 
-/* Ruled section & shelf lining */
-.listing-lines,
-.product-lines,
-.ebay-list,
-.search-results-list {
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-surface);
+:root {
+  --tb-ring: color-mix(in srgb, var(--brand-primary) 28%, transparent);
+  --tb-gold-ring: color-mix(in srgb, var(--brand-accent) 32%, transparent);
+}
+
+/* Crisp image framing & subtle hover depth */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.grid img,
+.listings-grid img,
+.cards-grid img,
+.marketplace-grid img,
+.saved-grid img {
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
   border: 1px solid var(--line-subtle);
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.grid > *:hover img,
+.listings-grid > *:hover img,
+.cards-grid > *:hover img,
+.marketplace-grid > *:hover img {
+  transform: scale(1.025);
+}
+
+/* Tactile buttons, pills, and interactive surfaces */
+button,
+.button,
+[role="button"] {
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    transform 130ms ease,
+    box-shadow 150ms ease;
+}
+
+button:active,
+.button:active,
+[role="button"]:active {
+  transform: scale(0.98);
+}
+
+/* Editorial section rhythm & subtle dividers */
+section,
+.section,
+.panel,
+.card {
   border-radius: var(--radius-md);
-  overflow: hidden;
 }
 
-.listing-lines > *,
-.product-lines > *,
-.ebay-list > *,
-.search-results-list > * {
-  border-radius: 0;
-  border: 0;
-  border-bottom: 1px solid var(--line-subtle);
-  box-shadow: none;
+.tb-ebay-main > * + * {
+  margin-top: clamp(14px, 1.8vw, 26px);
 }
 
-.listing-lines > *:last-child,
-.product-lines > *:last-child,
-.ebay-list > *:last-child,
-.search-results-list > *:last-child {
-  border-bottom: 0;
-}
-
-/* Structured multi-line product metadata inside cards & rows */
-.product-lines-stack,
-.listing-meta-lines,
-.card-lines {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding-top: 8px;
-}
-
-.product-line-title,
-.listing-title {
-  font-size: 0.92rem;
-  font-weight: 600;
-  line-height: 1.32;
-  color: var(--ink-primary);
-}
-
-.product-line-condition,
-.listing-condition {
-  font-size: 0.76rem;
-  font-weight: 600;
-  color: var(--ink-secondary);
-}
-
-.product-line-price,
-.listing-price-line {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  flex-wrap: wrap;
-  font-size: 1rem;
-  font-weight: 800;
-  color: var(--ink-primary);
-}
-
-.product-line-format,
-.listing-format {
-  font-size: 0.74rem;
-  font-weight: 600;
-  color: var(--ink-muted);
-}
-
-.product-line-seller,
-.listing-seller {
-  font-size: 0.76rem;
-  color: var(--ink-secondary);
-  border-top: 1px solid var(--line-subtle);
-  padding-top: 6px;
-  margin-top: 2px;
-}
-
-/* Horizontal eBay-style listing rows on tablet, laptop & TV */
-@media (min-width: 768px) {
-  .ebay-listing-row,
-  .listing-row {
-    display: grid;
-    grid-template-columns: 180px minmax(0, 1fr) auto;
-    align-items: start;
-    gap: 18px;
-    padding: 16px;
-    background: var(--bg-surface);
-    border: 1px solid var(--line-subtle);
-    border-radius: var(--radius-md);
+/* Refined scrollbars on desktop */
+@media (pointer: fine) {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
   }
-
-  .ebay-listing-row img,
-  .listing-row img {
-    width: 180px;
-    height: 180px;
-    aspect-ratio: 1 / 1;
-    object-fit: cover;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--line-subtle);
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--line-strong);
+    border-radius: var(--radius-pill);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--ink-muted);
   }
 }
 
-/* Compact watch & narrow mobile lining */
-@media (max-width: 320px) {
-  .product-line-seller,
-  .listing-seller {
-    display: none;
-  }
-  .product-line-title,
-  .listing-title {
-    font-size: 0.84rem;
+/* Accessible focus ring across all viewports */
+:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
