@@ -89,6 +89,39 @@ export const accountService = {
     return accountService.settings();
   },
 
+  switchRole: async (targetRole: 'buyer' | 'seller'): Promise<AccountSettings> => {
+    const { data: authData } = await supabase.auth.getUser();
+    const user = authData?.user;
+    if (!user) throw new Error('Not authenticated');
+
+    const currentRole =
+      user.email?.toLowerCase() === 'kigozigeofrey09@gmail.com'
+        ? 'admin'
+        : ((user.user_metadata?.role as string) || 'buyer');
+
+    if (currentRole === 'admin') {
+      return accountService.settings();
+    }
+
+    try {
+      await supabase
+        .from('profiles')
+        .upsert({ id: user.id, role: targetRole }, { onConflict: 'id' });
+    } catch {
+      // fall through to auth metadata update if profiles upsert is restricted
+    }
+
+    try {
+      await supabase.auth.updateUser({
+        data: { ...(user.user_metadata || {}), role: targetRole },
+      });
+    } catch {
+      // ignore metadata error if profile row updated
+    }
+
+    return accountService.settings();
+  },
+
   deleteAccount: async (_confirmation: string): Promise<void> => {
     await supabase.auth.signOut();
   },

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { Bookmark, RefreshCw, Trash2 } from 'lucide-react';
 import { EmptyState, Loading, Notice, PageTitle, StatusBadge } from '../components/ui';
@@ -57,6 +57,27 @@ export function AccountPage() {
   }
 
   useEffect(() => { void loadAccount(); }, [session]);
+
+  async function handleRoleSwitch(nextRole: 'buyer' | 'seller') {
+    if (!session) return;
+    setBusy(true);
+    setError('');
+    setMessage('');
+    try {
+      const updated = await accountService.switchRole(nextRole);
+      setSettings(updated);
+      await refreshSession();
+      setMessage(
+        nextRole === 'seller'
+          ? 'Switched to Seller mode. You can now set up or open your storefront.'
+          : 'Switched back to Buyer mode. Your saved items and orders remain available.'
+      );
+    } catch (caught) {
+      setError(errorMessage(caught));
+    } finally {
+      setBusy(false);
+    }
+  }
 
   const handleEditProfile = () => {
     try {
