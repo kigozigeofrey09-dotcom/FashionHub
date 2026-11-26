@@ -1,4 +1,4 @@
-﻿import { supabase } from './supabaseClient';
+import { supabase } from './supabaseClient';
 import type { Listing } from '../types';
 
 export const VAULT_STORAGE_KEY = 'fashionhub_monthly_vault_v1';
@@ -61,7 +61,7 @@ export async function fetchSharedVault(): Promise<VaultConfig> {
   try {
     const { data, error } = await supabase
       .from('settings')
-      .select('value, updated_at')
+      .select('value')
       .eq('key', VAULT_SETTINGS_KEY)
       .maybeSingle();
 
