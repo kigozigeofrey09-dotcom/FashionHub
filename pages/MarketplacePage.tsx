@@ -1,4 +1,4 @@
-﻿import { useDeferredValue, useEffect, useState } from 'react';
+import { useDeferredValue, useEffect, useState } from 'react';
 import { ArrowDown, ArrowUpRight, Search, SlidersHorizontal } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { EmptyState, ListingCard, Loading, Notice, SeedNotice } from '../components/ui';
@@ -41,6 +41,7 @@ function resolveShopCover(shop: Shop): string {
   }
   return 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=900&q=80';
 }
+
 export function MarketplacePage() {
   const { countries } = useAppContext();
   const [query, setQuery] = useState('');
@@ -159,13 +160,22 @@ export function MarketplacePage() {
     query || category !== 'All finds' || countryCode || city || kind !== 'all' || verifiedOnly
   );
 
+  function resetAllFilters() {
+    setQuery('');
+    setCategory('All finds');
+    setCountryCode('');
+    setCity('');
+    setKind('all');
+    setVerifiedOnly(false);
+  }
+
   return (
-    <>
-      <section className="hero-grid">
-        <div className="market-hero-copy">
+    <div className="tb-landing-root">
+      <section className="hero-grid tb-ebay-hero">
+        <div className="market-hero-copy tb-ebay-hero-panel">
           <p className="eyebrow">
             <span className="eyebrow-rule" />
-            KAMPALA &amp; UGANDA · EDITORIAL MARKETPLACE
+            KAMPALA &amp; UGANDA · FASHION MARKETPLACE
           </p>
           <h1 className="hero-title">
             Effortless style,
@@ -173,50 +183,50 @@ export function MarketplacePage() {
             <em>made to be found.</em>
           </h1>
           <p className="hero-copy">
-            Discover independent designers, everyday essentials, and custom makers across Uganda. Clean silhouettes, direct ordering, and instant sign-in.
+            Discover independent designers, everyday essentials, and custom makers across Uganda with clear pricing, direct shop listings, and instant ordering.
           </p>
           <div className="hero-actions">
             <a href="#discover" className="btn-primary">
-              Explore the edit <ArrowDown size={15} />
+              Explore listings <ArrowDown size={15} />
             </a>
             <Link to="/seller/setup" className="btn-secondary">
-              Open a shop <ArrowUpRight size={15} />
+              Sell on TerraBok <ArrowUpRight size={15} />
             </Link>
           </div>
           <div className="hero-note">
             <span className="hero-dot" />
-            Direct WhatsApp &amp; independent maker storefronts across Kampala
+            Direct shop listings · Transparent pricing · Verified studios
           </div>
         </div>
 
-        <div className="hero-frame">
+        <div className="hero-frame tb-ebay-hero-showcase">
           <img
             src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=1200&q=88"
             alt="Editorial lookbook piece in warm natural light"
           />
-          <div className="hero-caption-strip">
+          <div className="hero-caption-strip tb-ebay-hero-meta">
             <span>
-              <strong>Kampala Edit</strong> · Independent makers
+              <strong>Featured Edit</strong> · Independent makers
             </span>
             <span>Season 2026</span>
           </div>
         </div>
       </section>
 
-      <section id="discover" className="section-block">
-        <div className="section-head">
+      <section id="discover" className="section-block tb-ebay-discover">
+        <div className="section-head tb-ebay-head">
           <div>
             <p className="eyebrow">
               <span className="eyebrow-rule" />
-              CURATED COLLECTION
+              ACTIVE FASHION LISTINGS
             </p>
             <h2 className="section-title">
-              Pieces worth <em>keeping.</em>
+              Curated pieces &amp; <em>direct drops.</em>
             </h2>
           </div>
 
-          <div className="controls-row">
-            <label className="search-wrap">
+          <div className="controls-row tb-ebay-search-controls">
+            <label className="search-wrap tb-ebay-search-wrap">
               <Search size={15} className="search-icon" />
               <input
                 value={query}
@@ -238,7 +248,7 @@ export function MarketplacePage() {
           </div>
         </div>
 
-        <div className="category-bar" aria-label="Filter by category">
+        <div className="category-bar tb-ebay-dept-strip" aria-label="Filter by category">
           {categoryOptions.map((item) => (
             <button
               key={item}
@@ -252,7 +262,7 @@ export function MarketplacePage() {
         </div>
 
         {showMoreFilters && (
-          <div className="filter-panel">
+          <div className="filter-panel tb-ebay-filter-drawer">
             <div>
               <label htmlFor="fh-filter-country">Country</label>
               <select
@@ -348,40 +358,41 @@ export function MarketplacePage() {
         )}
         {feedback && <Notice tone="info">{feedback}</Notice>}
 
-        <div className="results-strip">
+        <div className="results-strip tb-ebay-results-bar">
           <span>
             {loading
               ? 'Loading collection...'
-              : `${visible.length} ${visible.length === 1 ? 'piece' : 'pieces'} available`}
+              : `${visible.length} ${visible.length === 1 ? 'listing' : 'listings'} available`}
             {hasActiveFilters && (
               <button
                 type="button"
                 className="link-btn"
                 style={{ marginLeft: '12px' }}
-                onClick={() => {
-                  setQuery('');
-                  setCategory('All finds');
-                  setCountryCode('');
-                  setCity('');
-                  setKind('all');
-                  setVerifiedOnly(false);
-                }}
+                onClick={resetAllFilters}
               >
                 Reset filters
               </button>
             )}
           </span>
           <Link to="/seller/setup" className="link-btn">
-            Open your shop <span aria-hidden="true">↗</span>
+            List an item <span aria-hidden="true">↗</span>
           </Link>
         </div>
 
         {loading && <Loading label="Loading pieces..." />}
 
         {visible.length > 0 ? (
-          <div className="product-grid">
+          <div className="product-grid tb-ebay-listings-grid">
             {visible.map((listing) => (
-              <ListingCard key={listing.id} listing={listing} onSave={saveListing} />
+              <div className="tb-ebay-listing-cell" key={listing.id}>
+                <ListingCard listing={listing} onSave={saveListing} />
+                <div className="tb-ebay-listing-line">
+                  <span className="tb-ebay-line-tag">{listing.category}</span>
+                  <span className="tb-ebay-line-meta">
+                    {listing.shopName} · {listing.city || listing.countryName || 'UG'}
+                  </span>
+                </div>
+              </div>
             ))}
           </div>
         ) : (
@@ -389,29 +400,18 @@ export function MarketplacePage() {
             <div className="empty-box">
               <h3>No pieces match your search</h3>
               <p>Try clearing your filters or searching for another style.</p>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => {
-                  setQuery('');
-                  setCategory('All finds');
-                  setCountryCode('');
-                  setCity('');
-                  setKind('all');
-                  setVerifiedOnly(false);
-                }}
-              >
+              <button type="button" className="btn-secondary" onClick={resetAllFilters}>
                 Show all pieces
               </button>
             </div>
           )
         )}
 
-        <div className="section-head" style={{ marginTop: '52px' }}>
+        <div className="section-head tb-ebay-head" style={{ marginTop: '44px' }}>
           <div>
             <p className="eyebrow">
               <span className="eyebrow-rule" />
-              INDEPENDENT STUDIOS
+              VERIFIED &amp; INDEPENDENT SELLERS
             </p>
             <h2 className="section-title">
               Featured <em>shops.</em>
@@ -420,9 +420,9 @@ export function MarketplacePage() {
         </div>
 
         {visibleShops.length ? (
-          <div className="shop-grid">
+          <div className="shop-grid tb-ebay-shops-grid">
             {visibleShops.map((shop) => (
-              <article className="shop-card" key={shop.id}>
+              <article className="shop-card tb-ebay-shop-card" key={shop.id}>
                 <div className="shop-cover">
                   <img src={resolveShopCover(shop)} alt={shop.name} />
                   <div
@@ -441,29 +441,29 @@ export function MarketplacePage() {
                   </div>
                 </div>
 
-                <div className="shop-card-body">
-                  <p className="eyebrow" style={{ margin: '0 0 4px' }}>
+                <div className="shop-card-body tb-ebay-shop-lines">
+                  <p className="eyebrow tb-ebay-line" style={{ margin: 0 }}>
                     {shop.countryCode || 'UG'} · {shop.city || 'Kampala'}
                   </p>
-                  <h3 className="shop-card-title">
+                  <h3 className="shop-card-title tb-ebay-line">
                     <span>{shop.name}</span>
                     {shop.isVerified && (
                       <span className="verified-chip" title="Verified Storefront">
-                        ✓
+                        ✓ Verified
                       </span>
                     )}
                   </h3>
-                  <p className="shop-story">
+                  <p className="shop-story tb-ebay-line">
                     {shop.tagline || (shop.story ? `${shop.story.slice(0, 80)}...` : 'Independent studio')}
                   </p>
-                  <div className="chip-list">
+                  <div className="chip-list tb-ebay-line">
                     {shop.categories.map((item) => (
                       <span className="mini-chip" key={item}>
                         {item}
                       </span>
                     ))}
                   </div>
-                  <Link to={`/shops/${shop.id}`} className="link-btn" style={{ marginTop: 'auto' }}>
+                  <Link to={`/shops/${shop.id}`} className="link-btn tb-ebay-line" style={{ marginTop: 'auto' }}>
                     Visit shop <span aria-hidden="true">↗</span>
                   </Link>
                 </div>
@@ -479,11 +479,11 @@ export function MarketplacePage() {
         )}
       </section>
 
-      <section className="maker-band">
+      <section className="maker-band tb-ebay-maker-band">
         <div>
           <p className="eyebrow">
             <span className="eyebrow-rule" />
-            SELL ON Terrabok
+            SELL ON TERRABOK
           </p>
           <h2>
             Launch your <em>own storefront.</em>
@@ -494,8 +494,6 @@ export function MarketplacePage() {
           Open a shop <span aria-hidden="true">↗</span>
         </Link>
       </section>
-    </>
+    </div>
   );
 }
-
-
