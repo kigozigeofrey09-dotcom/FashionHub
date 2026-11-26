@@ -121,7 +121,7 @@ export function EnquiriesPage() {
   };
 
   return (
-    <section className="content-page">
+    <section className="content-page tb-ebay-page tb-page-enquiries-page">
       <PageTitle eyebrow="BUYER & SELLER" title={<>Enquiries & <em>order status.</em></>} action={<Link className="button button-outline" to="/">Browse listings</Link>}>
         Enquiry and order messaging for independent makers and buyers.
       </PageTitle>

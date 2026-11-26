@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Send, User, CheckCheck, Paperclip, Smile, Phone, Video, Search } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
@@ -227,7 +227,7 @@ export function MessagesPage() {
 
   if (!session) {
     return (
-      <div className="content-page text-center py-16">
+      <div className="content-page text-center py-16 tb-ebay-page tb-page-messages-page">
         <h2 className="text-2xl font-bold mb-2">Sign in to access WhatsApp-style Chat</h2>
         <p className="text-sm text-slate-500 mb-6">Real-time buyer and seller chats require an authenticated account.</p>
         <a href="/auth/sign-in" className="button button-dark">Sign in securely</a>
@@ -236,7 +236,7 @@ export function MessagesPage() {
   }
 
   return (
-    <div className="content-page max-w-6xl mx-auto py-6">
+    <div className="content-page max-w-6xl mx-auto py-6 tb-ebay-page tb-page-messages-page">
       <PageTitle eyebrow="WHATSAPP-STYLE CHAT" title={<>Live fashion <em>messaging.</em></>}>
         Connect instantly with buyers and sellers with live read receipts and real-time synchronization.
       </PageTitle>
@@ -244,12 +244,12 @@ export function MessagesPage() {
       {dbError && <Notice tone="warning" title="Database Setup Required">{dbError}</Notice>}
 
       {/* WhatsApp Container */}
-      <div className="grid grid-cols-1 md:grid-cols-3 bg-[#efeae2] rounded-2xl shadow-xl border border-slate-300 overflow-hidden h-[680px] mt-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 bg-[#efeae2] rounded-2xl shadow-xl border border-slate-300 overflow-hidden h-[680px] mt-6 tb-ebay-catalog">
         {/* Left Sidebar */}
         <div className="border-r border-slate-200 flex flex-col bg-white">
-          <div className="p-4 bg-[#f0f2f5] border-b border-slate-200 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#315039] text-white font-bold flex items-center justify-center">
+          <div className="p-4 bg-[#f0f2f5] border-b border-slate-200 flex items-center justify-between tb-ebay-catalog">
+            <div className="flex items-center gap-3 tb-ebay-catalog">
+              <div className="w-10 h-10 rounded-full bg-[#315039] text-white font-bold flex items-center justify-center tb-ebay-catalog">
                 {session.user.name.slice(0, 1)}
               </div>
               <div>
@@ -259,7 +259,7 @@ export function MessagesPage() {
             </div>
           </div>
           <div className="p-3 bg-white border-b border-slate-100">
-            <div className="bg-[#f0f2f5] px-3 py-2 rounded-xl flex items-center gap-2 text-xs text-slate-500">
+            <div className="bg-[#f0f2f5] px-3 py-2 rounded-xl flex items-center gap-2 text-xs text-slate-500 tb-ebay-catalog">
               <Search size={14} />
               <input
                 type="text"
@@ -279,11 +279,11 @@ export function MessagesPage() {
                   onClick={() => setActiveConversation(conv)}
                   className={`p-3.5 cursor-pointer transition-colors flex items-center gap-3 ${isActive ? 'bg-[#f0f2f5]' : 'hover:bg-slate-50'}`}
                 >
-                  <div className="w-12 h-12 rounded-full bg-[#315039] text-[#c7df77] font-bold flex items-center justify-center flex-shrink-0 text-sm">
+                  <div className="w-12 h-12 rounded-full bg-[#315039] text-[#c7df77] font-bold flex items-center justify-center flex-shrink-0 text-sm tb-ebay-catalog">
                     💬
                   </div>
                   <div className="overflow-hidden flex-1">
-                    <div className="flex justify-between items-center mb-0.5">
+                    <div className="flex justify-between items-center mb-0.5 tb-ebay-catalog">
                       <h4 className="font-bold text-slate-900 text-xs truncate">Chat #{conv.id.slice(0, 6)}</h4>
                       <span className="text-[9px] text-slate-400">{new Date(conv.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
@@ -305,9 +305,9 @@ export function MessagesPage() {
           {activeConversation ? (
             <>
               {/* WhatsApp Header */}
-              <div className="px-4 py-3 bg-[#f0f2f5] border-b border-slate-300 flex items-center justify-between shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#315039] text-[#c7df77] font-bold flex items-center justify-center text-sm shadow-inner">
+              <div className="px-4 py-3 bg-[#f0f2f5] border-b border-slate-300 flex items-center justify-between shadow-sm tb-ebay-catalog">
+                <div className="flex items-center gap-3 tb-ebay-catalog">
+                  <div className="w-10 h-10 rounded-full bg-[#315039] text-[#c7df77] font-bold flex items-center justify-center text-sm shadow-inner tb-ebay-catalog">
                     🛍️
                   </div>
                   <div>
@@ -315,7 +315,7 @@ export function MessagesPage() {
                     <span className="text-[10px] text-emerald-700 font-medium">online · Two-Way Secure Chat</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 text-slate-600">
+                <div className="flex items-center gap-4 text-slate-600 tb-ebay-catalog">
                   <Video size={18} className="cursor-pointer hover:text-emerald-700" />
                   <Phone size={18} className="cursor-pointer hover:text-emerald-700" />
                 </div>
@@ -337,7 +337,7 @@ export function MessagesPage() {
                         isMe ? 'bg-[#dcf8c6] text-slate-900 rounded-tr-none' : 'bg-white text-slate-900 rounded-tl-none'
                       }`}>
                         <p>{msg.content}</p>
-                        <div className="flex items-center justify-end gap-1 mt-1">
+                        <div className="flex items-center justify-end gap-1 mt-1 tb-ebay-catalog">
                           <span className="text-[9px] text-slate-500">
                             {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
@@ -351,7 +351,7 @@ export function MessagesPage() {
               </div>
 
               {/* WhatsApp Input Bar */}
-              <form onSubmit={handleSendMessage} className="p-3 bg-[#f0f2f5] border-t border-slate-300 flex items-center gap-3">
+              <form onSubmit={handleSendMessage} className="p-3 bg-[#f0f2f5] border-t border-slate-300 flex items-center gap-3 tb-ebay-catalog">
                 <Smile size={22} className="text-slate-500 cursor-pointer hover:text-slate-700" />
                 <Paperclip size={20} className="text-slate-500 cursor-pointer hover:text-slate-700" />
                 <input
@@ -363,14 +363,14 @@ export function MessagesPage() {
                 />
                 <button
                   type="submit"
-                  className="w-10 h-10 bg-[#00a884] hover:bg-[#008f72] text-white rounded-full shadow-md transition-all flex items-center justify-center"
+                  className="w-10 h-10 bg-[#00a884] hover:bg-[#008f72] text-white rounded-full shadow-md transition-all flex items-center justify-center tb-ebay-catalog"
                 >
                   <Send size={16} />
                 </button>
               </form>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-slate-500 text-xs p-8 text-center bg-[#f8f9fa]">
+            <div className="flex-1 flex items-center justify-center text-slate-500 text-xs p-8 text-center bg-[#f8f9fa] tb-ebay-catalog">
               Select a conversation from the sidebar or click "Chat" on any listing.
             </div>
           )}

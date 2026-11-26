@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PageTitle, ListingCard, Loading, EmptyState } from '../components/ui';
 import { listingService } from '../services/listingService';
 import { getWhatsAppShareLink } from '../lib/whatsapp';
@@ -64,7 +64,7 @@ export function DripAiPage() {
   const bundleTotal = curated.reduce((sum, item) => sum + Number(item.price || 0), 0);
 
   return (
-    <div className="content-page">
+    <div className="content-page tb-ebay-page tb-page-drip-ai-page">
       <PageTitle eyebrow="DRIP AI STYLIST" title={<>Your personal <em>outfit curator.</em></>}>
         Select your budget in UGX and occasion, and let Drip AI curate the perfect local look for you from live marketplace items.
       </PageTitle>
@@ -112,7 +112,7 @@ export function DripAiPage() {
 
       {loading ? <Loading label="Loading live marketplace catalog..." /> : generating ? <Loading label="Drip AI is matching styles and prices..." /> : (
         curated.length > 0 ? (
-          <div className="product-grid" style={{ marginTop: '20px' }}>
+          <div className="product-grid tb-ebay-catalog" style={{ marginTop: '20px' }}>
             {curated.map((listing) => <ListingCard key={listing.id} listing={listing} />)}
           </div>
         ) : (

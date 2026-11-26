@@ -1,4 +1,4 @@
-﻿import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Eye, EyeOff, Mail } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
@@ -74,7 +74,7 @@ export function AuthPage() {
   }
 
   return (
-    <section className="auth-page">
+    <section className="auth-page tb-ebay-page tb-page-auth-page">
       <div className="auth-aside">
         <p className="eyebrow">Terrabok ACCOUNTS</p>
         <h1>Good style.<br /><em>Made simple.</em></h1>

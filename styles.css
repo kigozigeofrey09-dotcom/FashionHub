@@ -1097,124 +1097,85 @@ body {
 }
 
 /* ==========================================================================
-   TerraBok eBay Product Display & Lining System
+   TerraBok eBay 20/10 Page & Device System (Watch, Phone, Tablet, Laptop, TV)
    ========================================================================== */
 
-/* Ruled section & shelf lining */
-.listing-lines,
-.product-lines,
-.ebay-list,
-.search-results-list {
+.tb-ebay-page {
   display: flex;
   flex-direction: column;
+  gap: clamp(14px, 1.6vw, 24px);
+  width: 100%;
+}
+
+.tb-ebay-catalog {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.tb-ebay-catalog > * {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   background: var(--bg-surface);
   border: 1px solid var(--line-subtle);
   border-radius: var(--radius-md);
-  overflow: hidden;
+  padding: 10px;
+  box-shadow: var(--shadow-card);
+  transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
 }
 
-.listing-lines > *,
-.product-lines > *,
-.ebay-list > *,
-.search-results-list > * {
-  border-radius: 0;
-  border: 0;
-  border-bottom: 1px solid var(--line-subtle);
-  box-shadow: none;
+.tb-ebay-catalog > *:hover {
+  transform: translateY(-2px);
+  border-color: var(--brand-primary);
+  box-shadow: var(--shadow-card-hover);
 }
 
-.listing-lines > *:last-child,
-.product-lines > *:last-child,
-.ebay-list > *:last-child,
-.search-results-list > *:last-child {
-  border-bottom: 0;
+.tb-ebay-catalog img {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-subtle);
+  background: var(--bg-surface-2);
 }
 
-/* Structured multi-line product metadata inside cards & rows */
-.product-lines-stack,
-.listing-meta-lines,
-.card-lines {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding-top: 8px;
-}
-
-.product-line-title,
-.listing-title {
-  font-size: 0.92rem;
-  font-weight: 600;
-  line-height: 1.32;
-  color: var(--ink-primary);
-}
-
-.product-line-condition,
-.listing-condition {
-  font-size: 0.76rem;
-  font-weight: 600;
-  color: var(--ink-secondary);
-}
-
-.product-line-price,
-.listing-price-line {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  flex-wrap: wrap;
-  font-size: 1rem;
-  font-weight: 800;
-  color: var(--ink-primary);
-}
-
-.product-line-format,
-.listing-format {
-  font-size: 0.74rem;
-  font-weight: 600;
-  color: var(--ink-muted);
-}
-
-.product-line-seller,
-.listing-seller {
-  font-size: 0.76rem;
-  color: var(--ink-secondary);
+/* Structured lines inside every catalog item */
+.tb-ebay-catalog > * > :not(img):not(a):not(button) {
   border-top: 1px solid var(--line-subtle);
   padding-top: 6px;
-  margin-top: 2px;
+  margin-top: 6px;
 }
 
-/* Horizontal eBay-style listing rows on tablet, laptop & TV */
+/* Smart Watch (<= 320px) */
+@media (max-width: 320px), (max-height: 340px) and (max-width: 420px) {
+  .tb-ebay-catalog {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+/* Tablets & Foldables (>= 768px) */
 @media (min-width: 768px) {
-  .ebay-listing-row,
-  .listing-row {
-    display: grid;
-    grid-template-columns: 180px minmax(0, 1fr) auto;
-    align-items: start;
-    gap: 18px;
-    padding: 16px;
-    background: var(--bg-surface);
-    border: 1px solid var(--line-subtle);
-    border-radius: var(--radius-md);
-  }
-
-  .ebay-listing-row img,
-  .listing-row img {
-    width: 180px;
-    height: 180px;
-    aspect-ratio: 1 / 1;
-    object-fit: cover;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--line-subtle);
+  .tb-ebay-catalog {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
   }
 }
 
-/* Compact watch & narrow mobile lining */
-@media (max-width: 320px) {
-  .product-line-seller,
-  .listing-seller {
-    display: none;
+/* Laptops & Desktops (>= 1024px) */
+@media (min-width: 1024px) {
+  .tb-ebay-catalog {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
   }
-  .product-line-title,
-  .listing-title {
-    font-size: 0.84rem;
+}
+
+/* Smart TVs / Large Displays (>= 1920px) */
+@media (min-width: 1920px) {
+  .tb-ebay-catalog {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 26px;
   }
 }

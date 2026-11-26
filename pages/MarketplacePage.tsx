@@ -1,4 +1,4 @@
-﻿import { useDeferredValue, useEffect, useState } from 'react';
+import { useDeferredValue, useEffect, useState } from 'react';
 import { ArrowDown, ArrowUpRight, Search, SlidersHorizontal } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { EmptyState, ListingCard, Loading, Notice, SeedNotice } from '../components/ui';
@@ -161,7 +161,7 @@ export function MarketplacePage() {
 
   return (
     <>
-      <section className="hero-grid">
+      <section className="hero-grid tb-ebay-catalog">
         <div className="market-hero-copy">
           <p className="eyebrow">
             <span className="eyebrow-rule" />
@@ -379,7 +379,7 @@ export function MarketplacePage() {
         {loading && <Loading label="Loading pieces..." />}
 
         {visible.length > 0 ? (
-          <div className="product-grid">
+          <div className="product-grid tb-ebay-catalog">
             {visible.map((listing) => (
               <ListingCard key={listing.id} listing={listing} onSave={saveListing} />
             ))}
@@ -420,7 +420,7 @@ export function MarketplacePage() {
         </div>
 
         {visibleShops.length ? (
-          <div className="shop-grid">
+          <div className="shop-grid tb-ebay-catalog">
             {visibleShops.map((shop) => (
               <article className="shop-card" key={shop.id}>
                 <div className="shop-cover">

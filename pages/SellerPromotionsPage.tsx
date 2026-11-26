@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Megaphone, Plus, CheckCircle, Clock, XCircle, CreditCard } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import { uploadService } from '../services/uploadService';
@@ -95,7 +95,7 @@ export function SellerPromotionsPage() {
   }
 
   return (
-    <div className="content-page max-w-5xl mx-auto py-8">
+    <div className="content-page max-w-5xl mx-auto py-8 tb-ebay-page tb-page-seller-promotions-page">
       <PageTitle eyebrow="SELLER PROMOTIONS & ADS" title={<>Boost your <em>brand visibility.</em></>}>
         Book sponsored ad placements to feature your shop or listings at the top of the Terrabok marketplace.
       </PageTitle>
@@ -103,9 +103,9 @@ export function SellerPromotionsPage() {
       {error && <Notice tone="error">{error}</Notice>}
       {message && <Notice tone="success">{message}</Notice>}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6 tb-ebay-catalog">
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-          <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2 tb-ebay-catalog">
             <Megaphone size={18} className="text-emerald-600" /> Book New Ad Campaign
           </h3>
 
@@ -122,7 +122,7 @@ export function SellerPromotionsPage() {
             </div>
 
             <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100 space-y-2">
-              <span className="text-xs font-bold text-emerald-900 block flex items-center gap-1.5"><CreditCard size={15} /> MTN Mobile Money Payment</span>
+              <span className="text-xs font-bold text-emerald-900 block flex items-center gap-1.5 tb-ebay-catalog"><CreditCard size={15} /> MTN Mobile Money Payment</span>
               <p className="text-[11px] text-emerald-800 leading-relaxed">
                 Send <strong>UGX {selectedPkg.price.toLocaleString()}</strong> to MTN MoMo: <strong>0773927881</strong> (Name: <strong>Kabesha Bankenga</strong>). Enter your transaction reference below.
               </p>
@@ -148,7 +148,7 @@ export function SellerPromotionsPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 tb-ebay-catalog">
               <div>
                 <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">Start Date</label>
                 <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} required className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs" />
@@ -174,7 +174,7 @@ export function SellerPromotionsPage() {
           <h3 className="text-lg font-bold text-slate-800 mb-4">Your Ad Campaigns</h3>
           <div className="overflow-y-auto flex-1 space-y-3">
             {campaigns.map((camp) => (
-              <div key={camp.id} className="p-4 rounded-xl border border-slate-100 bg-slate-50 flex items-center justify-between">
+              <div key={camp.id} className="p-4 rounded-xl border border-slate-100 bg-slate-50 flex items-center justify-between tb-ebay-catalog">
                 <div>
                   <h4 className="font-bold text-slate-800 text-xs">{camp.package_name}</h4>
                   <p className="text-[10px] text-slate-500 mt-0.5">{camp.start_date} to {camp.end_date}</p>
