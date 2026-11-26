@@ -1338,3 +1338,218 @@ body {
     padding: 2px 6px;
   }
 }
+/* ==========================================================================
+   TerraBok All-Device Reference Layout (Watch, Phone, Laptop/Desktop, TV)
+   ========================================================================== */
+
+:root {
+  --tb-obsidian: #0f0f11;
+  --tb-surface: #ffffff;
+  --tb-ground: #f5f4f0;
+  --tb-ink: #171717;
+  --tb-muted: #6b6a66;
+  --tb-amber: #e59a3c;
+  --tb-badge-red: #ef4444;
+  --tb-border: rgba(23, 23, 23, 0.08);
+}
+
+/* Top header & pill search bar arrangement */
+header,
+.topbar,
+.navbar {
+  background-color: var(--tb-obsidian) !important;
+  color: #ffffff !important;
+}
+
+header a,
+.topbar a,
+.navbar a,
+header button,
+.topbar button,
+.navbar button {
+  color: #ffffff;
+}
+
+input[type="search"],
+input[placeholder*="Search" i],
+.search-input {
+  background-color: #ffffff !important;
+  color: var(--tb-ink) !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+}
+
+/* Hero / promo showcase card styling */
+.hero,
+.hero-banner,
+.promo-banner,
+.featured-banner {
+  border-radius: 18px;
+  overflow: hidden;
+  background-color: var(--tb-obsidian);
+  color: #ffffff;
+}
+
+.hero .button,
+.hero button,
+.hero a.button,
+.hero-banner a,
+.hero-banner button {
+  background-color: var(--tb-amber);
+  color: #141210;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+/* Quick category strip & trust strip cards */
+.categories,
+.category-strip,
+.categories-row,
+.trust-strip,
+.guarantees-strip {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.categories::-webkit-scrollbar,
+.category-strip::-webkit-scrollbar,
+.categories-row::-webkit-scrollbar,
+.trust-strip::-webkit-scrollbar,
+.guarantees-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.trust-strip,
+.guarantees-strip {
+  background-color: var(--tb-surface);
+  border: 1px solid var(--tb-border);
+  border-radius: 14px;
+  padding: 10px 14px;
+}
+
+/* Product grid cards, discount tags, and price hierarchy */
+.grid,
+.listings-grid,
+.cards-grid,
+.marketplace-grid,
+.saved-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.grid > *,
+.listings-grid > *,
+.cards-grid > *,
+.marketplace-grid > * {
+  background-color: var(--tb-surface);
+  border: 1px solid var(--tb-border);
+  border-radius: 14px;
+  padding: 8px;
+  min-width: 0;
+}
+
+.grid img,
+.listings-grid img,
+.cards-grid img,
+.marketplace-grid img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.discount-badge,
+.badge-discount,
+[class*="discount"] {
+  background-color: var(--tb-badge-red) !important;
+  color: #ffffff !important;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.72rem;
+  padding: 2px 8px;
+}
+
+/* Bottom navigation bar */
+nav[aria-label*="bottom" i],
+nav[aria-label*="mobile" i],
+.bottom-nav,
+.mobile-nav,
+.tab-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background-color: var(--tb-surface);
+  color: var(--tb-ink);
+  border-top: 1px solid var(--tb-border);
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+}
+
+body {
+  background-color: var(--tb-ground);
+  color: var(--tb-ink);
+  padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Smart Watch (<= 320px or ultra-compact watch viewport) */
+@media (max-width: 320px), (max-height: 340px) and (max-width: 420px) {
+  html { font-size: 12px; }
+  .grid, .listings-grid, .cards-grid, .marketplace-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+  .trust-strip, .guarantees-strip {
+    flex-direction: column;
+    gap: 6px;
+  }
+}
+
+/* Phones (321px - 767px) */
+@media (min-width: 321px) and (max-width: 767px) {
+  html { font-size: 14.5px; }
+  .grid, .listings-grid, .cards-grid, .marketplace-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+}
+
+/* Laptops & Desktops (768px - 1919px) */
+@media (min-width: 768px) and (max-width: 1919px) {
+  html { font-size: 16px; }
+  .container, main, .content-page {
+    max-width: 1320px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .grid, .listings-grid, .cards-grid, .marketplace-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 18px !important;
+  }
+}
+
+/* Smart TVs / Large Living Room Displays (>= 1920px) */
+@media (min-width: 1920px) {
+  html { font-size: 22px; }
+  .container, main, .content-page {
+    max-width: 1760px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .grid, .listings-grid, .cards-grid, .marketplace-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 28px !important;
+  }
+  a:focus-visible, button:focus-visible, [role="button"]:focus-visible, [tabindex]:focus-visible {
+    outline: 4px solid var(--tb-amber) !important;
+    outline-offset: 4px !important;
+    transform: scale(1.03);
+  }
+}
