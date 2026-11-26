@@ -1096,269 +1096,53 @@ body {
   }
 }
 
-
 /* ==========================================================================
-   TerraBok Multi-Device UI: Smart Watch, Phone, Laptop, & TV
+   TerraBok Unified Luxury Multi-Device System (Watch, Phone, Laptop, TV)
    ========================================================================== */
-
-/* 1. Smart Watch (<= 320px or watch-sized / coarse compact viewports) */
-@media (max-width: 320px), (max-height: 340px) and (max-width: 420px) {
-  html {
-    font-size: 13px;
-  }
-  body {
-    overflow-x: hidden;
-  }
-  header, nav, .navbar, .topbar, .footer, footer {
-    padding-left: 8px !important;
-    padding-right: 8px !important;
-  }
-  .grid, .listings-grid, .cards-grid, [class*="grid"] {
-    grid-template-columns: 1fr !important;
-    gap: 8px !important;
-  }
-  button, a.button, [role="button"], input, select {
-    min-height: 36px;
-    font-size: 0.85rem;
-  }
-}
-
-/* 2. Phones (321px - 767px) */
-@media (min-width: 321px) and (max-width: 767px) {
-  html {
-    font-size: 15px;
-  }
-  .container, main, .content-page, .page-shell {
-    padding-left: 14px;
-    padding-right: 14px;
-  }
-  .grid, .listings-grid, .cards-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-  }
-  button, a.button, [role="button"] {
-    min-height: 42px;
-  }
-}
-
-/* 3. Laptops & Desktops (1024px - 1919px) */
-@media (min-width: 1024px) and (max-width: 1919px) {
-  html {
-    font-size: 16px;
-  }
-  .container, main, .content-page {
-    max-width: 1320px;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 28px;
-    padding-right: 28px;
-  }
-  .grid, .listings-grid, .cards-grid {
-    gap: 20px;
-  }
-}
-
-/* 4. Smart TV / 10-Foot Living Room Displays (>= 1920px or TV aspect/resolution) */
-@media (min-width: 1920px), (min-width: 1280px) and (min-aspect-ratio: 16/9) and (min-height: 900px) {
-  html {
-    font-size: 24px;
-  }
-  body {
-    overscroll-behavior: none;
-  }
-  .container, main, .content-page {
-    max-width: 1760px;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 48px;
-    padding-right: 48px;
-  }
-  .grid, .listings-grid, .cards-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-    gap: 32px !important;
-  }
-  a, button, [role="button"], input, select, [tabindex] {
-    transition: transform 140ms ease, box-shadow 140ms ease, outline-color 140ms ease;
-  }
-  a:focus-visible,
-  button:focus-visible,
-  [role="button"]:focus-visible,
-  input:focus-visible,
-  select:focus-visible,
-  [tabindex]:focus-visible {
-    outline: 4px solid #d97706 !important;
-    outline-offset: 4px !important;
-    transform: scale(1.03);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
-    z-index: 10;
-  }
-}
-/* ==========================================================================
-   TerraBok Mobile Dense Marketplace Grid + Bottom Nav
-   ========================================================================== */
-@media (max-width: 767px) {
-  body {
-    background-color: #f7f5f0;
-    color: #1c1917;
-    padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px));
-    overflow-x: hidden;
-  }
-
-  /* Compact top header & search bar */
-  header,
-  .topbar,
-  .navbar {
-    position: sticky;
-    top: 0;
-    z-index: 30;
-    background: rgba(247, 245, 240, 0.96);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(28, 25, 23, 0.08);
-    padding: 10px 12px !important;
-  }
-
-  input[type="search"],
-  input[placeholder*="Search" i],
-  .search-input {
-    border-radius: 999px !important;
-    background: #ffffff !important;
-    border: 1px solid rgba(28, 25, 23, 0.14) !important;
-    padding: 9px 14px !important;
-    font-size: 0.88rem !important;
-  }
-
-  /* Horizontal quick-filter / category strip without wrapping tall blocks */
-  .filters,
-  .filter-bar,
-  .category-pills,
-  .categories-row {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    gap: 8px !important;
-    padding: 8px 12px !important;
-    scrollbar-width: none;
-  }
-
-  .filters::-webkit-scrollbar,
-  .filter-bar::-webkit-scrollbar,
-  .category-pills::-webkit-scrollbar,
-  .categories-row::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* Dense 2-column catalog grid for fast mobile scanning */
-  .grid,
-  .listings-grid,
-  .cards-grid,
-  .marketplace-grid,
-  .saved-grid {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 10px !important;
-    padding: 8px 12px 16px !important;
-  }
-
-  .grid > *,
-  .listings-grid > *,
-  .cards-grid > *,
-  .marketplace-grid > * {
-    min-width: 0;
-    border-radius: 10px;
-    background: #ffffff;
-    border: 1px solid rgba(28, 25, 23, 0.08);
-    padding: 6px;
-  }
-
-  .grid img,
-  .listings-grid img,
-  .cards-grid img,
-  .marketplace-grid img {
-    width: 100%;
-    aspect-ratio: 4 / 5;
-    object-fit: cover;
-    border-radius: 8px;
-  }
-
-  .grid h3,
-  .listings-grid h3,
-  .cards-grid h3,
-  .marketplace-grid h3 {
-    font-size: 0.8rem !important;
-    line-height: 1.25 !important;
-    margin-top: 6px !important;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .grid p,
-  .listings-grid p,
-  .cards-grid p,
-  .marketplace-grid p {
-    font-size: 0.74rem !important;
-    line-height: 1.25 !important;
-    margin-top: 2px !important;
-  }
-
-  /* Bottom navigation bar ergonomics with safe-area inset */
-  nav[aria-label*="bottom" i],
-  nav[aria-label*="mobile" i],
-  .bottom-nav,
-  .mobile-nav,
-  .tab-bar {
-    position: fixed !important;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 40;
-    display: flex !important;
-    align-items: center;
-    justify-content: space-around;
-    background: rgba(255, 255, 255, 0.97) !important;
-    backdrop-filter: blur(12px);
-    border-top: 1px solid rgba(28, 25, 23, 0.1) !important;
-    padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)) !important;
-  }
-
-  nav[aria-label*="bottom" i] a,
-  nav[aria-label*="bottom" i] button,
-  .bottom-nav a,
-  .bottom-nav button,
-  .mobile-nav a,
-  .mobile-nav button {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    font-size: 0.68rem !important;
-    font-weight: 600;
-    min-height: 44px;
-    padding: 2px 6px;
-  }
-}
-/* ==========================================================================
-   TerraBok All-Device Reference Layout (Watch, Phone, Laptop/Desktop, TV)
-   ========================================================================== */
-
 :root {
   --tb-obsidian: #0f0f11;
-  --tb-surface: #ffffff;
-  --tb-ground: #f5f4f0;
-  --tb-ink: #171717;
-  --tb-muted: #6b6a66;
-  --tb-amber: #e59a3c;
-  --tb-badge-red: #ef4444;
-  --tb-border: rgba(23, 23, 23, 0.08);
+  --tb-charcoal: #1c1b18;
+  --tb-canvas: #f6f4ef;
+  --tb-card: #ffffff;
+  --tb-ink: #161513;
+  --tb-muted: #6e6b64;
+  --tb-bronze: #c98a3b;
+  --tb-border: rgba(22, 21, 19, 0.09);
+  --tb-radius-card: 14px;
+  --tb-radius-pill: 999px;
 }
 
-/* Top header & pill search bar arrangement */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: clamp(13px, 0.35vw + 13px, 21px);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background-color: var(--tb-canvas);
+  color: var(--tb-ink);
+  overflow-x: hidden;
+  padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Serious, elevated header & pill search */
 header,
 .topbar,
 .navbar {
-  background-color: var(--tb-obsidian) !important;
+  position: sticky;
+  top: 0;
+  z-index: 35;
+  background: var(--tb-obsidian) !important;
   color: #ffffff !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: clamp(10px, 1.5vw, 18px) clamp(12px, 2.5vw, 32px) !important;
 }
 
 header a,
@@ -1373,107 +1157,104 @@ header button,
 input[type="search"],
 input[placeholder*="Search" i],
 .search-input {
-  background-color: #ffffff !important;
+  width: 100%;
+  background: #ffffff !important;
   color: var(--tb-ink) !important;
-  border-radius: 999px !important;
-  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: var(--tb-radius-pill) !important;
+  padding: 10px 16px !important;
+  font-size: 16px !important;
 }
 
-/* Hero / promo showcase card styling */
+/* Editorial Hero Banner */
 .hero,
 .hero-banner,
 .promo-banner,
 .featured-banner {
+  background: linear-gradient(135deg, var(--tb-obsidian) 0%, var(--tb-charcoal) 100%);
+  color: #ffffff;
   border-radius: 18px;
   overflow: hidden;
-  background-color: var(--tb-obsidian);
-  color: #ffffff;
+  border: 1px solid rgba(201, 138, 59, 0.25);
 }
 
-.hero .button,
 .hero button,
 .hero a.button,
-.hero-banner a,
-.hero-banner button {
-  background-color: var(--tb-amber);
-  color: #141210;
-  border-radius: 999px;
+.hero-banner button,
+.hero-banner a {
+  background: var(--tb-bronze);
+  color: #12110f;
   font-weight: 700;
+  border-radius: var(--tb-radius-pill);
+  padding: 10px 20px;
 }
 
-/* Quick category strip & trust strip cards */
-.categories,
-.category-strip,
+/* Horizontal Category & Filter Chips */
+.filters,
+.filter-bar,
+.category-pills,
 .categories-row,
-.trust-strip,
-.guarantees-strip {
+.category-strip {
   display: flex;
-  align-items: stretch;
-  gap: 10px;
+  flex-wrap: nowrap;
   overflow-x: auto;
+  gap: 8px;
+  padding: 8px 0;
   scrollbar-width: none;
 }
 
-.categories::-webkit-scrollbar,
-.category-strip::-webkit-scrollbar,
+.filters::-webkit-scrollbar,
+.filter-bar::-webkit-scrollbar,
+.category-pills::-webkit-scrollbar,
 .categories-row::-webkit-scrollbar,
-.trust-strip::-webkit-scrollbar,
-.guarantees-strip::-webkit-scrollbar {
+.category-strip::-webkit-scrollbar {
   display: none;
 }
 
-.trust-strip,
-.guarantees-strip {
-  background-color: var(--tb-surface);
-  border: 1px solid var(--tb-border);
-  border-radius: 14px;
-  padding: 10px 14px;
-}
-
-/* Product grid cards, discount tags, and price hierarchy */
+/* Base Mobile-First Product Grid (2 columns on phones) */
 .grid,
 .listings-grid,
 .cards-grid,
 .marketplace-grid,
 .saved-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
 .grid > *,
 .listings-grid > *,
 .cards-grid > *,
-.marketplace-grid > * {
-  background-color: var(--tb-surface);
-  border: 1px solid var(--tb-border);
-  border-radius: 14px;
-  padding: 8px;
+.marketplace-grid > *,
+.saved-grid > * {
   min-width: 0;
+  background: var(--tb-card);
+  border: 1px solid var(--tb-border);
+  border-radius: var(--tb-radius-card);
+  padding: 8px;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.grid > *:hover,
+.listings-grid > *:hover,
+.cards-grid > *:hover,
+.marketplace-grid > *:hover {
+  border-color: rgba(201, 138, 59, 0.45);
+  box-shadow: 0 10px 24px rgba(15, 15, 17, 0.07);
 }
 
 .grid img,
 .listings-grid img,
 .cards-grid img,
-.marketplace-grid img {
+.marketplace-grid img,
+.saved-grid img {
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 4 / 5;
   object-fit: cover;
   border-radius: 10px;
 }
 
-.discount-badge,
-.badge-discount,
-[class*="discount"] {
-  background-color: var(--tb-badge-red) !important;
-  color: #ffffff !important;
-  border-radius: 999px;
-  font-weight: 700;
-  font-size: 0.72rem;
-  padding: 2px 8px;
-}
-
-/* Bottom navigation bar */
+/* Anchored Bottom Navigation (Mobile & Watch) */
 nav[aria-label*="bottom" i],
 nav[aria-label*="mobile" i],
 .bottom-nav,
@@ -1487,69 +1268,116 @@ nav[aria-label*="mobile" i],
   display: flex;
   align-items: center;
   justify-content: space-around;
-  background-color: var(--tb-surface);
-  color: var(--tb-ink);
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(12px);
   border-top: 1px solid var(--tb-border);
   padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
 }
 
-body {
-  background-color: var(--tb-ground);
-  color: var(--tb-ink);
-  padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+nav[aria-label*="bottom" i] a,
+nav[aria-label*="bottom" i] button,
+.bottom-nav a,
+.bottom-nav button,
+.mobile-nav a,
+.mobile-nav button {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 0.72rem;
+  font-weight: 600;
 }
 
-/* Smart Watch (<= 320px or ultra-compact watch viewport) */
+/* 1. Smart Watch (<= 320px) */
 @media (max-width: 320px), (max-height: 340px) and (max-width: 420px) {
-  html { font-size: 12px; }
-  .grid, .listings-grid, .cards-grid, .marketplace-grid {
-    grid-template-columns: 1fr !important;
-    gap: 8px !important;
-  }
-  .trust-strip, .guarantees-strip {
-    flex-direction: column;
-    gap: 6px;
-  }
-}
-
-/* Phones (321px - 767px) */
-@media (min-width: 321px) and (max-width: 767px) {
-  html { font-size: 14.5px; }
-  .grid, .listings-grid, .cards-grid, .marketplace-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 10px !important;
+  .grid,
+  .listings-grid,
+  .cards-grid,
+  .marketplace-grid,
+  .saved-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
 }
 
-/* Laptops & Desktops (768px - 1919px) */
-@media (min-width: 768px) and (max-width: 1919px) {
-  html { font-size: 16px; }
-  .container, main, .content-page {
+/* 2. Tablets & Foldables (768px - 1023px) */
+@media (min-width: 768px) {
+  .container,
+  main,
+  .content-page {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  .grid,
+  .listings-grid,
+  .cards-grid,
+  .marketplace-grid,
+  .saved-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+}
+
+/* 3. Laptops & Desktops (1024px - 1919px) */
+@media (min-width: 1024px) {
+  body {
+    padding-bottom: 24px;
+  }
+  .container,
+  main,
+  .content-page {
     max-width: 1320px;
     margin-left: auto;
     margin-right: auto;
+    padding-left: 32px;
+    padding-right: 32px;
   }
-  .grid, .listings-grid, .cards-grid, .marketplace-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-    gap: 18px !important;
+  .grid,
+  .listings-grid,
+  .cards-grid,
+  .marketplace-grid,
+  .saved-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px;
+  }
+  nav[aria-label*="bottom" i],
+  nav[aria-label*="mobile" i],
+  .bottom-nav,
+  .mobile-nav,
+  .tab-bar {
+    display: none;
   }
 }
 
-/* Smart TVs / Large Living Room Displays (>= 1920px) */
+/* 4. Smart TVs / 10-Foot Displays (>= 1920px) */
 @media (min-width: 1920px) {
-  html { font-size: 22px; }
-  .container, main, .content-page {
+  .container,
+  main,
+  .content-page {
     max-width: 1760px;
-    margin-left: auto;
-    margin-right: auto;
+    padding-left: 56px;
+    padding-right: 56px;
   }
-  .grid, .listings-grid, .cards-grid, .marketplace-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-    gap: 28px !important;
+  .grid,
+  .listings-grid,
+  .cards-grid,
+  .marketplace-grid,
+  .saved-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 28px;
   }
-  a:focus-visible, button:focus-visible, [role="button"]:focus-visible, [tabindex]:focus-visible {
-    outline: 4px solid var(--tb-amber) !important;
+  a:focus-visible,
+  button:focus-visible,
+  [role="button"]:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 4px solid var(--tb-bronze) !important;
     outline-offset: 4px !important;
     transform: scale(1.03);
+    box-shadow: 0 14px 32px rgba(15, 15, 17, 0.28);
   }
 }
