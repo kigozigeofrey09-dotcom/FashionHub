@@ -1097,32 +1097,17 @@ body {
 }
 
 /* ==========================================================================
-   TerraBok eBay Fashion Marketplace System (Watch, Phone, Tablet, Laptop, TV)
+   TerraBok Nocturnal Gold Luxury Design System
    ========================================================================== */
 :root {
-  --tb-bg: #f4f4f2;
-  --tb-surface: #ffffff;
-  --tb-surface-alt: #fafaf8;
-  --tb-ink: #191919;
-  --tb-muted: #5e5e5e;
-  --tb-line: #dcdcd7;
-  --tb-line-strong: #c6c6bf;
-  --tb-accent: #1f4e78;
-  --tb-accent-gold: #b87a28;
-  --tb-radius: 10px;
-  --tb-radius-sm: 6px;
-}
-
-body.dark-mode {
-  --tb-bg: #0e0f12;
-  --tb-surface: #16181d;
-  --tb-surface-alt: #1d2027;
-  --tb-ink: #f3f2ee;
-  --tb-muted: #a6a49d;
-  --tb-line: #2a2e38;
-  --tb-line-strong: #3b4150;
-  --tb-accent: #4c8fd1;
-  --tb-accent-gold: #d99b43;
+  --tb-void: #0b0b0d;
+  --tb-obsidian: #121215;
+  --tb-elevated: #19191d;
+  --tb-gold: #d4a359;
+  --tb-gold-soft: rgba(212, 163, 89, 0.24);
+  --tb-ink: #f5f3ee;
+  --tb-muted: #a39e93;
+  --tb-line: rgba(245, 243, 238, 0.1);
 }
 
 *,
@@ -1132,127 +1117,93 @@ body.dark-mode {
 }
 
 html {
-  font-size: clamp(13px, 0.32vw + 13px, 21px);
+  font-size: clamp(13px, 0.35vw + 13px, 21px);
   -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
   min-height: 100dvh;
-  background-color: var(--tb-bg);
+  background-color: var(--tb-void);
   color: var(--tb-ink);
   overflow-x: hidden;
   padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px));
 }
 
-/* Top assurance strip */
-.tb-utility-strip {
-  background: var(--tb-surface-alt);
-  border-bottom: 1px solid var(--tb-line);
-  font-size: 0.78rem;
-  color: var(--tb-muted);
-}
-
-.tb-utility-inner {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 5px 16px;
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  flex-wrap: wrap;
-}
-
-.tb-utility-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.tb-utility-right {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.tb-utility-right a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.tb-utility-right a:hover {
-  text-decoration: underline;
-}
-
-/* Structured marketplace header & department bar */
-.tb-ebay-header {
+header,
+.topbar,
+.navbar {
   position: sticky;
   top: 0;
   z-index: 35;
-  background: var(--tb-surface);
+  background: rgba(11, 11, 13, 0.94) !important;
+  backdrop-filter: blur(12px);
+  color: var(--tb-ink) !important;
+  border-bottom: 1px solid var(--tb-gold-soft);
+  padding: clamp(10px, 1.4vw, 18px) clamp(12px, 2.5vw, 32px) !important;
+}
+
+header a,
+.topbar a,
+.navbar a,
+header button,
+.topbar button,
+.navbar button {
   color: var(--tb-ink);
-  border-bottom: 1px solid var(--tb-line-strong);
 }
 
-.tb-header-main {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 10px 16px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.tb-department-bar {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 0 16px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  border-top: 1px solid var(--tb-line);
-}
-
-.tb-department-bar::-webkit-scrollbar {
-  display: none;
-}
-
-.tb-dept-link {
-  white-space: nowrap;
-  padding: 8px 12px;
-  font-size: 0.84rem;
-  font-weight: 600;
-  color: var(--tb-muted);
-  text-decoration: none;
-  border-bottom: 2px solid transparent;
-}
-
-.tb-dept-link:hover,
-.tb-dept-link.active {
-  color: var(--tb-ink);
-  border-bottom-color: var(--tb-accent);
-}
-
-/* Search inputs styled like marketplace search bar */
 input[type="search"],
 input[placeholder*="Search" i],
 .search-input {
-  background: var(--tb-surface) !important;
+  width: 100%;
+  background: var(--tb-elevated) !important;
   color: var(--tb-ink) !important;
-  border: 2px solid var(--tb-ink) !important;
+  border: 1px solid var(--tb-gold-soft) !important;
   border-radius: 999px !important;
-  padding: 9px 16px !important;
+  padding: 10px 16px !important;
   font-size: 16px !important;
 }
 
-/* Structured listing cards, panels, and tables across all pages */
-.tb-ebay-main {
-  min-height: 60dvh;
-  padding-top: 14px;
-  padding-bottom: 28px;
+.hero,
+.hero-banner,
+.promo-banner,
+.featured-banner {
+  background: linear-gradient(145deg, var(--tb-obsidian) 0%, var(--tb-elevated) 100%);
+  color: var(--tb-ink);
+  border-radius: 18px;
+  border: 1px solid var(--tb-gold-soft);
+  overflow: hidden;
+}
+
+.hero button,
+.hero a.button,
+.hero-banner button,
+.hero-banner a {
+  background: var(--tb-gold);
+  color: #0b0b0d;
+  font-weight: 700;
+  border-radius: 999px;
+}
+
+.filters,
+.filter-bar,
+.category-pills,
+.categories-row,
+.category-strip {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 8px;
+  padding: 8px 0;
+  scrollbar-width: none;
+}
+
+.filters::-webkit-scrollbar,
+.filter-bar::-webkit-scrollbar,
+.category-pills::-webkit-scrollbar,
+.categories-row::-webkit-scrollbar,
+.category-strip::-webkit-scrollbar {
+  display: none;
 }
 
 .grid,
@@ -1271,19 +1222,19 @@ input[placeholder*="Search" i],
 .marketplace-grid > *,
 .saved-grid > * {
   min-width: 0;
-  background: var(--tb-surface);
+  background: var(--tb-obsidian);
   border: 1px solid var(--tb-line);
-  border-radius: var(--tb-radius);
-  padding: 10px;
-  transition: border-color 140ms ease, box-shadow 140ms ease;
+  border-radius: 14px;
+  padding: 8px;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
 }
 
 .grid > *:hover,
 .listings-grid > *:hover,
 .cards-grid > *:hover,
 .marketplace-grid > *:hover {
-  border-color: var(--tb-accent);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  border-color: var(--tb-gold);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.45);
 }
 
 .grid img,
@@ -1292,36 +1243,16 @@ input[placeholder*="Search" i],
 .marketplace-grid img,
 .saved-grid img {
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 4 / 5;
   object-fit: cover;
-  border-radius: var(--tb-radius-sm);
-  background: var(--tb-surface-alt);
+  border-radius: 10px;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--tb-surface);
-  border: 1px solid var(--tb-line);
-  border-radius: var(--tb-radius);
-  overflow: hidden;
-}
-
-th,
-td {
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--tb-line);
-  text-align: left;
-  font-size: 0.88rem;
-}
-
-th {
-  background: var(--tb-surface-alt);
-  font-weight: 700;
-}
-
-/* Mobile bottom bar */
-.tb-mobile-bottom-nav {
+nav[aria-label*="bottom" i],
+nav[aria-label*="mobile" i],
+.bottom-nav,
+.mobile-nav,
+.tab-bar {
   position: fixed;
   left: 0;
   right: 0;
@@ -1330,12 +1261,18 @@ th {
   display: flex;
   align-items: center;
   justify-content: space-around;
-  background: var(--tb-surface);
-  border-top: 1px solid var(--tb-line-strong);
-  padding: 4px 6px calc(4px + env(safe-area-inset-bottom, 0px));
+  background: rgba(18, 18, 21, 0.96);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--tb-gold-soft);
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
 }
 
-.tb-mobile-bottom-nav a {
+nav[aria-label*="bottom" i] a,
+nav[aria-label*="bottom" i] button,
+.bottom-nav a,
+.bottom-nav button,
+.mobile-nav a,
+.mobile-nav button {
   min-height: 44px;
   min-width: 44px;
   display: inline-flex;
@@ -1343,107 +1280,60 @@ th {
   align-items: center;
   justify-content: center;
   gap: 2px;
-  font-size: 0.68rem;
+  color: var(--tb-ink);
+  font-size: 0.72rem;
   font-weight: 600;
-  color: var(--tb-muted);
-  text-decoration: none;
 }
 
-.tb-mobile-bottom-nav a.active {
-  color: var(--tb-accent);
-}
-
-/* Smart Watch (<= 320px) */
 @media (max-width: 320px), (max-height: 340px) and (max-width: 420px) {
-  .tb-utility-strip {
-    display: none;
-  }
-  .grid,
-  .listings-grid,
-  .cards-grid,
-  .marketplace-grid,
-  .saved-grid {
+  .grid, .listings-grid, .cards-grid, .marketplace-grid, .saved-grid {
     grid-template-columns: 1fr;
     gap: 8px;
   }
 }
 
-/* Tablets & Foldables (>= 768px) */
 @media (min-width: 768px) {
-  .tb-ebay-main,
-  .container,
-  main,
-  .content-page {
+  .container, main, .content-page {
     padding-left: 24px;
     padding-right: 24px;
   }
-  .grid,
-  .listings-grid,
-  .cards-grid,
-  .marketplace-grid,
-  .saved-grid {
+  .grid, .listings-grid, .cards-grid, .marketplace-grid, .saved-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 14px;
-  }
-}
-
-/* Laptops & Desktops (>= 1024px) */
-@media (min-width: 1024px) {
-  body {
-    padding-bottom: 0;
-  }
-  .tb-mobile-bottom-nav {
-    display: none;
-  }
-  .tb-ebay-main,
-  .container,
-  main,
-  .content-page {
-    max-width: 1440px;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 28px;
-    padding-right: 28px;
-  }
-  .grid,
-  .listings-grid,
-  .cards-grid,
-  .marketplace-grid,
-  .saved-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 16px;
   }
 }
 
-/* Smart TVs / Large Displays (>= 1920px) */
+@media (min-width: 1024px) {
+  body { padding-bottom: 24px; }
+  .container, main, .content-page {
+    max-width: 1320px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+  .grid, .listings-grid, .cards-grid, .marketplace-grid, .saved-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px;
+  }
+  nav[aria-label*="bottom" i], nav[aria-label*="mobile" i], .bottom-nav, .mobile-nav, .tab-bar {
+    display: none;
+  }
+}
+
 @media (min-width: 1920px) {
-  .tb-utility-inner,
-  .tb-header-main,
-  .tb-department-bar,
-  .tb-ebay-main,
-  .container,
-  main,
-  .content-page {
-    max-width: 1800px;
-    padding-left: 48px;
-    padding-right: 48px;
+  .container, main, .content-page {
+    max-width: 1760px;
+    padding-left: 56px;
+    padding-right: 56px;
   }
-  .grid,
-  .listings-grid,
-  .cards-grid,
-  .marketplace-grid,
-  .saved-grid {
+  .grid, .listings-grid, .cards-grid, .marketplace-grid, .saved-grid {
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 24px;
+    gap: 28px;
   }
-  a:focus-visible,
-  button:focus-visible,
-  [role="button"]:focus-visible,
-  input:focus-visible,
-  select:focus-visible,
-  [tabindex]:focus-visible {
-    outline: 4px solid var(--tb-accent) !important;
+  a:focus-visible, button:focus-visible, [role="button"]:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible {
+    outline: 4px solid var(--tb-gold) !important;
     outline-offset: 4px !important;
-    transform: scale(1.02);
+    transform: scale(1.03);
   }
 }
