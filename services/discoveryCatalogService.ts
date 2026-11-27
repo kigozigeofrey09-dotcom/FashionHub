@@ -192,17 +192,7 @@ export const discoveryCatalogService = {
 
       const cleanQ = (params.query || '').trim();
       if (cleanQ) {
-        const tsQuery = cleanQ
-          .split(/\s+/)
-          .filter(Boolean)
-          .map((token) => `${token.replace(/[^a-zA-Z0-9_-]/g, '')}:*`)
-          .filter((t) => t.length > 2)
-          .join(' & ');
-        if (tsQuery) {
-          queryBuilder = queryBuilder.textSearch('search_tsv', tsQuery, { config: 'simple' });
-        } else {
-          queryBuilder = queryBuilder.ilike('name', `%${cleanQ}%`);
-        }
+        queryBuilder = queryBuilder.ilike('name', `%${cleanQ}%`);
       }
 
       if (params.brand && params.brand.trim()) {
