@@ -25,6 +25,19 @@ function hostnameFromUrl(url: string): string {
   }
 }
 
+function mapSourceRow(row: any): SimpleWebSource {
+  const nameVal =
+    row?.business_name ?? row?.name ?? row?.title ?? row?.source_name ?? 'Web Source';
+  const urlVal =
+    row?.website ?? row?.url ?? row?.web_url ?? row?.feed_url ?? '';
+  return {
+    id: String(row?.id ?? ''),
+    name: String(nameVal),
+    url: String(urlVal),
+    createdAt: String(row?.created_at ?? new Date().toISOString()),
+  };
+}
+
 export function ProductSourceAdminPanel() {
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
@@ -40,19 +53,12 @@ export function ProductSourceAdminPanel() {
     try {
       const { data, error: dbErr } = await supabase
         .from('product_sources')
-        .select('id, business_name, website, created_at')
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (dbErr) throw new Error(dbErr.message);
 
-      setSources(
-        (data || []).map((row: any) => ({
-          id: String(row.id),
-          name: String(row.business_name || ''),
-          url: String(row.website || ''),
-          createdAt: String(row.created_at || new Date().toISOString()),
-        }))
-      );
+      setSources((data || []).map(mapSourceRow));
     } catch (err: any) {
       setError(err?.message || 'Could not load web sources.');
     } finally {
@@ -68,7 +74,6 @@ export function ProductSourceAdminPanel() {
     const cleanHost = hostnameFromUrl(storeUrl);
     const canonicalKey = `web:${cleanHost.toLowerCase().replace(/[^a-z0-9.-]/g, '-')}`;
 
-    // Check if products for this store URL already exist
     const { data: existing, error: selErr } = await supabase
       .from('discovery_products')
       .select('id')
@@ -78,7 +83,6 @@ export function ProductSourceAdminPanel() {
     if (selErr) throw new Error(selErr.message);
     if (existing && existing.length > 0) return;
 
-    // Seed an initial discovery entry linked to the store URL & UGX currency so products show up immediately
     const { error: insErr } = await supabase.from('discovery_products').insert({
       canonical_product_key: canonicalKey,
       name: `${sourceName} Catalogue`,
@@ -117,19 +121,21 @@ export function ProductSourceAdminPanel() {
     setError('');
     setStatus('');
     try {
+      const payload: Record<string, any> = {
+        business_name: cleanName,
+        website: cleanUrl,
+        country: 'Uganda',
+        integration_method: 'manual_submission',
+        permission_status: 'authorised',
+        import_frequency: 'manual',
+        status: 'active',
+        updated_at: new Date().toISOString(),
+      };
+
       const { data, error: insErr } = await supabase
         .from('product_sources')
-        .insert({
-          business_name: cleanName,
-          website: cleanUrl,
-          country: 'Uganda',
-          integration_method: 'manual_submission',
-          permission_status: 'authorised',
-          import_frequency: 'manual',
-          status: 'active',
-          updated_at: new Date().toISOString(),
-        })
-        .select('id, business_name, website, created_at')
+        .insert(payload)
+        .select('*')
         .single();
 
       if (insErr) throw new Error(insErr.message);
@@ -138,7 +144,7 @@ export function ProductSourceAdminPanel() {
 
       setName('');
       setUrl('');
-      setStatus(`Added "${cleanName}" and published its products to your storefront.`);
+      setStatus(`Added "${cleanName}" and published its products to /marketplace.`);
       await loadSources();
     } catch (err: any) {
       setError(err?.message || 'Failed to add web source.');
@@ -176,7 +182,7 @@ export function ProductSourceAdminPanel() {
             Web Sources
           </h2>
           <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#6E6D68' }}>
-            Add a name and web URL to show its products on your site.
+            Add a name and web URL to show its products on /marketplace.
           </p>
         </div>
         <button
@@ -267,14 +273,16 @@ export function ProductSourceAdminPanel() {
             >
               <div>
                 <div style={{ fontWeight: 600, fontSize: '14px', color: '#141414' }}>{src.name}</div>
-                <a
-                  href={src.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ fontSize: '12.5px', color: '#2C4734', display: 'inline-flex', alignItems: 'center', gap: '4px', textDecoration: 'none' }}
-                >
-                  <Globe size={12} /> {src.url}
-                </a>
+                {src.url && (
+                  <a
+                    href={src.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ fontSize: '12.5px', color: '#2C4734', display: 'inline-flex', alignItems: 'center', gap: '4px', textDecoration: 'none' }}
+                  >
+                    <Globe size={12} /> {src.url}
+                  </a>
+                )}
               </div>
               <button
                 type="button"
