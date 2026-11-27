@@ -20,7 +20,6 @@ export function ProductSourceAdminPanel() {
   const [statusMessage, setStatusMessage] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
 
-  // Source registration form state (Uganda discovery model, no payments)
   const [businessName, setBusinessName] = useState('');
   const [website, setWebsite] = useState('');
   const [contactName, setContactName] = useState('');
@@ -31,13 +30,11 @@ export function ProductSourceAdminPanel() {
   const [importFrequency, setImportFrequency] = useState<'hourly' | 'daily' | 'weekly' | 'manual'>('daily');
   const [apiEndpoint, setApiEndpoint] = useState('');
 
-  // CSV importer & preview state
   const [csvText, setCsvText] = useState(() => buildCsvTemplate());
   const [previewRows, setPreviewRows] = useState<CsvRowPreview[]>([]);
   const [previewCounts, setPreviewCounts] = useState({ valid: 0, invalid: 0, duplicate: 0 });
   const [skipDuplicates, setSkipDuplicates] = useState(true);
 
-  // Product Intelligence summary state
   const [intelSummary, setIntelSummary] = useState({
     totalCatalogProducts: 0,
     uniqueCanonicalKeys: 0,
@@ -194,10 +191,10 @@ export function ProductSourceAdminPanel() {
   }
 
   return (
-    <section className="admin-discovery-section" style={{ marginTop: '2rem' }}>
+    <section className="admin-discovery-section">
       <h2>Product Intelligence</h2>
       <p>
-        Uganda discovery catalogue telemetry (UGX). FashionHub operates as a product discovery and offer comparison
+        Uganda discovery catalogue telemetry (UGX). TerraBok operates as a product discovery and offer comparison
         engine connecting shoppers directly to sellers via WhatsApp or original store links.
       </p>
 

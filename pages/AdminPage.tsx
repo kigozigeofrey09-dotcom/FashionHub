@@ -28,7 +28,7 @@ import type { Listing, SafetyReport, SubscriptionRecord, Shop, PlatformAnalytics
 export function AdminPage() {
   const { session } = useAppContext();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'overview' | 'vault' | 'shops' | 'payments' | 'reports'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'vault' | 'shops' | 'payments' | 'reports' | 'discovery'>('overview');
 
   const [analytics, setAnalytics] = useState<PlatformAnalytics | null>(null);
   const [allShops, setAllShops] = useState<Shop[]>([]);
@@ -844,6 +844,7 @@ export function AdminPage() {
         </main>
       </div>
     <ProductSourceAdminPanel />
+{activeTab === 'discovery' && <ProductSourceAdminPanel />}
 </div>
   );
 }
