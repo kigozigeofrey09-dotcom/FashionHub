@@ -29,7 +29,7 @@ function mapSourceRow(row: any): SimpleWebSource {
   const nameVal =
     row?.business_name ?? row?.name ?? row?.title ?? row?.source_name ?? 'Web Source';
   const urlVal =
-    row?.website ?? row?.url ?? row?.web_url ?? row?.feed_url ?? '';
+    row?.website_url ?? row?.website ?? row?.url ?? row?.web_url ?? '';
   return {
     id: String(row?.id ?? ''),
     name: String(nameVal),
@@ -122,12 +122,17 @@ export function ProductSourceAdminPanel() {
     setStatus('');
     try {
       const payload: Record<string, any> = {
+        name: cleanName,
         business_name: cleanName,
+        website_url: cleanUrl,
         website: cleanUrl,
-        country: 'Uganda',
+        source_type: 'web_store',
+        integration_type: 'manual',
         integration_method: 'manual_submission',
         permission_status: 'authorised',
+        refresh_interval_minutes: 1440,
         import_frequency: 'manual',
+        country: 'Uganda',
         status: 'active',
         updated_at: new Date().toISOString(),
       };
