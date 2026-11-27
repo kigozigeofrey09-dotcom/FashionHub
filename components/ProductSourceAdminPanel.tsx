@@ -137,23 +137,39 @@ export function ProductSourceAdminPanel() {
       };
 
       const permissionCandidates = ['authorised', 'approved', 'authorized', 'pending'];
+      const sourceTypeCandidates = [
+        'web_store',
+        'website',
+        'retailer',
+        'wholesaler',
+        'distributor',
+        'manufacturer',
+        'manual_submission',
+        'csv_import',
+        'api_feed',
+      ];
       let insertedRow: any = null;
       let lastErrMsg = '';
 
-      for (const perm of permissionCandidates) {
-        const { data, error: insErr } = await supabase
-          .from('product_sources')
-          .insert({ ...basePayload, permission_status: perm })
-          .select('*')
-          .single();
+      outerLoop: for (const srcType of sourceTypeCandidates) {
+        for (const perm of permissionCandidates) {
+          const { data, error: insErr } = await supabase
+            .from('product_sources')
+            .insert({ ...basePayload, source_type: srcType, permission_status: perm })
+            .select('*')
+            .single();
 
-        if (!insErr && data) {
-          insertedRow = data;
-          break;
-        }
-        lastErrMsg = insErr?.message || 'Insert failed';
-        if (!lastErrMsg.includes('product_sources_permission_status_check')) {
-          throw new Error(lastErrMsg);
+          if (!insErr && data) {
+            insertedRow = data;
+            break outerLoop;
+          }
+          lastErrMsg = insErr?.message || 'Insert failed';
+          const isCheckErr =
+            lastErrMsg.includes('product_sources_permission_status_check') ||
+            lastErrMsg.includes('product_sources_source_type_check');
+          if (!isCheckErr) {
+            throw new Error(lastErrMsg);
+          }
         }
       }
 
