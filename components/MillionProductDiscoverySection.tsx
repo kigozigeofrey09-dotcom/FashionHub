@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ExternalLink, MessageCircle, Search, SlidersHorizontal } from 'lucide-react';
 import {
   buildWhatsAppDiscoveryUrl,
@@ -23,6 +23,9 @@ const UGANDA_LOCATIONS = [
 ];
 
 export function MillionProductDiscoverySection() {
+  const { pathname } = useLocation();
+  if (pathname !== '/marketplace') return null;
+
   const [query, setQuery] = useState('');
   const [brand, setBrand] = useState('');
   const [category, setCategory] = useState('All');
@@ -82,7 +85,7 @@ export function MillionProductDiscoverySection() {
 
   return (
     <section
-      aria-label="Uganda Product Discovery Engine"
+      aria-label="Uganda Product Discovery Marketplace"
       style={{
         marginTop: '32px',
         padding: '24px',
@@ -94,7 +97,7 @@ export function MillionProductDiscoverySection() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
         <div>
           <p style={{ margin: 0, fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#2C4734' }}>
-            UGANDA DISCOVERY ENGINE · 1M+ READY (UGX)
+            UGANDA MARKETPLACE · 1M+ READY (UGX)
           </p>
           <h2 style={{ margin: '4px 0 0', fontSize: '24px' }}>Compare Offers Across Uganda</h2>
         </div>
@@ -188,8 +191,8 @@ export function MillionProductDiscoverySection() {
       {items.length === 0 ? (
         <div style={{ padding: '20px', borderRadius: '10px', background: '#FAF9F6', border: '1px dashed #D4D0C5', fontSize: '13.5px', color: '#4A4945' }}>
           {loading
-            ? 'Loading discovery products…'
-            : 'No rows in discovery_products yet for this filter. Run supabase/million_product_engine.sql in Supabase SQL Editor and import products via Admin -> Product Discovery -> CSV Importer.'}
+            ? 'Loading marketplace products…'
+            : 'No products match this filter on /marketplace yet. Add a name and web URL under Admin -> Product Discovery.'}
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '14px' }}>
