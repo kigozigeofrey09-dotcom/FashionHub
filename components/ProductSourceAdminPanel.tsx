@@ -138,15 +138,10 @@ export function ProductSourceAdminPanel() {
 
       const permissionCandidates = ['authorised', 'approved', 'authorized', 'pending'];
       const sourceTypeCandidates = [
-        'web_store',
-        'website',
         'retailer',
-        'wholesaler',
-        'distributor',
+        'supplier',
+        'seller',
         'manufacturer',
-        'manual_submission',
-        'csv_import',
-        'api_feed',
       ];
       let insertedRow: any = null;
       let lastErrMsg = '';
