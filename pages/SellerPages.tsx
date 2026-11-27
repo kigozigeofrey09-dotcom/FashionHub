@@ -1,4 +1,4 @@
-﻿import { getShopWhatsAppLeads } from '../lib/whatsappLeads';
+import { getShopWhatsAppLeads } from '../lib/whatsappLeads';
 import { useEffect, useState, type FormEvent } from 'react';
 import { ArrowLeft, ArrowRight, Eye, EyeOff, Pencil, Plus, Store, Trash2, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -272,7 +272,7 @@ export function SellerDashboardPage() {
   }
 
   if (!session) return <section className="content-page"><PageTitle eyebrow="SELLER STUDIO" title={<>Sign in to your <em>shop.</em></>}><span>Seller listings and shop settings are private backend resources.</span></PageTitle><Notice tone="warning" title="Seller account required">The seller API must verify your account before returning private shop data.</Notice><Link className="button button-dark" to="/auth/sign-in">Sign in</Link></section>;
-  if (session.user.role !== 'seller') return <section className="content-page"><Notice tone="error" title="Seller role required">Your backend session role is {session.user.role}. Use a seller account to access the seller studio.</Notice><Link className="button button-outline" to="/account">Back to account</Link></section>;
+  if (session.user.role !== 'seller' && session.user.role !== 'admin') return <section className="content-page"><Notice tone="error" title="Seller role required">Your backend session role is {session.user.role}. Use a seller account to access the seller studio.</Notice><Link className="button button-outline" to="/account">Back to account</Link></section>;
 
   return <section className="content-page dashboard-page">
     <PageTitle eyebrow="SELLER STUDIO & SUBSCRIPTION" title={<>Your work, <em>in one place.</em></>} action={<><Link className="button button-outline" to="/seller/setup">Setup shop</Link>{subscriptionsEnabled && <Link className="button button-dark" to="/subscriptions">Subscription status</Link>}</>}>Shop and listing information is loaded from your seller account.</PageTitle>

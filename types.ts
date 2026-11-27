@@ -2,7 +2,47 @@ export type AccountRole = 'buyer' | 'seller' | 'admin';
 export type ListingType = 'product' | 'service';
 export type SubscriptionStatus = 'pending_verification' | 'pending' | 'approved' | 'declined' | 'expired' | 'cancelled';
 export type SubscriptionRequestType = 'new' | 'renewal';
-export type Category = 'Clothing' | 'Shoes' | 'Bags' | 'Jewellery' | 'Beauty' | 'Tailoring' | 'Accessories' | 'Beds & Curtains' | 'Pet Fashion (PAW)' | 'Other';
+export type DiscoveryCategory =
+  | 'Fashion and Clothing'
+  | 'Phones and Electronics'
+  | 'Computers and Accessories'
+  | 'Home and Furniture'
+  | 'Beauty and Personal Care'
+  | 'Home Appliances'
+  | 'Automotive'
+  | 'Sports and Fitness'
+  | "Baby and Children's Products"
+  | 'Groceries and Household Essentials'
+  | 'Books and Stationery'
+  | 'Agriculture and Equipment';
+
+export type Category =
+  | DiscoveryCategory
+  | 'Clothing'
+  | 'Shoes'
+  | 'Bags'
+  | 'Jewellery'
+  | 'Beauty'
+  | 'Tailoring'
+  | 'Accessories'
+  | 'Beds & Curtains'
+  | 'Pet Fashion (PAW)'
+  | 'Other';
+
+export const UGANDA_DISCOVERY_CATEGORIES: DiscoveryCategory[] = [
+  'Fashion and Clothing',
+  'Phones and Electronics',
+  'Computers and Accessories',
+  'Home and Furniture',
+  'Beauty and Personal Care',
+  'Home Appliances',
+  'Automotive',
+  'Sports and Fitness',
+  "Baby and Children's Products",
+  'Groceries and Household Essentials',
+  'Books and Stationery',
+  'Agriculture and Equipment',
+];
 
 export interface Country {
   code: string;
@@ -56,6 +96,14 @@ export interface Listing {
   scentLongevity?: string;
   isTesterDecant?: boolean;
   isSeed: boolean;
+  brand?: string;
+  subcategory?: string;
+  condition?: 'new' | 'used' | 'refurbished';
+  sourceType?: 'direct_seller' | 'csv_import' | 'api_feed';
+  externalUrl?: string;
+  lastUpdatedAt?: string;
+  verificationStatus?: 'verified' | 'pending' | 'unverified';
+  canonicalProductKey?: string;
 }
 
 export interface Shop {
@@ -80,6 +128,14 @@ export interface Shop {
   arcadeRank?: number;
   isFollowed?: boolean;
   isSeed: boolean;
+  brand?: string;
+  subcategory?: string;
+  condition?: 'new' | 'used' | 'refurbished';
+  sourceType?: 'direct_seller' | 'csv_import' | 'api_feed';
+  externalUrl?: string;
+  lastUpdatedAt?: string;
+  verificationStatus?: 'verified' | 'pending' | 'unverified';
+  canonicalProductKey?: string;
   subscriptionStatus?: SubscriptionStatus;
   promotionLabel?: 'Featured' | 'Sponsored';
 }
@@ -204,9 +260,10 @@ export interface AdminSettings {
 export interface AccountSettings {
   name: string;
   email: string;
+  role?: AccountRole;
   countryCode: string;
   city?: string;
-  notificationPreferences: Record<string, boolean>;
+  notificationPreferences?: Record<string, boolean>;
   avatarUrl?: string;
 }
 
