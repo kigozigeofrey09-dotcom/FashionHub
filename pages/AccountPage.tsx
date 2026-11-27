@@ -140,21 +140,21 @@ export function AccountPage() {
     {!session && <Link className="button button-dark" to="/auth/sign-in">Sign in securely</Link>}
     {session && <>
       <div className="account-summary"><span className="shop-initial">{settings?.avatarUrl ? <img src={settings.avatarUrl} alt="Your profile" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} /> : (session?.user?.name || 'U').slice(0, 1)}</span><div><p className="eyebrow">{session?.user?.role?.toUpperCase() || 'BUYER'} ACCOUNT</p><h2>{session?.user?.name || 'User'}</h2><p>{session?.user?.email || ''}</p><MegaMemberBadge /></div><div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-  {session?.user?.role !== 'admin' && (
+  {(settings?.role || session?.user?.role) !== 'admin' && (
     <button
       type="button"
       className="button button-outline"
       disabled={busy}
-      onClick={() => void handleRoleSwitch(session?.user?.role === 'seller' ? 'buyer' : 'seller')}
+      onClick={() => void handleRoleSwitch((settings?.role || session?.user?.role) === 'seller' ? 'buyer' : 'seller')}
     >
       {busy
         ? 'Updating role…'
-        : session?.user?.role === 'seller'
+        : (settings?.role || session?.user?.role) === 'seller'
           ? 'Switch to Buyer'
           : 'Switch to Seller'}
     </button>
   )}
-  {(session?.user?.role === 'seller' || session?.user?.role === 'admin') && (
+  {((settings?.role || session?.user?.role) === 'seller' || (settings?.role || session?.user?.role) === 'admin') && (
     <>
       <Link className="button button-dark" to="/seller/dashboard">
         Seller studio
@@ -164,7 +164,7 @@ export function AccountPage() {
       </Link>
     </>
   )}
-  {session?.user?.role !== 'seller' && session?.user?.role !== 'admin' && subscriptionsEnabled && (
+  {(settings?.role || session?.user?.role) !== 'seller' && (settings?.role || session?.user?.role) !== 'admin' && subscriptionsEnabled && (
     <Link className="button button-outline" to="/subscriptions">
       Subscription status
     </Link>
@@ -185,19 +185,19 @@ export function AccountPage() {
   <button type="button" className="button button-outline" onClick={handleEditProfile}>
     Edit profile &amp; settings
   </button>
-  {session?.user?.role !== 'admin' && (
+  {(settings?.role || session?.user?.role) !== 'admin' && (
     <button
       type="button"
       className="button button-dark"
       disabled={busy}
-      onClick={() => void handleRoleSwitch(session?.user?.role === 'seller' ? 'buyer' : 'seller')}
+      onClick={() => void handleRoleSwitch((settings?.role || session?.user?.role) === 'seller' ? 'buyer' : 'seller')}
     >
-      {session?.user?.role === 'seller'
+      {(settings?.role || session?.user?.role) === 'seller'
         ? 'Switch account to Buyer'
         : 'Become a Seller & open storefront'}
     </button>
   )}
-  {(session?.user?.role === 'seller' || session?.user?.role === 'admin') && (
+  {((settings?.role || session?.user?.role) === 'seller' || (settings?.role || session?.user?.role) === 'admin') && (
     <Link className="button button-outline" to="/seller/setup">
       Manage storefront
     </Link>

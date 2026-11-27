@@ -1,4 +1,4 @@
-﻿import type { AccountRole, Session, User } from '../types';
+import type { AccountRole, Session, User } from '../types';
 import { supabase } from './supabaseClient';
 
 export const authService = {
@@ -18,7 +18,12 @@ export const authService = {
     try {
       const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
       if (profile) {
-        if (profile.role) role = profile.role as AccountRole;
+        const metaRole = user.user_metadata?.role as AccountRole | undefined;
+        if (metaRole === 'seller' || metaRole === 'buyer') {
+          role = metaRole;
+        } else if (profile.role) {
+          role = profile.role as AccountRole;
+        }
         if (profile.name) name = profile.name;
         if (profile.country_code) countryCode = profile.country_code;
         if (profile.email?.toLowerCase() === 'kigozigeofrey09@gmail.com') role = 'admin';
