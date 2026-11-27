@@ -241,7 +241,7 @@ export function MillionProductDiscoverySection() {
                       href={waUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="button button-dark"
+                      className="btn-primary"
                       style={{ padding: '6px 10px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '5px', textDecoration: 'none' }}
                     >
                       <MessageCircle size={13} /> WhatsApp
@@ -252,7 +252,7 @@ export function MillionProductDiscoverySection() {
                       href={prod.externalUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="button button-outline"
+                      className="link-btn"
                       style={{ padding: '6px 10px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '5px', textDecoration: 'none' }}
                     >
                       Store <ExternalLink size={12} />
@@ -269,7 +269,7 @@ export function MillionProductDiscoverySection() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
           <button
             type="button"
-            className="button button-outline"
+            className="link-btn"
             disabled={page <= 1}
             onClick={() => setPage((p) => Math.max(1, p - 1))}
           >
@@ -280,7 +280,7 @@ export function MillionProductDiscoverySection() {
           </span>
           <button
             type="button"
-            className="button button-outline"
+            className="link-btn"
             disabled={page >= totalPages}
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
           >
