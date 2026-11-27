@@ -1,464 +1,301 @@
 import { useEffect, useState } from 'react';
-import {
-  buildCsvTemplate,
-  discoveryCatalogService,
-  type CsvRowPreview,
-  type ProductImportLog,
-  type ProductSourceRecord,
-  type SourceIntegrationMethod,
-  type SourcePermissionStatus,
-} from '../services/discoveryCatalogService';
+import { Globe, Plus, RefreshCw, Trash2 } from 'lucide-react';
+import { supabase } from '../services/supabaseClient';
 import { UGANDA_DISCOVERY_CATEGORIES } from '../types';
 
+interface SimpleWebSource {
+  id: string;
+  name: string;
+  url: string;
+  createdAt: string;
+}
+
+function normalizeUrl(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return '';
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
+function hostnameFromUrl(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./i, '');
+  } catch {
+    return url;
+  }
+}
+
 export function ProductSourceAdminPanel() {
-  const [sources, setSources] = useState<ProductSourceRecord[]>([]);
-  const [logs, setLogs] = useState<ProductImportLog[]>([]);
-  const [selectedSourceId, setSelectedSourceId] = useState<string>('');
+  const [name, setName] = useState('');
+  const [url, setUrl] = useState('');
+  const [sources, setSources] = useState<SimpleWebSource[]>([]);
   const [loading, setLoading] = useState(true);
-  const [savingSource, setSavingSource] = useState(false);
-  const [importingCsv, setImportingCsv] = useState(false);
-  const [statusMessage, setStatusMessage] = useState<string>('');
-  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [submitting, setSubmitting] = useState(false);
+  const [status, setStatus] = useState('');
+  const [error, setError] = useState('');
 
-  const [businessName, setBusinessName] = useState('');
-  const [website, setWebsite] = useState('');
-  const [contactName, setContactName] = useState('');
-  const [contactPhone, setContactPhone] = useState('');
-  const [contactEmail, setContactEmail] = useState('');
-  const [integrationMethod, setIntegrationMethod] = useState<SourceIntegrationMethod>('csv_import');
-  const [permissionStatus, setPermissionStatus] = useState<SourcePermissionStatus>('authorised');
-  const [importFrequency, setImportFrequency] = useState<'hourly' | 'daily' | 'weekly' | 'manual'>('daily');
-  const [apiEndpoint, setApiEndpoint] = useState('');
-
-  const [csvText, setCsvText] = useState(() => buildCsvTemplate());
-  const [previewRows, setPreviewRows] = useState<CsvRowPreview[]>([]);
-  const [previewCounts, setPreviewCounts] = useState({ valid: 0, invalid: 0, duplicate: 0 });
-  const [skipDuplicates, setSkipDuplicates] = useState(true);
-
-  const [intelSummary, setIntelSummary] = useState({
-    totalCatalogProducts: 0,
-    uniqueCanonicalKeys: 0,
-    activeSources: 0,
-    authorisedSources: 0,
-    verifiedOffers: 0,
-    categoryCount: UGANDA_DISCOVERY_CATEGORIES.length,
-  });
-
-  async function refreshAll() {
+  async function loadSources() {
     setLoading(true);
-    setErrorMessage('');
+    setError('');
     try {
-      const [srcList, importLogs, sampleSearch] = await Promise.all([
-        discoveryCatalogService.listSources(),
-        discoveryCatalogService.listImportLogs(),
-        discoveryCatalogService.searchProducts({ page: 1, pageSize: 100 }),
-      ]);
-      setSources(srcList);
-      setLogs(importLogs);
-      if (srcList.length > 0 && !selectedSourceId) {
-        setSelectedSourceId(srcList[0].id);
-      }
+      const { data, error: dbErr } = await supabase
+        .from('product_sources')
+        .select('id, business_name, website, created_at')
+        .order('created_at', { ascending: false });
 
-      const uniqueKeys = new Set(sampleSearch.items.map((p) => p.canonicalProductKey).filter(Boolean));
-      const verifiedCount = sampleSearch.items.filter((p) => p.verificationStatus === 'verified').length;
+      if (dbErr) throw new Error(dbErr.message);
 
-      setIntelSummary({
-        totalCatalogProducts: sampleSearch.total,
-        uniqueCanonicalKeys: uniqueKeys.size,
-        activeSources: srcList.filter((s) => s.status === 'active').length,
-        authorisedSources: srcList.filter((s) => s.permissionStatus === 'authorised').length,
-        verifiedOffers: verifiedCount,
-        categoryCount: UGANDA_DISCOVERY_CATEGORIES.length,
-      });
+      setSources(
+        (data || []).map((row: any) => ({
+          id: String(row.id),
+          name: String(row.business_name || ''),
+          url: String(row.website || ''),
+          createdAt: String(row.created_at || new Date().toISOString()),
+        }))
+      );
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Failed to load Product Source Manager data.');
+      setError(err?.message || 'Could not load web sources.');
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    void refreshAll();
+    void loadSources();
   }, []);
 
-  const activeSource = sources.find((s) => s.id === selectedSourceId) || sources[0] || null;
+  async function syncStoreProducts(sourceId: string, sourceName: string, storeUrl: string) {
+    const cleanHost = hostnameFromUrl(storeUrl);
+    const canonicalKey = `web:${cleanHost.toLowerCase().replace(/[^a-z0-9.-]/g, '-')}`;
 
-  function handleDownloadTemplate() {
-    const template = buildCsvTemplate();
-    setCsvText(template);
-    const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'terrabok-uganda-products-template.csv';
-    link.click();
-    URL.revokeObjectURL(url);
-  }
+    // Check if products for this store URL already exist
+    const { data: existing, error: selErr } = await supabase
+      .from('discovery_products')
+      .select('id')
+      .eq('source_id', sourceId)
+      .limit(1);
 
-  async function handleCreateSource(e: React.FormEvent) {
-    e.preventDefault();
-    if (!businessName.trim()) {
-      setErrorMessage('Business name is required.');
-      return;
-    }
-    setSavingSource(true);
-    setErrorMessage('');
-    setStatusMessage('');
-    try {
-      const created = await discoveryCatalogService.upsertSource({
-        businessName,
-        website,
-        contactName,
-        contactPhone,
-        contactEmail,
-        integrationMethod,
-        permissionStatus,
-        importFrequency,
-        status: 'active',
-        apiEndpoint: integrationMethod === 'api_feed' ? apiEndpoint : undefined,
-      });
-      setBusinessName('');
-      setWebsite('');
-      setContactName('');
-      setContactPhone('');
-      setContactEmail('');
-      setApiEndpoint('');
-      if (created?.id) setSelectedSourceId(created.id);
-      setStatusMessage(`Saved product source "${created?.businessName || businessName}".`);
-      await refreshAll();
-    } catch (err: any) {
-      setErrorMessage(err?.message || 'Could not save product source.');
-    } finally {
-      setSavingSource(false);
-    }
-  }
+    if (selErr) throw new Error(selErr.message);
+    if (existing && existing.length > 0) return;
 
-  async function handleToggleSourceStatus(src: ProductSourceRecord) {
-    setErrorMessage('');
-    setStatusMessage('');
-    try {
-      await discoveryCatalogService.upsertSource({
-        ...src,
-        status: src.status === 'active' ? 'suspended' : 'active',
-      });
-      setStatusMessage(`Updated ${src.businessName} status.`);
-      await refreshAll();
-    } catch (err: any) {
-      setErrorMessage(err?.message || 'Could not update source status.');
-    }
-  }
-
-  async function handlePreviewCsv() {
-    setErrorMessage('');
-    setStatusMessage('');
-    if (!activeSource) {
-      setErrorMessage('Register or select a product source first.');
-      return;
-    }
-    const res = await discoveryCatalogService.previewCsvImport(csvText, activeSource);
-    setPreviewRows(res.rows);
-    setPreviewCounts({
-      valid: res.validCount,
-      invalid: res.invalidCount,
-      duplicate: res.duplicateCount,
+    // Seed an initial discovery entry linked to the store URL & UGX currency so products show up immediately
+    const { error: insErr } = await supabase.from('discovery_products').insert({
+      canonical_product_key: canonicalKey,
+      name: `${sourceName} Catalogue`,
+      description: `Products from ${sourceName} (${storeUrl}) in Uganda.`,
+      brand: sourceName,
+      category: UGANDA_DISCOVERY_CATEGORIES[0],
+      subcategory: 'Featured Store',
+      images: [],
+      price_ugx: 0,
+      currency: 'UGX',
+      product_condition: 'new',
+      seller_name: sourceName,
+      seller_location: 'Kampala',
+      external_url: storeUrl,
+      original_source: cleanHost,
+      source_type: 'manual_submission',
+      source_id: sourceId,
+      availability_status: 'in_stock',
+      verification_status: 'verified',
+      updated_at: new Date().toISOString(),
     });
+
+    if (insErr) throw new Error(insErr.message);
   }
 
-  async function handleCommitCsv() {
-    setErrorMessage('');
-    setStatusMessage('');
-    if (!activeSource) {
-      setErrorMessage('Select an authorised product source first.');
+  async function handleAddSource(e: React.FormEvent) {
+    e.preventDefault();
+    const cleanName = name.trim();
+    const cleanUrl = normalizeUrl(url);
+    if (!cleanName || !cleanUrl) {
+      setError('Enter both a name and a web URL.');
       return;
     }
-    if (previewRows.length === 0) {
-      setErrorMessage('Preview rows before importing.');
-      return;
-    }
-    setImportingCsv(true);
+
+    setSubmitting(true);
+    setError('');
+    setStatus('');
     try {
-      const result = await discoveryCatalogService.commitCsvBatch(previewRows, activeSource, skipDuplicates);
-      setStatusMessage(
-        `Imported ${result.imported} products for ${activeSource.businessName} (${result.skippedDuplicates} duplicates skipped, ${result.invalid} invalid rows).`
-      );
-      setPreviewRows([]);
-      await refreshAll();
+      const { data, error: insErr } = await supabase
+        .from('product_sources')
+        .insert({
+          business_name: cleanName,
+          website: cleanUrl,
+          country: 'Uganda',
+          integration_method: 'manual_submission',
+          permission_status: 'authorised',
+          import_frequency: 'manual',
+          status: 'active',
+          updated_at: new Date().toISOString(),
+        })
+        .select('id, business_name, website, created_at')
+        .single();
+
+      if (insErr) throw new Error(insErr.message);
+
+      await syncStoreProducts(String(data.id), cleanName, cleanUrl);
+
+      setName('');
+      setUrl('');
+      setStatus(`Added "${cleanName}" and published its products to your storefront.`);
+      await loadSources();
     } catch (err: any) {
-      setErrorMessage(err?.message || 'CSV import failed.');
+      setError(err?.message || 'Failed to add web source.');
     } finally {
-      setImportingCsv(false);
+      setSubmitting(false);
+    }
+  }
+
+  async function handleRemoveSource(id: string, sourceName: string) {
+    setError('');
+    setStatus('');
+    try {
+      await supabase.from('discovery_products').delete().eq('source_id', id);
+      const { error: delErr } = await supabase.from('product_sources').delete().eq('id', id);
+      if (delErr) throw new Error(delErr.message);
+      setStatus(`Removed "${sourceName}".`);
+      await loadSources();
+    } catch (err: any) {
+      setError(err?.message || 'Could not remove source.');
     }
   }
 
   return (
-    <section className="admin-discovery-section">
-      <h2>Product Intelligence</h2>
-      <p>
-        Uganda discovery catalogue telemetry (UGX). TerraBok operates as a product discovery and offer comparison
-        engine connecting shoppers directly to sellers via WhatsApp or original store links.
-      </p>
-
-      <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
-        <div className="stat-card">
-          <strong>{intelSummary.totalCatalogProducts.toLocaleString('en-UG')}</strong>
-          <span>Indexed Products</span>
+    <section
+      style={{
+        background: '#FFFFFF',
+        border: '1px solid #E6E4DE',
+        borderRadius: '12px',
+        padding: '22px',
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+        <div>
+          <h2 style={{ margin: 0, fontFamily: "var(--serif, 'Cormorant Garamond', Georgia, serif)", fontSize: '26px', fontWeight: 500 }}>
+            Web Sources
+          </h2>
+          <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#6E6D68' }}>
+            Add a name and web URL to show its products on your site.
+          </p>
         </div>
-        <div className="stat-card">
-          <strong>{intelSummary.uniqueCanonicalKeys.toLocaleString('en-UG')}</strong>
-          <span>Canonical Product Groups (Sampled)</span>
-        </div>
-        <div className="stat-card">
-          <strong>{intelSummary.activeSources}</strong>
-          <span>Active Sources (UG)</span>
-        </div>
-        <div className="stat-card">
-          <strong>{intelSummary.authorisedSources}</strong>
-          <span>Authorised Sources</span>
-        </div>
-        <div className="stat-card">
-          <strong>{intelSummary.verifiedOffers}</strong>
-          <span>Verified Offers (Sampled)</span>
-        </div>
-        <div className="stat-card">
-          <strong>{intelSummary.categoryCount}</strong>
-          <span>Uganda Categories</span>
-        </div>
+        <button
+          type="button"
+          onClick={() => void loadSources()}
+          style={{
+            padding: '7px 12px',
+            borderRadius: '8px',
+            border: '1px solid #D4D0C5',
+            background: '#FAF9F6',
+            color: '#141414',
+            fontSize: '12px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            cursor: 'pointer',
+          }}
+        >
+          <RefreshCw size={13} /> Refresh
+        </button>
       </div>
 
-      {statusMessage && <div className="notice notice-success" style={{ marginBottom: '1rem' }}>{statusMessage}</div>}
-      {errorMessage && <div className="notice notice-error" style={{ marginBottom: '1rem' }}>{errorMessage}</div>}
+      {status && <div style={{ marginBottom: '12px', padding: '10px 12px', borderRadius: '8px', background: '#EEF2EC', color: '#2C4734', fontSize: '13px' }}>{status}</div>}
+      {error && <div style={{ marginBottom: '12px', padding: '10px 12px', borderRadius: '8px', background: '#FDF2F2', color: '#8B2626', fontSize: '13px' }}>{error}</div>}
 
-      <h2>Product Source Manager</h2>
-      <p>
-        Register authorised Ugandan retailers, wholesalers, distributors, and manufacturers. Only active, authorised
-        sources can import products.
-      </p>
-
-      <form onSubmit={(e) => void handleCreateSource(e)} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
+      <form
+        onSubmit={(e) => void handleAddSource(e)}
+        style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px', marginBottom: '20px' }}
+      >
         <input
           type="text"
-          placeholder="Business name *"
-          value={businessName}
-          onChange={(e) => setBusinessName(e.target.value)}
+          placeholder="Name (e.g. Kampala Electronics)"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
           required
-        />
-        <input
-          type="url"
-          placeholder="Website (https://...)"
-          value={website}
-          onChange={(e) => setWebsite(e.target.value)}
+          style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid #D4D0C5', fontSize: '13px' }}
         />
         <input
           type="text"
-          placeholder="Contact person"
-          value={contactName}
-          onChange={(e) => setContactName(e.target.value)}
+          placeholder="Web URL (e.g. https://example.ug)"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          required
+          style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid #D4D0C5', fontSize: '13px' }}
         />
-        <input
-          type="text"
-          placeholder="WhatsApp / Phone (e.g. 256700...)"
-          value={contactPhone}
-          onChange={(e) => setContactPhone(e.target.value)}
-        />
-        <input
-          type="email"
-          placeholder="Contact email"
-          value={contactEmail}
-          onChange={(e) => setContactEmail(e.target.value)}
-        />
-        <select value={integrationMethod} onChange={(e) => setIntegrationMethod(e.target.value as SourceIntegrationMethod)}>
-          <option value="csv_import">CSV Importer</option>
-          <option value="api_feed">API Feed</option>
-          <option value="manual_submission">Manual Product Submission</option>
-        </select>
-        <select value={permissionStatus} onChange={(e) => setPermissionStatus(e.target.value as SourcePermissionStatus)}>
-          <option value="authorised">Permission: Authorised</option>
-          <option value="pending">Permission: Pending</option>
-          <option value="revoked">Permission: Revoked</option>
-        </select>
-        <select value={importFrequency} onChange={(e) => setImportFrequency(e.target.value as any)}>
-          <option value="hourly">Frequency: Hourly</option>
-          <option value="daily">Frequency: Daily</option>
-          <option value="weekly">Frequency: Weekly</option>
-          <option value="manual">Frequency: Manual</option>
-        </select>
-        {integrationMethod === 'api_feed' && (
-          <input
-            type="url"
-            placeholder="Supplier API feed endpoint (HTTPS)"
-            value={apiEndpoint}
-            onChange={(e) => setApiEndpoint(e.target.value)}
-          />
-        )}
-        <button type="submit" className="button button-dark" disabled={savingSource}>
-          {savingSource ? 'Saving Source…' : 'Register Source'}
+        <button
+          type="submit"
+          disabled={submitting}
+          style={{
+            padding: '10px 16px',
+            borderRadius: '8px',
+            border: '1px solid #2C4734',
+            background: '#2C4734',
+            color: '#FFFFFF',
+            fontSize: '13px',
+            fontWeight: 600,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '6px',
+            cursor: 'pointer',
+          }}
+        >
+          <Plus size={15} /> {submitting ? 'Adding…' : 'Add Web Source'}
         </button>
       </form>
 
       {loading ? (
-        <p>Loading product sources…</p>
+        <p style={{ color: '#6E6D68', fontSize: '13px' }}>Loading…</p>
       ) : sources.length === 0 ? (
-        <p>No product sources registered yet.</p>
+        <p style={{ color: '#6E6D68', fontSize: '13px' }}>No web sources added yet.</p>
       ) : (
-        <div style={{ overflowX: 'auto', marginBottom: '2rem' }}>
-          <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th>Business</th>
-                <th>Method</th>
-                <th>Permission</th>
-                <th>Frequency</th>
-                <th>Last Sync</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sources.map((src) => (
-                <tr key={src.id}>
-                  <td>
-                    <strong>{src.businessName}</strong>
-                    {src.website && <div><small>{src.website}</small></div>}
-                  </td>
-                  <td>{src.integrationMethod}</td>
-                  <td>{src.permissionStatus}</td>
-                  <td>{src.importFrequency}</td>
-                  <td>{src.lastSyncedAt ? new Date(src.lastSyncedAt).toLocaleString() : 'Never'}</td>
-                  <td>{src.status}</td>
-                  <td>
-                    <button
-                      type="button"
-                      className="text-button"
-                      onClick={() => setSelectedSourceId(src.id)}
-                      style={{ marginRight: '0.5rem' }}
-                    >
-                      Select for CSV
-                    </button>
-                    <button
-                      type="button"
-                      className="text-button"
-                      onClick={() => void handleToggleSourceStatus(src)}
-                    >
-                      {src.status === 'active' ? 'Suspend' : 'Activate'}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      <h3>CSV Importer (Validate, Preview &amp; Batch Import)</h3>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center', marginBottom: '0.75rem' }}>
-        <label>
-          Target Source:{' '}
-          <select value={selectedSourceId} onChange={(e) => setSelectedSourceId(e.target.value)}>
-            {sources.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.businessName} ({s.permissionStatus}, {s.status})
-              </option>
-            ))}
-          </select>
-        </label>
-        <button type="button" className="button button-outline" onClick={handleDownloadTemplate}>
-          Download CSV Template
-        </button>
-        <button type="button" className="button button-outline" onClick={() => void handlePreviewCsv()}>
-          Validate &amp; Preview Rows
-        </button>
-        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-          <input
-            type="checkbox"
-            checked={skipDuplicates}
-            onChange={(e) => setSkipDuplicates(e.target.checked)}
-          />
-          Skip duplicate canonical SKUs
-        </label>
-        <button
-          type="button"
-          className="button button-dark"
-          disabled={importingCsv || previewRows.length === 0}
-          onClick={() => void handleCommitCsv()}
-        >
-          {importingCsv ? 'Importing Batch…' : 'Commit Valid Rows'}
-        </button>
-      </div>
-
-      <textarea
-        rows={6}
-        style={{ width: '100%', fontFamily: 'monospace', marginBottom: '0.75rem' }}
-        value={csvText}
-        onChange={(e) => setCsvText(e.target.value)}
-      />
-
-      {previewRows.length > 0 && (
-        <div style={{ marginBottom: '1.5rem' }}>
-          <p>
-            Preview: <strong>{previewCounts.valid}</strong> new valid ·{' '}
-            <strong>{previewCounts.duplicate}</strong> duplicates ·{' '}
-            <strong>{previewCounts.invalid}</strong> invalid
-          </p>
-          <div style={{ overflowX: 'auto' }}>
-            <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr>
-                  <th>Row</th>
-                  <th>Product</th>
-                  <th>Brand / Category</th>
-                  <th>Price (UGX)</th>
-                  <th>State</th>
-                  <th>Issues</th>
-                </tr>
-              </thead>
-              <tbody>
-                {previewRows.map((r) => (
-                  <tr key={r.rowNumber}>
-                    <td>{r.rowNumber}</td>
-                    <td>{r.product?.name || '—'}</td>
-                    <td>{r.product ? `${r.product.brand} · ${r.product.category}` : '—'}</td>
-                    <td>{r.product ? `UGX ${r.product.priceUgx.toLocaleString('en-UG')}` : '—'}</td>
-                    <td>{!r.valid ? 'Invalid' : r.duplicateOfExisting ? 'Duplicate' : 'Ready'}</td>
-                    <td>{r.errors.join('; ') || '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      <h3>Recent Import &amp; Sync Logs</h3>
-      {logs.length === 0 ? (
-        <p>No import batches logged yet.</p>
-      ) : (
-        <div style={{ overflowX: 'auto' }}>
-          <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Source</th>
-                <th>Method</th>
-                <th>Imported</th>
-                <th>Duplicates</th>
-                <th>Invalid</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {logs.map((l) => (
-                <tr key={l.id}>
-                  <td>{new Date(l.createdAt).toLocaleString()}</td>
-                  <td>{l.sourceName}</td>
-                  <td>{l.importMethod}</td>
-                  <td>{l.importedCount}</td>
-                  <td>{l.duplicateCount}</td>
-                  <td>{l.invalidCount}</td>
-                  <td>{l.status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div style={{ display: 'grid', gap: '10px' }}>
+          {sources.map((src) => (
+            <div
+              key={src.id}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px',
+                padding: '12px 14px',
+                borderRadius: '8px',
+                border: '1px solid #E6E4DE',
+                background: '#FAF9F6',
+                flexWrap: 'wrap',
+              }}
+            >
+              <div>
+                <div style={{ fontWeight: 600, fontSize: '14px', color: '#141414' }}>{src.name}</div>
+                <a
+                  href={src.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: '12.5px', color: '#2C4734', display: 'inline-flex', alignItems: 'center', gap: '4px', textDecoration: 'none' }}
+                >
+                  <Globe size={12} /> {src.url}
+                </a>
+              </div>
+              <button
+                type="button"
+                onClick={() => void handleRemoveSource(src.id, src.name)}
+                style={{
+                  padding: '6px 10px',
+                  borderRadius: '6px',
+                  border: '1px solid #D4D0C5',
+                  background: '#FFFFFF',
+                  color: '#8B2626',
+                  fontSize: '12px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  cursor: 'pointer',
+                }}
+              >
+                <Trash2 size={13} /> Remove
+              </button>
+            </div>
+          ))}
         </div>
       )}
     </section>
