@@ -121,7 +121,7 @@ export function ProductSourceAdminPanel() {
     setError('');
     setStatus('');
     try {
-      const payload: Record<string, any> = {
+      const basePayload: Record<string, any> = {
         name: cleanName,
         business_name: cleanName,
         website_url: cleanUrl,
@@ -129,7 +129,6 @@ export function ProductSourceAdminPanel() {
         source_type: 'web_store',
         integration_type: 'manual',
         integration_method: 'manual_submission',
-        permission_status: 'authorised',
         refresh_interval_minutes: 1440,
         import_frequency: 'manual',
         country: 'Uganda',
@@ -137,13 +136,31 @@ export function ProductSourceAdminPanel() {
         updated_at: new Date().toISOString(),
       };
 
-      const { data, error: insErr } = await supabase
-        .from('product_sources')
-        .insert(payload)
-        .select('*')
-        .single();
+      const permissionCandidates = ['authorised', 'approved', 'authorized', 'pending'];
+      let insertedRow: any = null;
+      let lastErrMsg = '';
 
-      if (insErr) throw new Error(insErr.message);
+      for (const perm of permissionCandidates) {
+        const { data, error: insErr } = await supabase
+          .from('product_sources')
+          .insert({ ...basePayload, permission_status: perm })
+          .select('*')
+          .single();
+
+        if (!insErr && data) {
+          insertedRow = data;
+          break;
+        }
+        lastErrMsg = insErr?.message || 'Insert failed';
+        if (!lastErrMsg.includes('product_sources_permission_status_check')) {
+          throw new Error(lastErrMsg);
+        }
+      }
+
+      if (!insertedRow) {
+        throw new Error(lastErrMsg || 'Failed to insert product source.');
+      }
+      const data = insertedRow;
 
       await syncStoreProducts(String(data.id), cleanName, cleanUrl);
 
