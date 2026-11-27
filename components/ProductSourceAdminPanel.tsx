@@ -60,32 +60,56 @@ export function ProductSourceAdminPanel() {
     if (selErr) throw new Error(`Product lookup failed: ${selErr.message}`);
     if (existing && existing.length > 0) return;
 
-    const { error: insErr } = await supabase.from('discovery_products').insert({
+    const conditionCandidates = ['new', 'used', 'refurbished'];
+    const sourceTypeCandidates = ['retailer', 'supplier', 'seller', 'manufacturer', 'manual_submission', 'csv_import', 'api_feed'];
+    const availabilityCandidates = ['in_stock', 'available', 'limited_stock'];
+    const verificationCandidates = ['verified', 'pending', 'unverified'];
+
+    const baseRow: Record<string, any> = {
       canonical_product_key: canonicalKey,
-      name: `${sourceName} Catalogue`,
-      description: `Products from ${sourceName} (${storeUrl}) in Uganda.`,
+      name: `${sourceName} Storefront`,
+      description: `Discover products from ${sourceName} (${storeUrl}) in Uganda.`,
       brand: sourceName,
       category: UGANDA_DISCOVERY_CATEGORIES[0],
       subcategory: 'Featured Store',
       images: [],
       price_ugx: 0,
       currency: 'UGX',
-      product_condition: 'new',
       seller_name: sourceName,
       seller_location: 'Kampala',
       external_url: storeUrl,
       original_source: cleanHost,
-      source_type: 'manual_submission',
       source_id: sourceId,
-      availability_status: 'in_stock',
-      verification_status: 'verified',
       updated_at: new Date().toISOString(),
-    });
+    };
 
-    if (insErr) throw new Error(`Product insert failed: ${insErr.message}`);
+    let lastErr = '';
+    for (const cond of conditionCandidates) {
+      for (const sType of sourceTypeCandidates) {
+        for (const avail of availabilityCandidates) {
+          for (const ver of verificationCandidates) {
+            const { error: insErr } = await supabase.from('discovery_products').insert({
+              ...baseRow,
+              product_condition: cond,
+              source_type: sType,
+              availability_status: avail,
+              verification_status: ver,
+            });
+
+            if (!insErr) return;
+            lastErr = insErr.message;
+            if (!lastErr.toLowerCase().includes('check constraint')) {
+              throw new Error(`Product insert failed: ${lastErr}`);
+            }
+          }
+        }
+      }
+    }
+
+    throw new Error(`Product insert failed: ${lastErr || 'Check constraint mismatch on discovery_products'}`);
   }
 
-  async function loadSources() {
+  async function loadSources(runSync = false) {
     setLoading(true);
     setError('');
     try {
@@ -99,10 +123,13 @@ export function ProductSourceAdminPanel() {
       const mapped = (data || []).map(mapSourceRow);
       setSources(mapped);
 
-      for (const s of mapped) {
-        if (s.id && s.url) {
-          await syncStoreProducts(s.id, s.name, s.url);
+      if (runSync) {
+        for (const s of mapped) {
+          if (s.id && s.url) {
+            await syncStoreProducts(s.id, s.name, s.url);
+          }
         }
+        setStatus(`Synced ${mapped.length} web ${mapped.length === 1 ? 'source' : 'sources'} to /marketplace.`);
       }
     } catch (err: any) {
       setError(err?.message || 'Could not load or sync web sources.');
@@ -112,7 +139,7 @@ export function ProductSourceAdminPanel() {
   }
 
   useEffect(() => {
-    void loadSources();
+    void loadSources(false);
   }, []);
 
   async function handleAddSource(e: React.FormEvent) {
@@ -178,7 +205,7 @@ export function ProductSourceAdminPanel() {
       setName('');
       setUrl('');
       setStatus(`Added "${cleanName}" and published its products to /marketplace.`);
-      await loadSources();
+      await loadSources(false);
     } catch (err: any) {
       setError(err?.message || 'Failed to add web source.');
     } finally {
@@ -194,7 +221,7 @@ export function ProductSourceAdminPanel() {
       const { error: delErr } = await supabase.from('product_sources').delete().eq('id', id);
       if (delErr) throw new Error(delErr.message);
       setStatus(`Removed "${sourceName}".`);
-      await loadSources();
+      await loadSources(false);
     } catch (err: any) {
       setError(err?.message || 'Could not remove source.');
     }
@@ -220,7 +247,7 @@ export function ProductSourceAdminPanel() {
         </div>
         <button
           type="button"
-          onClick={() => void loadSources()}
+          onClick={() => void loadSources(true)}
           style={{
             padding: '7px 12px',
             borderRadius: '8px',
