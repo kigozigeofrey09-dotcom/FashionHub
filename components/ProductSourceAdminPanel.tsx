@@ -47,29 +47,6 @@ export function ProductSourceAdminPanel() {
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
 
-  async function loadSources() {
-    setLoading(true);
-    setError('');
-    try {
-      const { data, error: dbErr } = await supabase
-        .from('product_sources')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (dbErr) throw new Error(dbErr.message);
-
-      setSources((data || []).map(mapSourceRow));
-    } catch (err: any) {
-      setError(err?.message || 'Could not load web sources.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    void loadSources();
-  }, []);
-
   async function syncStoreProducts(sourceId: string, sourceName: string, storeUrl: string) {
     const cleanHost = hostnameFromUrl(storeUrl);
     const canonicalKey = `web:${cleanHost.toLowerCase().replace(/[^a-z0-9.-]/g, '-')}`;
@@ -80,7 +57,7 @@ export function ProductSourceAdminPanel() {
       .eq('source_id', sourceId)
       .limit(1);
 
-    if (selErr) throw new Error(selErr.message);
+    if (selErr) throw new Error(`Product lookup failed: ${selErr.message}`);
     if (existing && existing.length > 0) return;
 
     const { error: insErr } = await supabase.from('discovery_products').insert({
@@ -105,8 +82,38 @@ export function ProductSourceAdminPanel() {
       updated_at: new Date().toISOString(),
     });
 
-    if (insErr) throw new Error(insErr.message);
+    if (insErr) throw new Error(`Product insert failed: ${insErr.message}`);
   }
+
+  async function loadSources() {
+    setLoading(true);
+    setError('');
+    try {
+      const { data, error: dbErr } = await supabase
+        .from('product_sources')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (dbErr) throw new Error(dbErr.message);
+
+      const mapped = (data || []).map(mapSourceRow);
+      setSources(mapped);
+
+      for (const s of mapped) {
+        if (s.id && s.url) {
+          await syncStoreProducts(s.id, s.name, s.url);
+        }
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Could not load or sync web sources.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadSources();
+  }, []);
 
   async function handleAddSource(e: React.FormEvent) {
     e.preventDefault();
@@ -126,7 +133,6 @@ export function ProductSourceAdminPanel() {
         business_name: cleanName,
         website_url: cleanUrl,
         website: cleanUrl,
-        source_type: 'web_store',
         integration_type: 'manual',
         integration_method: 'manual_submission',
         refresh_interval_minutes: 1440,
@@ -137,12 +143,7 @@ export function ProductSourceAdminPanel() {
       };
 
       const permissionCandidates = ['authorised', 'approved', 'authorized', 'pending'];
-      const sourceTypeCandidates = [
-        'retailer',
-        'supplier',
-        'seller',
-        'manufacturer',
-      ];
+      const sourceTypeCandidates = ['retailer', 'supplier', 'seller', 'manufacturer'];
       let insertedRow: any = null;
       let lastErrMsg = '';
 
@@ -171,9 +172,8 @@ export function ProductSourceAdminPanel() {
       if (!insertedRow) {
         throw new Error(lastErrMsg || 'Failed to insert product source.');
       }
-      const data = insertedRow;
 
-      await syncStoreProducts(String(data.id), cleanName, cleanUrl);
+      await syncStoreProducts(String(insertedRow.id), cleanName, cleanUrl);
 
       setName('');
       setUrl('');
@@ -234,7 +234,7 @@ export function ProductSourceAdminPanel() {
             cursor: 'pointer',
           }}
         >
-          <RefreshCw size={13} /> Refresh
+          <RefreshCw size={13} /> Sync &amp; Refresh
         </button>
       </div>
 
