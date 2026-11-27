@@ -1,4 +1,5 @@
-﻿import { useEffect, useState } from 'react';
+import { ProductSourceAdminPanel } from '../components/ProductSourceAdminPanel';
+import { useEffect, useState } from 'react';
 import {
   LayoutDashboard, Store, CreditCard, AlertTriangle,
   Search, RefreshCw, Check, X, ArrowUpRight, ShieldCheck, Crown, EyeOff
@@ -842,7 +843,8 @@ export function AdminPage() {
           )}
         </main>
       </div>
-    </div>
+    <ProductSourceAdminPanel />
+</div>
   );
 }
 
