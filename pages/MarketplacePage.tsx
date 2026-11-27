@@ -1,3 +1,4 @@
+import { MillionProductDiscoverySection } from '../components/MillionProductDiscoverySection';
 import { useDeferredValue, useEffect, useState } from 'react';
 import { ArrowDown, ArrowUpRight, Search, SlidersHorizontal } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -494,6 +495,7 @@ export function MarketplacePage() {
           Open a shop <span aria-hidden="true">↗</span>
         </Link>
       </section>
-    </div>
+    <MillionProductDiscoverySection />
+</div>
   );
 }
