@@ -211,6 +211,30 @@ function parseJinaMarkdownProducts(
 
   return found;
 }
+function extractHtmlProductImages(html: string, baseOrigin: string): string[] {
+  const urls: string[] = [];
+  const seen = new Set<string>();
+
+  const imgTagRegex = /<img\b[^>]*>/gi;
+  let tagMatch: RegExpExecArray | null;
+  while ((tagMatch = imgTagRegex.exec(html)) !== null) {
+    const tag = tagMatch[0];
+    const srcMatch =
+      tag.match(/\b(?:src|data-src|data-lazy-src)=["']([^"']+)["']/i) ||
+      tag.match(/\bsrcset=["']([^\s,"']+)/i);
+    if (!srcMatch?.[1]) continue;
+
+    const normalized = normalizeExtractedImageUrl(srcMatch[1], baseOrigin);
+    if (!normalized || isLikelyLogoOrIcon(normalized)) continue;
+    if (normalized.startsWith('data:image/svg+xml')) continue;
+    if (seen.has(normalized)) continue;
+    seen.add(normalized);
+    urls.push(normalized);
+  }
+
+  return urls;
+}
+
 async function extractProductsFromStore(storeUrl: string, storeName: string): Promise<ScrapedItem[]> {
   const baseOrigin = (() => {
     try {
@@ -269,6 +293,11 @@ async function extractProductsFromStore(storeUrl: string, storeName: string): Pr
     if (items.length > 0) return items;
   }
 
+  // Pull real <img> tags from the storefront HTML so products get actual site photos instead of fallback stock images
+  const html = await fetchTextWithFallback(storeUrl);
+  const htmlImages = html ? extractHtmlProductImages(html, baseOrigin) : [];
+  let htmlImgCursor = 0;
+
   // 3. Rendered storefront + catalog subpaths via r.jina.ai
   const pagesToScan = Array.from(
     new Set([storeUrl, `${baseOrigin}/shop`, `${baseOrigin}/products`, `${baseOrigin}/collections/all`])
@@ -281,7 +310,13 @@ async function extractProductsFromStore(storeUrl: string, storeName: string): Pr
       if (!jinaRes.ok) continue;
       const md = await jinaRes.text();
       const extracted = parseJinaMarkdownProducts(md, baseOrigin, targetPage, storeName, seenNames);
-      items.push(...extracted);
+      for (const prod of extracted) {
+        if (prod.imageUrl === DEFAULT_FALLBACK_IMAGE && htmlImgCursor < htmlImages.length) {
+          prod.imageUrl = htmlImages[htmlImgCursor];
+          htmlImgCursor += 1;
+        }
+        items.push(prod);
+      }
     } catch {
       // try next page
     }
@@ -289,7 +324,6 @@ async function extractProductsFromStore(storeUrl: string, storeName: string): Pr
   if (items.length > 0) return items;
 
   // 4. Raw HTML JSON-LD fallback
-  const html = await fetchTextWithFallback(storeUrl);
   if (html) {
     const ldMatches = html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi);
     for (const match of ldMatches) {
@@ -303,12 +337,13 @@ async function extractProductsFromStore(storeUrl: string, storeName: string): Pr
             seenNames.add(title.toLowerCase());
             const offers = Array.isArray(node.offers) ? node.offers[0] : node.offers;
             const price = Number(offers?.price ?? 0);
-            const img = Array.isArray(node.image) ? String(node.image[0] || '') : String(node.image || '');
+            const rawImg = Array.isArray(node.image) ? String(node.image[0] || '') : String(node.image || '');
+            const normalizedImg = normalizeExtractedImageUrl(rawImg, baseOrigin) || htmlImages[htmlImgCursor++] || DEFAULT_FALLBACK_IMAGE;
             items.push({
               name: title,
               description: stripHtml(String(node.description || `${title} from ${storeName}`)).slice(0, 300),
               priceUgx: Number.isFinite(price) && price > 0 ? Math.round(price) : 0,
-              imageUrl: img || DEFAULT_FALLBACK_IMAGE,
+              imageUrl: normalizedImg,
               productUrl: node.url ? String(node.url) : storeUrl,
               sellerLabel: storeName,
             });
@@ -322,7 +357,6 @@ async function extractProductsFromStore(storeUrl: string, storeName: string): Pr
 
   return items;
 }
-
 export function ProductSourceAdminPanel() {
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
