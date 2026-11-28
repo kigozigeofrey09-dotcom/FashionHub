@@ -85,6 +85,89 @@ async function fetchTextWithFallback(targetUrl: string): Promise<string | null> 
   return null;
 }
 
+function parseJinaMarkdownProducts(
+  md: string,
+  baseOrigin: string,
+  fallbackUrl: string,
+  storeName: string,
+  seenNames: Set<string>
+): ScrapedItem[] {
+  const found: ScrapedItem[] = [];
+  const skipWords = /^(home|shop|about|about us|contact|contact us|cart|bag|checkout|login|log in|sign in|register|account|my account|privacy|privacy policy|terms|terms of service|refund|shipping|menu|search|view all|see all|learn more|read more|instagram|facebook|twitter|tiktok|whatsapp|youtube|subscribe|next|previous|prev)$/i;
+
+  // Pattern A: Markdown links (absolute or relative) paired with product paths or UGX/USh prices
+  const linkRegex = /\[([^\]]{2,110})\]\(((?:https?:\/\/|\/)[^\s)]+)\)/g;
+  let m: RegExpExecArray | null;
+  while ((m = linkRegex.exec(md)) !== null && found.length < 60) {
+    const rawLabel = m[1].replace(/!\[[^\]]*\]\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
+    let href = m[2].trim();
+    if (href.startsWith('/')) href = `${baseOrigin}${href}`;
+
+    if (!rawLabel || rawLabel.length < 2 || skipWords.test(rawLabel)) continue;
+    if (/\.(png|jpe?g|webp|gif|svg|css|js)(\?|$)/i.test(href)) continue;
+
+    const isProductPath = /\/(product|products|item|items|listing|listings|p|shop|collection|collections|wear|outfit|dress|shoe|bag|shirt|top|pant|jacket|hoodie|sneaker|watch|accessory|accessories)\/[^/?#]+/i.test(href);
+    const windowSlice = md.slice(Math.max(0, m.index - 180), Math.min(md.length, m.index + 380));
+    const priceMatch = windowSlice.match(/(?:UGX|USh|Shs)\s*([0-9][0-9,]{2,})|([0-9]{1,3}(?:,[0-9]{3})+)\s*(?:UGX|USh|Shs|\/=)/i);
+    const imgMatch = windowSlice.match(/!\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/);
+
+    if (isProductPath || priceMatch) {
+      const cleanTitle = rawLabel
+        .replace(/(?:UGX|USh|Shs)\s*[0-9,]+/gi, '')
+        .replace(/[0-9]{1,3}(?:,[0-9]{3})+\s*(?:UGX|USh|Shs|\/=)/gi, '')
+        .trim() || rawLabel;
+      if (cleanTitle.length < 2 || skipWords.test(cleanTitle)) continue;
+      if (seenNames.has(cleanTitle.toLowerCase())) continue;
+      seenNames.add(cleanTitle.toLowerCase());
+
+      const rawDigits = priceMatch ? (priceMatch[1] || priceMatch[2] || '0').replace(/,/g, '') : '0';
+      const parsedPrice = Number(rawDigits);
+      found.push({
+        name: cleanTitle,
+        description: `${cleanTitle} from ${storeName} (${baseOrigin}).`,
+        priceUgx: Number.isFinite(parsedPrice) && parsedPrice > 0 ? parsedPrice : 0,
+        imageUrl: imgMatch ? imgMatch[1] : '',
+        productUrl: href || fallbackUrl,
+      });
+    }
+  }
+
+  // Pattern B: Card blocks with Image + Title + UGX price even when link is on a "Buy / View" button
+  if (found.length === 0) {
+    const lines = md.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    for (let i = 0; i < lines.length && found.length < 60; i++) {
+      const priceMatch = lines[i].match(/(?:UGX|USh|Shs)\s*([0-9][0-9,]{2,})|([0-9]{1,3}(?:,[0-9]{3})+)\s*(?:UGX|USh|Shs|\/=)/i);
+      if (!priceMatch) continue;
+      const candidateTitle = (lines[i - 1] || '')
+        .replace(/^#+\s*/, '')
+        .replace(/[*_`]/g, '')
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+        .trim();
+      if (!candidateTitle || candidateTitle.length < 3 || candidateTitle.length > 90 || skipWords.test(candidateTitle)) continue;
+      if (seenNames.has(candidateTitle.toLowerCase())) continue;
+      seenNames.add(candidateTitle.toLowerCase());
+
+      const contextBlock = lines.slice(Math.max(0, i - 3), Math.min(lines.length, i + 3)).join(' ');
+      const imgMatch = contextBlock.match(/!\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/);
+      const linkMatch = contextBlock.match(/\[[^\]]+\]\(((?:https?:\/\/|\/)[^\s)]+)\)/);
+      let productUrl = linkMatch ? linkMatch[1] : fallbackUrl;
+      if (productUrl.startsWith('/')) productUrl = `${baseOrigin}${productUrl}`;
+
+      const rawDigits = (priceMatch[1] || priceMatch[2] || '0').replace(/,/g, '');
+      const parsedPrice = Number(rawDigits);
+      found.push({
+        name: candidateTitle,
+        description: `${candidateTitle} from ${storeName} (${baseOrigin}).`,
+        priceUgx: Number.isFinite(parsedPrice) && parsedPrice > 0 ? parsedPrice : 0,
+        imageUrl: imgMatch ? imgMatch[1] : '',
+        productUrl,
+      });
+    }
+  }
+
+  return found;
+}
+
 async function extractProductsFromStore(storeUrl: string, storeName: string): Promise<ScrapedItem[]> {
   const baseOrigin = (() => {
     try {
@@ -143,45 +226,29 @@ async function extractProductsFromStore(storeUrl: string, storeName: string): Pr
     if (items.length > 0) return items;
   }
 
-  // 3. Rendered storefront via r.jina.ai (extracts JS-rendered products, UGX prices, images & product links)
-  try {
-    const jinaRes = await fetch(`https://r.jina.ai/${storeUrl}`);
-    if (jinaRes.ok) {
+  // 3. Rendered storefront + common catalog paths via r.jina.ai
+  const pagesToScan = Array.from(
+    new Set([
+      storeUrl,
+      `${baseOrigin}/shop`,
+      `${baseOrigin}/products`,
+      `${baseOrigin}/collections/all`,
+    ])
+  );
+
+  for (const targetPage of pagesToScan) {
+    if (items.length >= 20) break;
+    try {
+      const jinaRes = await fetch(`https://r.jina.ai/${targetPage}`);
+      if (!jinaRes.ok) continue;
       const md = await jinaRes.text();
-      // Match markdown links pointing to product/item/shop paths or paired with UGX/USh prices
-      const linkRegex = /\[([^\]]{3,90})\]\((https?:\/\/[^\s)]+)\)/g;
-      let m: RegExpExecArray | null;
-      while ((m = linkRegex.exec(md)) !== null && items.length < 40) {
-        const rawLabel = m[1].replace(/!\[[^\]]*\]\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
-        const href = m[2].trim();
-        if (!rawLabel || rawLabel.length < 3) continue;
-        if (/^(home|shop|about|contact|cart|login|sign in|register|account|privacy|terms|menu|search|view all|instagram|facebook|twitter|whatsapp)$/i.test(rawLabel)) continue;
-
-        const isProductPath = /\/(product|products|item|items|listing|listings|p|shop|collection|collections|wear|outfit|dress|shoe|bag|shirt|top|pant|jacket)\//i.test(href);
-        // Look in nearby text window (250 chars after link) for UGX or USh price and image URL
-        const windowSlice = md.slice(m.index, Math.min(md.length, m.index + 320));
-        const priceMatch = windowSlice.match(/(?:UGX|USh|Shs)\s*([0-9][0-9,]{2,})/i);
-        const imgMatch = windowSlice.match(/!\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/);
-
-        if (isProductPath || priceMatch) {
-          const cleanTitle = rawLabel.replace(/(?:UGX|USh|Shs)\s*[0-9,]+/gi, '').trim() || rawLabel;
-          if (seenNames.has(cleanTitle.toLowerCase())) continue;
-          seenNames.add(cleanTitle.toLowerCase());
-          const parsedPrice = priceMatch ? Number(priceMatch[1].replace(/,/g, '')) : 0;
-          items.push({
-            name: cleanTitle,
-            description: `${cleanTitle} available from ${storeName} (${baseOrigin}).`,
-            priceUgx: Number.isFinite(parsedPrice) && parsedPrice > 0 ? parsedPrice : 0,
-            imageUrl: imgMatch ? imgMatch[1] : '',
-            productUrl: href,
-          });
-        }
-      }
-      if (items.length > 0) return items;
+      const extracted = parseJinaMarkdownProducts(md, baseOrigin, targetPage, storeName, seenNames);
+      items.push(...extracted);
+    } catch {
+      // try next catalog page
     }
-  } catch {
-    // fall through to raw HTML JSON-LD
   }
+  if (items.length > 0) return items;
 
   // 4. Raw HTML JSON-LD fallback
   const html = await fetchTextWithFallback(storeUrl);
@@ -217,7 +284,6 @@ async function extractProductsFromStore(storeUrl: string, storeName: string): Pr
 
   return items;
 }
-
 export function ProductSourceAdminPanel() {
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
