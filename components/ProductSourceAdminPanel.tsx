@@ -119,7 +119,7 @@ function normalizeExtractedImageUrl(rawImg: string, baseOrigin: string): string 
 
 function isLikelyLogoOrIcon(imgUrl: string): boolean {
   const lower = imgUrl.toLowerCase();
-  return /(logo|favicon|icon|sprite|avatar|banner-bg|placeholder|delivery-box|delivery)/i.test(lower);
+  return /(logo|favicon|icon|sprite|avatar|banner-bg|new-banner|banner|placeholder|delivery-box|delivery)/i.test(lower);
 }
 
 function parseJinaMarkdownProducts(
