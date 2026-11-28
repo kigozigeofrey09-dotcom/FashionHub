@@ -1,4 +1,3 @@
-import { MillionProductDiscoverySection } from '../components/MillionProductDiscoverySection';
 import { useDeferredValue, useEffect, useState } from 'react';
 import { ArrowDown, ArrowUpRight, Search, SlidersHorizontal } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -172,7 +171,6 @@ export function MarketplacePage() {
 
   return (
     <div className="tb-landing-root">
-      <MillionProductDiscoverySection />
             <section className="hero-grid tb-ebay-hero">
         <div className="market-hero-copy tb-ebay-hero-panel">
           <p className="eyebrow">

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Globe, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
-import { UGANDA_DISCOVERY_CATEGORIES } from '../types';
 
 interface SimpleWebSource {
   id: string;
@@ -16,8 +15,11 @@ interface ScrapedItem {
   priceUgx: number;
   imageUrl: string;
   productUrl: string;
-  sku?: string;
+  sellerLabel?: string;
 }
+
+const DEFAULT_FALLBACK_IMAGE =
+  'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=900&q=80';
 
 function normalizeUrl(raw: string): string {
   const trimmed = raw.trim();
@@ -47,6 +49,18 @@ function mapSourceRow(row: any): SimpleWebSource {
   };
 }
 
+function inferMarketplaceCategory(title: string): string {
+  const t = title.toLowerCase();
+  if (/(shoe|sandal|sneaker|boot|heel|loafer|footwear|slipper)/.test(t)) return 'Shoes';
+  if (/(bag|tote|purse|backpack|clutch|pouch)/.test(t)) return 'Bags';
+  if (/(ring|necklace|bracelet|earring|chain|jewel)/.test(t)) return 'Jewellery';
+  if (/(cap|hat|belt|sunglass|watch|scarf|sock|access)/.test(t)) return 'Accessories';
+  if (/(dress|shirt|tee|t-shirt|t shirt|hoodie|jacket|windbreaker|blazer|pant|jean|short|skirt|top|jersey|satin|mesh|set|wear)/.test(t)) {
+    return 'Clothing';
+  }
+  return 'Clothing';
+}
+
 function stripHtml(html: string): string {
   return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 }
@@ -62,7 +76,7 @@ async function fetchJsonWithFallback(targetUrl: string): Promise<any | null> {
       if (!res.ok) continue;
       return await res.json();
     } catch {
-      // try next
+      // try next endpoint
     }
   }
   return null;
@@ -79,7 +93,7 @@ async function fetchTextWithFallback(targetUrl: string): Promise<string | null> 
       if (!res.ok) continue;
       return await res.text();
     } catch {
-      // try next
+      // try next endpoint
     }
   }
   return null;
@@ -93,11 +107,16 @@ function parseJinaMarkdownProducts(
   seenNames: Set<string>
 ): ScrapedItem[] {
   const found: ScrapedItem[] = [];
-  const skipWords = /^(home|shop|about|about us|contact|contact us|cart|bag|checkout|login|log in|sign in|register|account|my account|privacy|privacy policy|terms|terms of service|refund|shipping|menu|search|view all|see all|learn more|read more|instagram|facebook|twitter|tiktok|whatsapp|youtube|subscribe|next|previous|prev|discover fashion|thrifter)$/i;
-  const priceLineRegex = /^(?:UGX|USh|Shs)\s*([0-9][0-9,]*)|^([0-9]{1,3}(?:,[0-9]{3})+)\s*(?:UGX|USh|Shs|\/=)$/i;
+  const skipWords =
+    /^(home|shop|about|about us|contact|contact us|cart|bag|checkout|login|log in|sign in|register|account|my account|privacy|privacy policy|terms|terms of service|refund|shipping|menu|search|view all|see all|learn more|read more|instagram|facebook|twitter|tiktok|whatsapp|youtube|subscribe|next|previous|prev|discover fashion|thrifter)$/i;
+  const priceLineRegex =
+    /^(?:UGX|USh|Shs)\s*([0-9][0-9,]*)|^([0-9]{1,3}(?:,[0-9]{3})+)\s*(?:UGX|USh|Shs|\/=)$/i;
 
-  // Pattern 0: Markdown ### headings paired with a nearby UGX / USh / Shs price line
-  const lines = md.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const lines = md
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+
   for (let i = 0; i < lines.length && found.length < 60; i++) {
     const headingMatch = lines[i].match(/^#{2,4}\s+(.+)$/);
     if (!headingMatch) continue;
@@ -108,7 +127,6 @@ function parseJinaMarkdownProducts(
       .trim();
     if (!rawTitle || rawTitle.length < 2 || skipWords.test(rawTitle)) continue;
 
-    // Look ahead up to 5 non-empty lines for a price line and optional sub-brand
     let matchedPrice = 0;
     let subSeller = '';
     for (let j = i + 1; j <= Math.min(lines.length - 1, i + 5); j++) {
@@ -138,87 +156,18 @@ function parseJinaMarkdownProducts(
     found.push({
       name: rawTitle,
       description: subSeller
-        ? `${rawTitle} by ${subSeller} via ${storeName} (${baseOrigin}).`
-        : `${rawTitle} from ${storeName} (${baseOrigin}).`,
+        ? `${rawTitle} · ${subSeller} (via ${storeName})`
+        : `${rawTitle} · Imported from ${storeName}`,
       priceUgx: matchedPrice,
-      imageUrl: imgMatch ? imgMatch[1] : '',
+      imageUrl: imgMatch ? imgMatch[1] : DEFAULT_FALLBACK_IMAGE,
       productUrl: fallbackUrl,
+      sellerLabel: subSeller || storeName,
     });
-  }
-
-  if (found.length > 0) return found;
-
-  // Pattern A: Markdown links (absolute or relative) paired with product paths or UGX/USh prices
-  const linkRegex = /\[([^\]]{2,110})\]\(((?:https?:\/\/|\/)[^\s)]+)\)/g;
-  let m: RegExpExecArray | null;
-  while ((m = linkRegex.exec(md)) !== null && found.length < 60) {
-    const rawLabel = m[1].replace(/!\[[^\]]*\]\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
-    let href = m[2].trim();
-    if (href.startsWith('/')) href = `${baseOrigin}${href}`;
-
-    if (!rawLabel || rawLabel.length < 2 || skipWords.test(rawLabel)) continue;
-    if (/\.(png|jpe?g|webp|gif|svg|css|js)(\?|$)/i.test(href)) continue;
-
-    const isProductPath = /\/(product|products|item|items|listing|listings|p|shop|collection|collections|wear|outfit|dress|shoe|bag|shirt|top|pant|jacket|hoodie|sneaker|watch|accessory|accessories)\/[^/?#]+/i.test(href);
-    const windowSlice = md.slice(Math.max(0, m.index - 180), Math.min(md.length, m.index + 380));
-    const priceMatch = windowSlice.match(/(?:UGX|USh|Shs)\s*([0-9][0-9,]{2,})|([0-9]{1,3}(?:,[0-9]{3})+)\s*(?:UGX|USh|Shs|\/=)/i);
-    const imgMatch = windowSlice.match(/!\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/);
-
-    if (isProductPath || priceMatch) {
-      const cleanTitle = rawLabel
-        .replace(/(?:UGX|USh|Shs)\s*[0-9,]+/gi, '')
-        .replace(/[0-9]{1,3}(?:,[0-9]{3})+\s*(?:UGX|USh|Shs|\/=)/gi, '')
-        .trim() || rawLabel;
-      if (cleanTitle.length < 2 || skipWords.test(cleanTitle)) continue;
-      if (seenNames.has(cleanTitle.toLowerCase())) continue;
-      seenNames.add(cleanTitle.toLowerCase());
-
-      const rawDigits = priceMatch ? (priceMatch[1] || priceMatch[2] || '0').replace(/,/g, '') : '0';
-      const parsedPrice = Number(rawDigits);
-      found.push({
-        name: cleanTitle,
-        description: `${cleanTitle} from ${storeName} (${baseOrigin}).`,
-        priceUgx: Number.isFinite(parsedPrice) && parsedPrice > 0 ? parsedPrice : 0,
-        imageUrl: imgMatch ? imgMatch[1] : '',
-        productUrl: href || fallbackUrl,
-      });
-    }
-  }
-
-  // Pattern B: Card blocks with Image + Title + UGX price even when link is on a "Buy / View" button
-  if (found.length === 0) {
-    for (let i = 0; i < lines.length && found.length < 60; i++) {
-      const priceMatch = lines[i].match(/(?:UGX|USh|Shs)\s*([0-9][0-9,]{2,})|([0-9]{1,3}(?:,[0-9]{3})+)\s*(?:UGX|USh|Shs|\/=)/i);
-      if (!priceMatch) continue;
-      const candidateTitle = (lines[i - 1] || '')
-        .replace(/^#+\s*/, '')
-        .replace(/[*_`]/g, '')
-        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-        .trim();
-      if (!candidateTitle || candidateTitle.length < 3 || candidateTitle.length > 90 || skipWords.test(candidateTitle)) continue;
-      if (seenNames.has(candidateTitle.toLowerCase())) continue;
-      seenNames.add(candidateTitle.toLowerCase());
-
-      const contextBlock = lines.slice(Math.max(0, i - 3), Math.min(lines.length, i + 3)).join(' ');
-      const imgMatch = contextBlock.match(/!\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/);
-      const linkMatch = contextBlock.match(/\[[^\]]+\]\(((?:https?:\/\/|\/)[^\s)]+)\)/);
-      let productUrl = linkMatch ? linkMatch[1] : fallbackUrl;
-      if (productUrl.startsWith('/')) productUrl = `${baseOrigin}${productUrl}`;
-
-      const rawDigits = (priceMatch[1] || priceMatch[2] || '0').replace(/,/g, '');
-      const parsedPrice = Number(rawDigits);
-      found.push({
-        name: candidateTitle,
-        description: `${candidateTitle} from ${storeName} (${baseOrigin}).`,
-        priceUgx: Number.isFinite(parsedPrice) && parsedPrice > 0 ? parsedPrice : 0,
-        imageUrl: imgMatch ? imgMatch[1] : '',
-        productUrl,
-      });
-    }
   }
 
   return found;
 }
+
 async function extractProductsFromStore(storeUrl: string, storeName: string): Promise<ScrapedItem[]> {
   const baseOrigin = (() => {
     try {
@@ -240,7 +189,7 @@ async function extractProductsFromStore(storeUrl: string, storeName: string): Pr
       seenNames.add(title.toLowerCase());
       const variant = Array.isArray(p?.variants) ? p.variants[0] : null;
       const rawPrice = Number(variant?.price ?? 0);
-      const img = Array.isArray(p?.images) && p.images[0]?.src ? String(p.images[0].src) : '';
+      const img = Array.isArray(p?.images) && p.images[0]?.src ? String(p.images[0].src) : DEFAULT_FALLBACK_IMAGE;
       const handle = p?.handle ? `${baseOrigin}/products/${p.handle}` : storeUrl;
       items.push({
         name: title,
@@ -248,7 +197,7 @@ async function extractProductsFromStore(storeUrl: string, storeName: string): Pr
         priceUgx: Number.isFinite(rawPrice) && rawPrice > 0 ? Math.round(rawPrice) : 0,
         imageUrl: img,
         productUrl: handle,
-        sku: variant?.sku ? String(variant.sku) : undefined,
+        sellerLabel: storeName,
       });
     }
     if (items.length > 0) return items;
@@ -264,31 +213,26 @@ async function extractProductsFromStore(storeUrl: string, storeName: string): Pr
       const minorUnit = Number(p?.prices?.currency_minor_unit ?? 0);
       const rawMinor = Number(p?.prices?.price ?? 0);
       const priceUgx = minorUnit > 0 ? Math.round(rawMinor / Math.pow(10, minorUnit)) : Math.round(rawMinor);
-      const img = Array.isArray(p?.images) && p.images[0]?.src ? String(p.images[0].src) : '';
+      const img = Array.isArray(p?.images) && p.images[0]?.src ? String(p.images[0].src) : DEFAULT_FALLBACK_IMAGE;
       items.push({
         name: title,
         description: stripHtml(String(p?.short_description || p?.description || `${title} from ${storeName}`)).slice(0, 300),
         priceUgx: Number.isFinite(priceUgx) && priceUgx > 0 ? priceUgx : 0,
         imageUrl: img,
         productUrl: p?.permalink ? String(p.permalink) : storeUrl,
-        sku: p?.sku ? String(p.sku) : undefined,
+        sellerLabel: storeName,
       });
     }
     if (items.length > 0) return items;
   }
 
-  // 3. Rendered storefront + common catalog paths via r.jina.ai
+  // 3. Rendered storefront + catalog subpaths via r.jina.ai
   const pagesToScan = Array.from(
-    new Set([
-      storeUrl,
-      `${baseOrigin}/shop`,
-      `${baseOrigin}/products`,
-      `${baseOrigin}/collections/all`,
-    ])
+    new Set([storeUrl, `${baseOrigin}/shop`, `${baseOrigin}/products`, `${baseOrigin}/collections/all`])
   );
 
   for (const targetPage of pagesToScan) {
-    if (items.length >= 20) break;
+    if (items.length >= 25) break;
     try {
       const jinaRes = await fetch(`https://r.jina.ai/${targetPage}`);
       if (!jinaRes.ok) continue;
@@ -296,7 +240,7 @@ async function extractProductsFromStore(storeUrl: string, storeName: string): Pr
       const extracted = parseJinaMarkdownProducts(md, baseOrigin, targetPage, storeName, seenNames);
       items.push(...extracted);
     } catch {
-      // try next catalog page
+      // try next page
     }
   }
   if (items.length > 0) return items;
@@ -321,9 +265,9 @@ async function extractProductsFromStore(storeUrl: string, storeName: string): Pr
               name: title,
               description: stripHtml(String(node.description || `${title} from ${storeName}`)).slice(0, 300),
               priceUgx: Number.isFinite(price) && price > 0 ? Math.round(price) : 0,
-              imageUrl: img,
+              imageUrl: img || DEFAULT_FALLBACK_IMAGE,
               productUrl: node.url ? String(node.url) : storeUrl,
-              sku: node.sku ? String(node.sku) : undefined,
+              sellerLabel: storeName,
             });
           }
         }
@@ -335,6 +279,7 @@ async function extractProductsFromStore(storeUrl: string, storeName: string): Pr
 
   return items;
 }
+
 export function ProductSourceAdminPanel() {
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
@@ -344,8 +289,50 @@ export function ProductSourceAdminPanel() {
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
 
-  async function syncStoreProducts(sourceId: string, sourceName: string, storeUrl: string): Promise<number> {
-    const cleanHost = hostnameFromUrl(storeUrl);
+  async function ensureShopForSource(sourceName: string, storeUrl: string): Promise<string | null> {
+    const { data: existingShops } = await supabase
+      .from('shops')
+      .select('id')
+      .eq('name', sourceName)
+      .limit(1);
+
+    if (existingShops && existingShops.length > 0 && existingShops[0]?.id) {
+      return String(existingShops[0].id);
+    }
+
+    const { data: authData } = await supabase.auth.getUser();
+    const ownerId = authData?.user?.id || null;
+
+    const shopPayload: Record<string, any> = {
+      name: sourceName,
+      story: `Synced catalogue from ${storeUrl}`,
+      tagline: `Imported web store · ${hostnameFromUrl(storeUrl)}`,
+      categories: ['Clothing', 'Shoes', 'Bags'],
+      sell_type: 'both',
+      country_code: 'UG',
+      country_name: 'Uganda',
+      city: 'Kampala',
+      cover_url: DEFAULT_FALLBACK_IMAGE,
+      is_verified: true,
+      subscription_status: 'active',
+    };
+    if (ownerId) {
+      shopPayload.owner_id = ownerId;
+    }
+
+    const { data: insertedShop, error: shopErr } = await supabase
+      .from('shops')
+      .insert(shopPayload)
+      .select('id')
+      .single();
+
+    if (shopErr) {
+      throw new Error(`Shop creation for "${sourceName}" failed: ${shopErr.message}`);
+    }
+    return insertedShop?.id ? String(insertedShop.id) : null;
+  }
+
+  async function syncStoreProducts(sourceName: string, storeUrl: string): Promise<number> {
     const scraped = await extractProductsFromStore(storeUrl, sourceName);
 
     const rowsToInsert: ScrapedItem[] =
@@ -353,46 +340,48 @@ export function ProductSourceAdminPanel() {
         ? scraped
         : [
             {
-              name: `${sourceName} Catalogue`,
-              description: `Explore products from ${sourceName} (${storeUrl}) in Uganda.`,
+              name: `${sourceName} Featured Piece`,
+              description: `Explore ${sourceName} (${storeUrl}) in Kampala, Uganda.`,
               priceUgx: 0,
-              imageUrl: '',
+              imageUrl: DEFAULT_FALLBACK_IMAGE,
               productUrl: storeUrl,
+              sellerLabel: sourceName,
             },
           ];
 
-    await supabase.from('discovery_products').delete().eq('source_id', sourceId);
+    const shopId = await ensureShopForSource(sourceName, storeUrl);
 
-    const payload = rowsToInsert.map((item, idx) => {
-      const slug = item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 48);
-      const canonicalKey = item.sku
-        ? `sku:${item.sku.toLowerCase().replace(/[^a-z0-9_-]/g, '')}`
-        : `web:${cleanHost}:${slug}:${idx}`;
-      return {
-        canonical_product_key: canonicalKey,
+    // Replace previously imported listings from this source name so sync stays fresh without duplicates
+    await supabase.from('listings').delete().eq('shop_name', sourceName).eq('is_seed', false);
+
+    const payload = rowsToInsert.map((item) => {
+      const img = item.imageUrl || DEFAULT_FALLBACK_IMAGE;
+      const listingRow: Record<string, any> = {
+        shop_name: sourceName,
         name: item.name,
-        description: item.description,
-        brand: sourceName,
-        category: UGANDA_DISCOVERY_CATEGORIES[0],
-        subcategory: scraped.length > 0 ? 'Catalogue Item' : 'Featured Store',
-        images: item.imageUrl ? [item.imageUrl] : [],
-        price_ugx: item.priceUgx,
+        category: inferMarketplaceCategory(item.name),
+        type: 'product',
+        description: `${item.description} · Source: ${item.productUrl || storeUrl}`,
+        price: item.priceUgx,
         currency: 'UGX',
-        product_condition: 'new',
-        seller_name: sourceName,
-        seller_location: 'Kampala',
-        external_url: item.productUrl || storeUrl,
-        original_source: cleanHost,
-        source_type: 'manual_submission',
-        source_id: sourceId,
-        availability_status: 'in_stock',
-        verification_status: 'verified',
-        updated_at: new Date().toISOString(),
+        country_code: 'UG',
+        country_name: 'Uganda',
+        city: 'Kampala',
+        image: img,
+        images: [img],
+        is_active: true,
+        is_seed: false,
       };
+      if (shopId) {
+        listingRow.shop_id = shopId;
+      }
+      return listingRow;
     });
 
-    const { error: insErr } = await supabase.from('discovery_products').insert(payload);
-    if (insErr) throw new Error(`Product insert failed: ${insErr.message}`);
+    const { error: insErr } = await supabase.from('listings').insert(payload);
+    if (insErr) {
+      throw new Error(`Listings insert failed: ${insErr.message}`);
+    }
 
     return payload.length;
   }
@@ -414,11 +403,13 @@ export function ProductSourceAdminPanel() {
       if (runSync) {
         let totalProducts = 0;
         for (const s of mapped) {
-          if (s.id && s.url) {
-            totalProducts += await syncStoreProducts(s.id, s.name, s.url);
+          if (s.url) {
+            totalProducts += await syncStoreProducts(s.name, s.url);
           }
         }
-        setStatus(`Synced ${totalProducts} product${totalProducts === 1 ? '' : 's'} across ${mapped.length} web source${mapped.length === 1 ? '' : 's'} to /marketplace.`);
+        setStatus(
+          `Synced ${totalProducts} listing${totalProducts === 1 ? '' : 's'} across ${mapped.length} web source${mapped.length === 1 ? '' : 's'} straight into your product listings.`
+        );
       }
     } catch (err: any) {
       setError(err?.message || 'Could not load or sync web sources.');
@@ -489,11 +480,13 @@ export function ProductSourceAdminPanel() {
         throw new Error(lastErrMsg || 'Failed to insert product source.');
       }
 
-      const count = await syncStoreProducts(String(insertedRow.id), cleanName, cleanUrl);
+      const count = await syncStoreProducts(cleanName, cleanUrl);
 
       setName('');
       setUrl('');
-      setStatus(`Added "${cleanName}" and published ${count} product${count === 1 ? '' : 's'} to /marketplace.`);
+      setStatus(
+        `Added "${cleanName}" and published ${count} product${count === 1 ? '' : 's'} straight to your product listings.`
+      );
       await loadSources(false);
     } catch (err: any) {
       setError(err?.message || 'Failed to add web source.');
@@ -506,10 +499,10 @@ export function ProductSourceAdminPanel() {
     setError('');
     setStatus('');
     try {
-      await supabase.from('discovery_products').delete().eq('source_id', id);
+      await supabase.from('listings').delete().eq('shop_name', sourceName).eq('is_seed', false);
       const { error: delErr } = await supabase.from('product_sources').delete().eq('id', id);
       if (delErr) throw new Error(delErr.message);
-      setStatus(`Removed "${sourceName}".`);
+      setStatus(`Removed "${sourceName}" and its synced listings.`);
       await loadSources(false);
     } catch (err: any) {
       setError(err?.message || 'Could not remove source.');
@@ -531,7 +524,7 @@ export function ProductSourceAdminPanel() {
             Web Sources
           </h2>
           <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#6E6D68' }}>
-            Add a name and web URL to import and show its products on /marketplace.
+            Add a name and web URL to import products straight into your product listings.
           </p>
         </div>
         <button
@@ -563,7 +556,7 @@ export function ProductSourceAdminPanel() {
       >
         <input
           type="text"
-          placeholder="Name (e.g. Thrifter UG)"
+          placeholder="Name (e.g. thrifter)"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
