@@ -99,6 +99,32 @@ async function fetchTextWithFallback(targetUrl: string): Promise<string | null> 
   return null;
 }
 
+function normalizeExtractedImageUrl(rawImg: string, baseOrigin: string): string {
+  let clean = rawImg.trim().replace(/^<|>$/g, '');
+  if (!clean) return '';
+
+  // Unwrap Next.js image proxy URLs like /_next/image?url=https%3A%2F%2F...&w=640&q=75
+  if (clean.includes('/_next/image')) {
+    try {
+      const fullProxy = clean.startsWith('http') ? clean : `${baseOrigin}${clean.startsWith('/') ? '' : '/'}${clean}`;
+      const u = new URL(fullProxy);
+      const inner = u.searchParams.get('url');
+      if (inner) clean = decodeURIComponent(inner);
+    } catch {
+      // keep raw
+    }
+  }
+
+  if (clean.startsWith('//')) return `https:${clean}`;
+  if (clean.startsWith('/')) return `${baseOrigin}${clean}`;
+  return clean;
+}
+
+function isLikelyLogoOrIcon(imgUrl: string): boolean {
+  const lower = imgUrl.toLowerCase();
+  return /(logo|favicon|icon|sprite|avatar|banner-bg|placeholder)/i.test(lower);
+}
+
 function parseJinaMarkdownProducts(
   md: string,
   baseOrigin: string,
@@ -129,7 +155,9 @@ function parseJinaMarkdownProducts(
 
     let matchedPrice = 0;
     let subSeller = '';
-    for (let j = i + 1; j <= Math.min(lines.length - 1, i + 5); j++) {
+    let priceLineIdx = -1;
+
+    for (let j = i + 1; j <= Math.min(lines.length - 1, i + 6); j++) {
       if (/^#{2,4}\s+/.test(lines[j])) break;
       const pMatch = lines[j].match(priceLineRegex);
       if (pMatch) {
@@ -137,6 +165,7 @@ function parseJinaMarkdownProducts(
         const val = Number(digits);
         if (Number.isFinite(val) && val > 0) {
           matchedPrice = val;
+          priceLineIdx = j;
         }
         break;
       }
@@ -150,8 +179,23 @@ function parseJinaMarkdownProducts(
     if (seenNames.has(key)) continue;
     seenNames.add(key);
 
-    const lookback = lines.slice(Math.max(0, i - 3), i).join(' ');
-    const imgMatch = lookback.match(/!\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/);
+    // Search nearby lines before the heading and up to 4 lines after the price for a real product image
+    const startSearch = Math.max(0, i - 4);
+    const endSearch = Math.min(lines.length - 1, (priceLineIdx >= 0 ? priceLineIdx : i) + 4);
+    let resolvedImg = '';
+
+    for (let k = startSearch; k <= endSearch; k++) {
+      if (k > i && /^#{2,4}\s+/.test(lines[k])) break;
+      const imgMatches = [...lines[k].matchAll(/!\[[^\]]*\]\(([^\s)]+)\)/g)];
+      for (const im of imgMatches) {
+        const candidate = normalizeExtractedImageUrl(im[1], baseOrigin);
+        if (candidate && !isLikelyLogoOrIcon(candidate)) {
+          resolvedImg = candidate;
+          break;
+        }
+      }
+      if (resolvedImg) break;
+    }
 
     found.push({
       name: rawTitle,
@@ -159,7 +203,7 @@ function parseJinaMarkdownProducts(
         ? `${rawTitle} · ${subSeller} (via ${storeName})`
         : `${rawTitle} · Imported from ${storeName}`,
       priceUgx: matchedPrice,
-      imageUrl: imgMatch ? imgMatch[1] : DEFAULT_FALLBACK_IMAGE,
+      imageUrl: resolvedImg || DEFAULT_FALLBACK_IMAGE,
       productUrl: fallbackUrl,
       sellerLabel: subSeller || storeName,
     });
@@ -167,7 +211,6 @@ function parseJinaMarkdownProducts(
 
   return found;
 }
-
 async function extractProductsFromStore(storeUrl: string, storeName: string): Promise<ScrapedItem[]> {
   const baseOrigin = (() => {
     try {
