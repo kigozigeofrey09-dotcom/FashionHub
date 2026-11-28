@@ -24,7 +24,8 @@ const UGANDA_LOCATIONS = [
 
 export function MillionProductDiscoverySection() {
   const { pathname } = useLocation();
-  if (pathname !== '/marketplace') return null;
+  const normalizedPath = pathname.replace(/\/+$/, '') || '/';
+  if (normalizedPath !== '/marketplace') return null;
 
   const [query, setQuery] = useState('');
   const [brand, setBrand] = useState('');
@@ -35,15 +36,17 @@ export function MillionProductDiscoverySection() {
   const [maxPrice, setMaxPrice] = useState('');
   const [sortBy, setSortBy] = useState<'newest' | 'price_asc' | 'price_desc'>('newest');
   const [page, setPage] = useState(1);
-  const pageSize = 12;
+  const pageSize = 24;
 
   const [items, setItems] = useState<DiscoveryProduct[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState('');
 
   useEffect(() => {
     let active = true;
     setLoading(true);
+    setFetchError('');
     const minVal = minPrice.trim() ? Number(minPrice.replace(/[^0-9]/g, '')) : undefined;
     const maxVal = maxPrice.trim() ? Number(maxPrice.replace(/[^0-9]/g, '')) : undefined;
 
@@ -65,10 +68,11 @@ export function MillionProductDiscoverySection() {
         setItems(res.items);
         setTotal(res.total);
       })
-      .catch(() => {
+      .catch((err: any) => {
         if (!active) return;
         setItems([]);
         setTotal(0);
+        setFetchError(err?.message || 'Failed to load marketplace products.');
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -81,13 +85,13 @@ export function MillionProductDiscoverySection() {
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const listingBaseUrl =
-    typeof window !== 'undefined' ? `${window.location.origin}/#` : 'https://www.terrabok.com/#';
+    typeof window !== 'undefined' ? window.location.origin : 'https://www.terrabok.com';
 
   return (
     <section
       aria-label="Uganda Product Discovery Marketplace"
       style={{
-        marginTop: '32px',
+        margin: '0 0 32px',
         padding: '24px',
         borderRadius: '14px',
         border: '1px solid #E6E4DE',
@@ -97,14 +101,20 @@ export function MillionProductDiscoverySection() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
         <div>
           <p style={{ margin: 0, fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#2C4734' }}>
-            UGANDA MARKETPLACE · 1M+ READY (UGX)
+            UGANDA MARKETPLACE · COMPARE OFFERS (UGX)
           </p>
-          <h2 style={{ margin: '4px 0 0', fontSize: '24px' }}>Compare Offers Across Uganda</h2>
+          <h2 style={{ margin: '4px 0 0', fontSize: '26px' }}>Compare Offers Across Uganda</h2>
         </div>
         <span style={{ fontSize: '12.5px', color: '#6E6D68' }}>
           {loading ? 'Searching indexed catalogue…' : `${total.toLocaleString('en-UG')} products · Page ${page} of ${totalPages}`}
         </span>
       </div>
+
+      {fetchError && (
+        <div style={{ marginBottom: '14px', padding: '10px 12px', borderRadius: '8px', background: '#FDF2F2', color: '#8B2626', fontSize: '13px' }}>
+          {fetchError}
+        </div>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(175px, 1fr))', gap: '10px', marginBottom: '16px' }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid #D4D0C5', borderRadius: '8px', padding: '8px 10px', background: '#FAF9F6' }}>
@@ -113,7 +123,7 @@ export function MillionProductDiscoverySection() {
             type="search"
             value={query}
             onChange={(e) => { setQuery(e.target.value); setPage(1); }}
-            placeholder="Search product or SKU..."
+            placeholder="Search product or store..."
             style={{ border: 'none', background: 'transparent', width: '100%', fontSize: '13px' }}
           />
         </label>
@@ -122,7 +132,7 @@ export function MillionProductDiscoverySection() {
           type="text"
           value={brand}
           onChange={(e) => { setBrand(e.target.value); setPage(1); }}
-          placeholder="Brand (e.g. Samsung)"
+          placeholder="Brand or Store"
           style={{ border: '1px solid #D4D0C5', borderRadius: '8px', padding: '8px 10px', background: '#FAF9F6', fontSize: '13px' }}
         />
 
@@ -131,7 +141,7 @@ export function MillionProductDiscoverySection() {
           onChange={(e) => { setCategory(e.target.value); setPage(1); }}
           style={{ border: '1px solid #D4D0C5', borderRadius: '8px', padding: '8px 10px', background: '#FAF9F6', fontSize: '13px' }}
         >
-          <option value="All">All 12 Categories</option>
+          <option value="All">All Categories</option>
           {UGANDA_DISCOVERY_CATEGORIES.map((cat) => (
             <option key={cat} value={cat}>{cat}</option>
           ))}
@@ -195,69 +205,90 @@ export function MillionProductDiscoverySection() {
             : 'No products match this filter on /marketplace yet. Add a name and web URL under Admin -> Product Discovery.'}
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '14px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '16px' }}>
           {items.map((prod) => {
             const waUrl = buildWhatsAppDiscoveryUrl({
               whatsappNumber: prod.sellerWhatsapp,
               productName: prod.name,
               priceUgx: prod.priceUgx,
-              listingUrl: `${listingBaseUrl}/listings/${encodeURIComponent(prod.id)}`,
+              listingUrl: prod.externalUrl || `${listingBaseUrl}/listings/${encodeURIComponent(prod.id)}`,
               sellerName: prod.sellerName,
             });
+            const coverImg = prod.images[0] || '';
             return (
               <article
                 key={prod.id}
                 style={{
                   border: '1px solid #E6E4DE',
                   borderRadius: '10px',
-                  padding: '14px',
+                  overflow: 'hidden',
                   background: '#FAF9F6',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
-                  gap: '10px',
                 }}
               >
-                <div>
-                  <div style={{ fontSize: '11px', color: '#6E6D68', fontWeight: 600 }}>
-                    {prod.category} · {prod.brand} · {prod.condition}
-                  </div>
-                  <h3 style={{ margin: '4px 0', fontSize: '16px' }}>
-                    <Link to={`/listings/${encodeURIComponent(prod.id)}`} style={{ color: 'inherit', textDecoration: 'none' }}>
-                      {prod.name}
-                    </Link>
-                  </h3>
-                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#141414' }}>
-                    UGX {Math.round(prod.priceUgx).toLocaleString('en-UG')}
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#4A4945', marginTop: '4px' }}>
-                    {prod.sellerName} · {prod.sellerLocation}
-                  </div>
-                </div>
+                {coverImg && (
+                  <a href={prod.externalUrl || `/listings/${encodeURIComponent(prod.id)}`} target={prod.externalUrl ? '_blank' : undefined} rel={prod.externalUrl ? 'noopener noreferrer' : undefined}>
+                    <img
+                      src={coverImg}
+                      alt={prod.name}
+                      loading="lazy"
+                      style={{ width: '100%', height: '210px', objectFit: 'cover', display: 'block', background: '#EFECE6' }}
+                    />
+                  </a>
+                )}
 
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  {waUrl && (
-                    <a
-                      href={waUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-primary"
-                      style={{ padding: '6px 10px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '5px', textDecoration: 'none' }}
-                    >
-                      <MessageCircle size={13} /> WhatsApp
-                    </a>
-                  )}
-                  {prod.externalUrl && (
-                    <a
-                      href={prod.externalUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="link-btn"
-                      style={{ padding: '6px 10px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '5px', textDecoration: 'none' }}
-                    >
-                      Store <ExternalLink size={12} />
-                    </a>
-                  )}
+                <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'space-between', gap: '10px' }}>
+                  <div>
+                    <div style={{ fontSize: '11px', color: '#6E6D68', fontWeight: 600 }}>
+                      {prod.category} · {prod.brand}
+                    </div>
+                    <h3 style={{ margin: '4px 0', fontSize: '16px' }}>
+                      {prod.externalUrl ? (
+                        <a href={prod.externalUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>
+                          {prod.name}
+                        </a>
+                      ) : (
+                        <Link to={`/listings/${encodeURIComponent(prod.id)}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                          {prod.name}
+                        </Link>
+                      )}
+                    </h3>
+                    <div style={{ fontSize: '15px', fontWeight: 700, color: '#141414' }}>
+                      {prod.priceUgx > 0
+                        ? `UGX ${Math.round(prod.priceUgx).toLocaleString('en-UG')}`
+                        : 'Visit store for live UGX pricing'}
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#4A4945', marginTop: '4px' }}>
+                      {prod.sellerName} · {prod.sellerLocation}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {waUrl && (
+                      <a
+                        href={waUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-primary"
+                        style={{ padding: '6px 10px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '5px', textDecoration: 'none' }}
+                      >
+                        <MessageCircle size={13} /> WhatsApp
+                      </a>
+                    )}
+                    {prod.externalUrl && (
+                      <a
+                        href={prod.externalUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="link-btn"
+                        style={{ padding: '6px 10px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '5px', textDecoration: 'none' }}
+                      >
+                        View on {prod.sellerName} <ExternalLink size={12} />
+                      </a>
+                    )}
+                  </div>
                 </div>
               </article>
             );

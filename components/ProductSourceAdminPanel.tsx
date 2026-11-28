@@ -10,6 +10,15 @@ interface SimpleWebSource {
   createdAt: string;
 }
 
+interface ScrapedItem {
+  name: string;
+  description: string;
+  priceUgx: number;
+  imageUrl: string;
+  productUrl: string;
+  sku?: string;
+}
+
 function normalizeUrl(raw: string): string {
   const trimmed = raw.trim();
   if (!trimmed) return '';
@@ -38,6 +47,131 @@ function mapSourceRow(row: any): SimpleWebSource {
   };
 }
 
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+async function fetchJsonWithFallback(targetUrl: string): Promise<any | null> {
+  const attempts = [
+    targetUrl,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+  ];
+  for (const endpoint of attempts) {
+    try {
+      const res = await fetch(endpoint, { headers: { Accept: 'application/json' } });
+      if (!res.ok) continue;
+      return await res.json();
+    } catch {
+      // try next endpoint
+    }
+  }
+  return null;
+}
+
+async function fetchTextWithFallback(targetUrl: string): Promise<string | null> {
+  const attempts = [
+    targetUrl,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+  ];
+  for (const endpoint of attempts) {
+    try {
+      const res = await fetch(endpoint);
+      if (!res.ok) continue;
+      return await res.text();
+    } catch {
+      // try next endpoint
+    }
+  }
+  return null;
+}
+
+async function extractProductsFromStore(storeUrl: string, storeName: string): Promise<ScrapedItem[]> {
+  const baseOrigin = (() => {
+    try {
+      return new URL(storeUrl).origin;
+    } catch {
+      return storeUrl.replace(/\/+$/, '');
+    }
+  })();
+
+  const items: ScrapedItem[] = [];
+
+  // 1. Try Shopify / standard /products.json endpoint
+  const shopifyData = await fetchJsonWithFallback(`${baseOrigin}/products.json?limit=50`);
+  if (shopifyData && Array.isArray(shopifyData.products) && shopifyData.products.length > 0) {
+    for (const p of shopifyData.products) {
+      const title = String(p?.title || '').trim();
+      if (!title) continue;
+      const variant = Array.isArray(p?.variants) ? p.variants[0] : null;
+      const rawPrice = Number(variant?.price ?? 0);
+      const img = Array.isArray(p?.images) && p.images[0]?.src ? String(p.images[0].src) : '';
+      const handle = p?.handle ? `${baseOrigin}/products/${p.handle}` : storeUrl;
+      items.push({
+        name: title,
+        description: stripHtml(String(p?.body_html || `${title} from ${storeName}`)).slice(0, 300),
+        priceUgx: Number.isFinite(rawPrice) && rawPrice > 0 ? Math.round(rawPrice) : 0,
+        imageUrl: img,
+        productUrl: handle,
+        sku: variant?.sku ? String(variant.sku) : undefined,
+      });
+    }
+    if (items.length > 0) return items;
+  }
+
+  // 2. Try WooCommerce public Store API
+  const wooData = await fetchJsonWithFallback(`${baseOrigin}/wp-json/wc/store/v1/products?per_page=50`);
+  if (Array.isArray(wooData) && wooData.length > 0) {
+    for (const p of wooData) {
+      const title = String(p?.name || '').trim();
+      if (!title) continue;
+      const minorUnit = Number(p?.prices?.currency_minor_unit ?? 0);
+      const rawMinor = Number(p?.prices?.price ?? 0);
+      const priceUgx = minorUnit > 0 ? Math.round(rawMinor / Math.pow(10, minorUnit)) : Math.round(rawMinor);
+      const img = Array.isArray(p?.images) && p.images[0]?.src ? String(p.images[0].src) : '';
+      items.push({
+        name: title,
+        description: stripHtml(String(p?.short_description || p?.description || `${title} from ${storeName}`)).slice(0, 300),
+        priceUgx: Number.isFinite(priceUgx) && priceUgx > 0 ? priceUgx : 0,
+        imageUrl: img,
+        productUrl: p?.permalink ? String(p.permalink) : storeUrl,
+        sku: p?.sku ? String(p.sku) : undefined,
+      });
+    }
+    if (items.length > 0) return items;
+  }
+
+  // 3. Parse JSON-LD Product schemas from the storefront HTML
+  const html = await fetchTextWithFallback(storeUrl);
+  if (html) {
+    const ldMatches = html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi);
+    for (const match of ldMatches) {
+      try {
+        const parsed = JSON.parse(match[1].trim());
+        const nodes = Array.isArray(parsed) ? parsed : parsed['@graph'] ? parsed['@graph'] : [parsed];
+        for (const node of nodes) {
+          if (node?.['@type'] === 'Product' && node?.name) {
+            const offers = Array.isArray(node.offers) ? node.offers[0] : node.offers;
+            const price = Number(offers?.price ?? 0);
+            const img = Array.isArray(node.image) ? String(node.image[0] || '') : String(node.image || '');
+            items.push({
+              name: String(node.name).trim(),
+              description: stripHtml(String(node.description || `${node.name} from ${storeName}`)).slice(0, 300),
+              priceUgx: Number.isFinite(price) && price > 0 ? Math.round(price) : 0,
+              imageUrl: img,
+              productUrl: node.url ? String(node.url) : storeUrl,
+              sku: node.sku ? String(node.sku) : undefined,
+            });
+          }
+        }
+      } catch {
+        // ignore invalid JSON-LD blocks
+      }
+    }
+  }
+
+  return items;
+}
+
 export function ProductSourceAdminPanel() {
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
@@ -47,66 +181,58 @@ export function ProductSourceAdminPanel() {
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
 
-  async function syncStoreProducts(sourceId: string, sourceName: string, storeUrl: string) {
+  async function syncStoreProducts(sourceId: string, sourceName: string, storeUrl: string): Promise<number> {
     const cleanHost = hostnameFromUrl(storeUrl);
-    const canonicalKey = `web:${cleanHost.toLowerCase().replace(/[^a-z0-9.-]/g, '-')}`;
+    const scraped = await extractProductsFromStore(storeUrl, sourceName);
 
-    const { data: existing, error: selErr } = await supabase
-      .from('discovery_products')
-      .select('id')
-      .eq('source_id', sourceId)
-      .limit(1);
+    const rowsToInsert: ScrapedItem[] =
+      scraped.length > 0
+        ? scraped
+        : [
+            {
+              name: `${sourceName} Catalogue`,
+              description: `Explore products from ${sourceName} (${storeUrl}) in Uganda.`,
+              priceUgx: 0,
+              imageUrl: '',
+              productUrl: storeUrl,
+            },
+          ];
 
-    if (selErr) throw new Error(`Product lookup failed: ${selErr.message}`);
-    if (existing && existing.length > 0) return;
+    // Replace existing rows for this source so refreshed product feeds update cleanly
+    await supabase.from('discovery_products').delete().eq('source_id', sourceId);
 
-    const conditionCandidates = ['new', 'used', 'refurbished'];
-    const sourceTypeCandidates = ['retailer', 'supplier', 'seller', 'manufacturer', 'manual_submission', 'csv_import', 'api_feed'];
-    const availabilityCandidates = ['in_stock', 'available', 'limited_stock'];
-    const verificationCandidates = ['verified', 'pending', 'unverified'];
+    const payload = rowsToInsert.map((item, idx) => {
+      const slug = item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 48);
+      const canonicalKey = item.sku
+        ? `sku:${item.sku.toLowerCase().replace(/[^a-z0-9_-]/g, '')}`
+        : `web:${cleanHost}:${slug}:${idx}`;
+      return {
+        canonical_product_key: canonicalKey,
+        name: item.name,
+        description: item.description,
+        brand: sourceName,
+        category: UGANDA_DISCOVERY_CATEGORIES[0],
+        subcategory: scraped.length > 0 ? 'Catalogue Item' : 'Featured Store',
+        images: item.imageUrl ? [item.imageUrl] : [],
+        price_ugx: item.priceUgx,
+        currency: 'UGX',
+        product_condition: 'new',
+        seller_name: sourceName,
+        seller_location: 'Kampala',
+        external_url: item.productUrl || storeUrl,
+        original_source: cleanHost,
+        source_type: 'manual_submission',
+        source_id: sourceId,
+        availability_status: 'in_stock',
+        verification_status: 'verified',
+        updated_at: new Date().toISOString(),
+      };
+    });
 
-    const baseRow: Record<string, any> = {
-      canonical_product_key: canonicalKey,
-      name: `${sourceName} Storefront`,
-      description: `Discover products from ${sourceName} (${storeUrl}) in Uganda.`,
-      brand: sourceName,
-      category: UGANDA_DISCOVERY_CATEGORIES[0],
-      subcategory: 'Featured Store',
-      images: [],
-      price_ugx: 0,
-      currency: 'UGX',
-      seller_name: sourceName,
-      seller_location: 'Kampala',
-      external_url: storeUrl,
-      original_source: cleanHost,
-      source_id: sourceId,
-      updated_at: new Date().toISOString(),
-    };
+    const { error: insErr } = await supabase.from('discovery_products').insert(payload);
+    if (insErr) throw new Error(`Product insert failed: ${insErr.message}`);
 
-    let lastErr = '';
-    for (const cond of conditionCandidates) {
-      for (const sType of sourceTypeCandidates) {
-        for (const avail of availabilityCandidates) {
-          for (const ver of verificationCandidates) {
-            const { error: insErr } = await supabase.from('discovery_products').insert({
-              ...baseRow,
-              product_condition: cond,
-              source_type: sType,
-              availability_status: avail,
-              verification_status: ver,
-            });
-
-            if (!insErr) return;
-            lastErr = insErr.message;
-            if (!lastErr.toLowerCase().includes('check constraint')) {
-              throw new Error(`Product insert failed: ${lastErr}`);
-            }
-          }
-        }
-      }
-    }
-
-    throw new Error(`Product insert failed: ${lastErr || 'Check constraint mismatch on discovery_products'}`);
+    return payload.length;
   }
 
   async function loadSources(runSync = false) {
@@ -124,12 +250,13 @@ export function ProductSourceAdminPanel() {
       setSources(mapped);
 
       if (runSync) {
+        let totalProducts = 0;
         for (const s of mapped) {
           if (s.id && s.url) {
-            await syncStoreProducts(s.id, s.name, s.url);
+            totalProducts += await syncStoreProducts(s.id, s.name, s.url);
           }
         }
-        setStatus(`Synced ${mapped.length} web ${mapped.length === 1 ? 'source' : 'sources'} to /marketplace.`);
+        setStatus(`Synced ${totalProducts} product${totalProducts === 1 ? '' : 's'} across ${mapped.length} web source${mapped.length === 1 ? '' : 's'} to /marketplace.`);
       }
     } catch (err: any) {
       setError(err?.message || 'Could not load or sync web sources.');
@@ -200,11 +327,11 @@ export function ProductSourceAdminPanel() {
         throw new Error(lastErrMsg || 'Failed to insert product source.');
       }
 
-      await syncStoreProducts(String(insertedRow.id), cleanName, cleanUrl);
+      const count = await syncStoreProducts(String(insertedRow.id), cleanName, cleanUrl);
 
       setName('');
       setUrl('');
-      setStatus(`Added "${cleanName}" and published its products to /marketplace.`);
+      setStatus(`Added "${cleanName}" and published ${count} product${count === 1 ? '' : 's'} to /marketplace.`);
       await loadSources(false);
     } catch (err: any) {
       setError(err?.message || 'Failed to add web source.');
@@ -242,7 +369,7 @@ export function ProductSourceAdminPanel() {
             Web Sources
           </h2>
           <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#6E6D68' }}>
-            Add a name and web URL to show its products on /marketplace.
+            Add a name and web URL to import and show its products on /marketplace.
           </p>
         </div>
         <button
@@ -274,7 +401,7 @@ export function ProductSourceAdminPanel() {
       >
         <input
           type="text"
-          placeholder="Name (e.g. Kampala Electronics)"
+          placeholder="Name (e.g. Thrifter UG)"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
@@ -282,7 +409,7 @@ export function ProductSourceAdminPanel() {
         />
         <input
           type="text"
-          placeholder="Web URL (e.g. https://example.ug)"
+          placeholder="Web URL (e.g. https://www.thrifter-ug.com)"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           required
@@ -306,7 +433,7 @@ export function ProductSourceAdminPanel() {
             cursor: 'pointer',
           }}
         >
-          <Plus size={15} /> {submitting ? 'Adding…' : 'Add Web Source'}
+          <Plus size={15} /> {submitting ? 'Importing…' : 'Add Web Source'}
         </button>
       </form>
 

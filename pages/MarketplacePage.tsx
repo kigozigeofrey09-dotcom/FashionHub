@@ -172,6 +172,7 @@ export function MarketplacePage() {
 
   return (
     <div className="tb-landing-root">
+      <MillionProductDiscoverySection />
       <section className="hero-grid tb-ebay-hero">
         <div className="market-hero-copy tb-ebay-hero-panel">
           <p className="eyebrow">
@@ -495,7 +496,6 @@ export function MarketplacePage() {
           Open a shop <span aria-hidden="true">↗</span>
         </Link>
       </section>
-    <MillionProductDiscoverySection />
-</div>
+    </div>
   );
 }
