@@ -172,8 +172,7 @@ export function MarketplacePage() {
 
   return (
     <div className="tb-landing-root">
-      <MillionProductDiscoverySection />
-      <section className="hero-grid tb-ebay-hero">
+            <section className="hero-grid tb-ebay-hero">
         <div className="market-hero-copy tb-ebay-hero-panel">
           <p className="eyebrow">
             <span className="eyebrow-rule" />
@@ -214,6 +213,8 @@ export function MarketplacePage() {
           </div>
         </div>
       </section>
+
+      <MillionProductDiscoverySection />
 
       <section id="discover" className="section-block tb-ebay-discover">
         <div className="section-head tb-ebay-head">

@@ -62,7 +62,7 @@ async function fetchJsonWithFallback(targetUrl: string): Promise<any | null> {
       if (!res.ok) continue;
       return await res.json();
     } catch {
-      // try next endpoint
+      // try next
     }
   }
   return null;
@@ -79,7 +79,7 @@ async function fetchTextWithFallback(targetUrl: string): Promise<string | null> 
       if (!res.ok) continue;
       return await res.text();
     } catch {
-      // try next endpoint
+      // try next
     }
   }
   return null;
@@ -95,13 +95,15 @@ async function extractProductsFromStore(storeUrl: string, storeName: string): Pr
   })();
 
   const items: ScrapedItem[] = [];
+  const seenNames = new Set<string>();
 
-  // 1. Try Shopify / standard /products.json endpoint
+  // 1. Shopify /products.json
   const shopifyData = await fetchJsonWithFallback(`${baseOrigin}/products.json?limit=50`);
   if (shopifyData && Array.isArray(shopifyData.products) && shopifyData.products.length > 0) {
     for (const p of shopifyData.products) {
       const title = String(p?.title || '').trim();
-      if (!title) continue;
+      if (!title || seenNames.has(title.toLowerCase())) continue;
+      seenNames.add(title.toLowerCase());
       const variant = Array.isArray(p?.variants) ? p.variants[0] : null;
       const rawPrice = Number(variant?.price ?? 0);
       const img = Array.isArray(p?.images) && p.images[0]?.src ? String(p.images[0].src) : '';
@@ -118,12 +120,13 @@ async function extractProductsFromStore(storeUrl: string, storeName: string): Pr
     if (items.length > 0) return items;
   }
 
-  // 2. Try WooCommerce public Store API
+  // 2. WooCommerce Store API
   const wooData = await fetchJsonWithFallback(`${baseOrigin}/wp-json/wc/store/v1/products?per_page=50`);
   if (Array.isArray(wooData) && wooData.length > 0) {
     for (const p of wooData) {
       const title = String(p?.name || '').trim();
-      if (!title) continue;
+      if (!title || seenNames.has(title.toLowerCase())) continue;
+      seenNames.add(title.toLowerCase());
       const minorUnit = Number(p?.prices?.currency_minor_unit ?? 0);
       const rawMinor = Number(p?.prices?.price ?? 0);
       const priceUgx = minorUnit > 0 ? Math.round(rawMinor / Math.pow(10, minorUnit)) : Math.round(rawMinor);
@@ -140,7 +143,47 @@ async function extractProductsFromStore(storeUrl: string, storeName: string): Pr
     if (items.length > 0) return items;
   }
 
-  // 3. Parse JSON-LD Product schemas from the storefront HTML
+  // 3. Rendered storefront via r.jina.ai (extracts JS-rendered products, UGX prices, images & product links)
+  try {
+    const jinaRes = await fetch(`https://r.jina.ai/${storeUrl}`);
+    if (jinaRes.ok) {
+      const md = await jinaRes.text();
+      // Match markdown links pointing to product/item/shop paths or paired with UGX/USh prices
+      const linkRegex = /\[([^\]]{3,90})\]\((https?:\/\/[^\s)]+)\)/g;
+      let m: RegExpExecArray | null;
+      while ((m = linkRegex.exec(md)) !== null && items.length < 40) {
+        const rawLabel = m[1].replace(/!\[[^\]]*\]\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
+        const href = m[2].trim();
+        if (!rawLabel || rawLabel.length < 3) continue;
+        if (/^(home|shop|about|contact|cart|login|sign in|register|account|privacy|terms|menu|search|view all|instagram|facebook|twitter|whatsapp)$/i.test(rawLabel)) continue;
+
+        const isProductPath = /\/(product|products|item|items|listing|listings|p|shop|collection|collections|wear|outfit|dress|shoe|bag|shirt|top|pant|jacket)\//i.test(href);
+        // Look in nearby text window (250 chars after link) for UGX or USh price and image URL
+        const windowSlice = md.slice(m.index, Math.min(md.length, m.index + 320));
+        const priceMatch = windowSlice.match(/(?:UGX|USh|Shs)\s*([0-9][0-9,]{2,})/i);
+        const imgMatch = windowSlice.match(/!\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/);
+
+        if (isProductPath || priceMatch) {
+          const cleanTitle = rawLabel.replace(/(?:UGX|USh|Shs)\s*[0-9,]+/gi, '').trim() || rawLabel;
+          if (seenNames.has(cleanTitle.toLowerCase())) continue;
+          seenNames.add(cleanTitle.toLowerCase());
+          const parsedPrice = priceMatch ? Number(priceMatch[1].replace(/,/g, '')) : 0;
+          items.push({
+            name: cleanTitle,
+            description: `${cleanTitle} available from ${storeName} (${baseOrigin}).`,
+            priceUgx: Number.isFinite(parsedPrice) && parsedPrice > 0 ? parsedPrice : 0,
+            imageUrl: imgMatch ? imgMatch[1] : '',
+            productUrl: href,
+          });
+        }
+      }
+      if (items.length > 0) return items;
+    }
+  } catch {
+    // fall through to raw HTML JSON-LD
+  }
+
+  // 4. Raw HTML JSON-LD fallback
   const html = await fetchTextWithFallback(storeUrl);
   if (html) {
     const ldMatches = html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi);
@@ -150,12 +193,15 @@ async function extractProductsFromStore(storeUrl: string, storeName: string): Pr
         const nodes = Array.isArray(parsed) ? parsed : parsed['@graph'] ? parsed['@graph'] : [parsed];
         for (const node of nodes) {
           if (node?.['@type'] === 'Product' && node?.name) {
+            const title = String(node.name).trim();
+            if (seenNames.has(title.toLowerCase())) continue;
+            seenNames.add(title.toLowerCase());
             const offers = Array.isArray(node.offers) ? node.offers[0] : node.offers;
             const price = Number(offers?.price ?? 0);
             const img = Array.isArray(node.image) ? String(node.image[0] || '') : String(node.image || '');
             items.push({
-              name: String(node.name).trim(),
-              description: stripHtml(String(node.description || `${node.name} from ${storeName}`)).slice(0, 300),
+              name: title,
+              description: stripHtml(String(node.description || `${title} from ${storeName}`)).slice(0, 300),
               priceUgx: Number.isFinite(price) && price > 0 ? Math.round(price) : 0,
               imageUrl: img,
               productUrl: node.url ? String(node.url) : storeUrl,
@@ -164,7 +210,7 @@ async function extractProductsFromStore(storeUrl: string, storeName: string): Pr
           }
         }
       } catch {
-        // ignore invalid JSON-LD blocks
+        // ignore invalid JSON-LD
       }
     }
   }
@@ -198,7 +244,6 @@ export function ProductSourceAdminPanel() {
             },
           ];
 
-    // Replace existing rows for this source so refreshed product feeds update cleanly
     await supabase.from('discovery_products').delete().eq('source_id', sourceId);
 
     const payload = rowsToInsert.map((item, idx) => {
