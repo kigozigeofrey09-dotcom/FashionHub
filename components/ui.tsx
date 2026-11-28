@@ -1,4 +1,4 @@
-﻿import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ArrowUpRight, Heart, MapPin, MessageCircle } from 'lucide-react';
 import type { Listing } from '../types';
 import { getWhatsAppLink, getWhatsAppShareLink } from '../lib/whatsapp';
@@ -97,8 +97,7 @@ export function ListingCard({
   onSave?: (listing: Listing) => void;
   saved?: boolean;
 }) {
-  const fallbackImage =
-    'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=85';
+  const fallbackImage = '';
 
   const handleWhatsAppClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -125,11 +124,11 @@ export function ListingCard({
         aria-label={`View ${listing?.name ?? 'listing'}`}
       >
         <img
-          src={listing?.image || fallbackImage}
+          src={listing?.image || ''}
           alt={listing?.name || 'Listing'}
           loading="lazy"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = fallbackImage;
+            (e.target as HTMLImageElement).style.display = 'none';
           }}
         />
         <span className="listing-category editorial-card-tag">{listing?.category || 'Product'}</span>
