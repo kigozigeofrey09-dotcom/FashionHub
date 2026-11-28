@@ -93,7 +93,60 @@ function parseJinaMarkdownProducts(
   seenNames: Set<string>
 ): ScrapedItem[] {
   const found: ScrapedItem[] = [];
-  const skipWords = /^(home|shop|about|about us|contact|contact us|cart|bag|checkout|login|log in|sign in|register|account|my account|privacy|privacy policy|terms|terms of service|refund|shipping|menu|search|view all|see all|learn more|read more|instagram|facebook|twitter|tiktok|whatsapp|youtube|subscribe|next|previous|prev)$/i;
+  const skipWords = /^(home|shop|about|about us|contact|contact us|cart|bag|checkout|login|log in|sign in|register|account|my account|privacy|privacy policy|terms|terms of service|refund|shipping|menu|search|view all|see all|learn more|read more|instagram|facebook|twitter|tiktok|whatsapp|youtube|subscribe|next|previous|prev|discover fashion|thrifter)$/i;
+  const priceLineRegex = /^(?:UGX|USh|Shs)\s*([0-9][0-9,]*)|^([0-9]{1,3}(?:,[0-9]{3})+)\s*(?:UGX|USh|Shs|\/=)$/i;
+
+  // Pattern 0: Markdown ### headings paired with a nearby UGX / USh / Shs price line
+  const lines = md.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  for (let i = 0; i < lines.length && found.length < 60; i++) {
+    const headingMatch = lines[i].match(/^#{2,4}\s+(.+)$/);
+    if (!headingMatch) continue;
+
+    const rawTitle = headingMatch[1]
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      .replace(/[*_`]/g, '')
+      .trim();
+    if (!rawTitle || rawTitle.length < 2 || skipWords.test(rawTitle)) continue;
+
+    // Look ahead up to 5 non-empty lines for a price line and optional sub-brand
+    let matchedPrice = 0;
+    let subSeller = '';
+    for (let j = i + 1; j <= Math.min(lines.length - 1, i + 5); j++) {
+      if (/^#{2,4}\s+/.test(lines[j])) break;
+      const pMatch = lines[j].match(priceLineRegex);
+      if (pMatch) {
+        const digits = (pMatch[1] || pMatch[2] || '0').replace(/,/g, '');
+        const val = Number(digits);
+        if (Number.isFinite(val) && val > 0) {
+          matchedPrice = val;
+        }
+        break;
+      }
+      if (!subSeller && !lines[j].startsWith('![') && !lines[j].startsWith('http')) {
+        subSeller = lines[j].replace(/[*_`]/g, '').trim();
+      }
+    }
+
+    if (matchedPrice <= 0) continue;
+    const key = rawTitle.toLowerCase();
+    if (seenNames.has(key)) continue;
+    seenNames.add(key);
+
+    const lookback = lines.slice(Math.max(0, i - 3), i).join(' ');
+    const imgMatch = lookback.match(/!\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/);
+
+    found.push({
+      name: rawTitle,
+      description: subSeller
+        ? `${rawTitle} by ${subSeller} via ${storeName} (${baseOrigin}).`
+        : `${rawTitle} from ${storeName} (${baseOrigin}).`,
+      priceUgx: matchedPrice,
+      imageUrl: imgMatch ? imgMatch[1] : '',
+      productUrl: fallbackUrl,
+    });
+  }
+
+  if (found.length > 0) return found;
 
   // Pattern A: Markdown links (absolute or relative) paired with product paths or UGX/USh prices
   const linkRegex = /\[([^\]]{2,110})\]\(((?:https?:\/\/|\/)[^\s)]+)\)/g;
@@ -134,7 +187,6 @@ function parseJinaMarkdownProducts(
 
   // Pattern B: Card blocks with Image + Title + UGX price even when link is on a "Buy / View" button
   if (found.length === 0) {
-    const lines = md.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
     for (let i = 0; i < lines.length && found.length < 60; i++) {
       const priceMatch = lines[i].match(/(?:UGX|USh|Shs)\s*([0-9][0-9,]{2,})|([0-9]{1,3}(?:,[0-9]{3})+)\s*(?:UGX|USh|Shs|\/=)/i);
       if (!priceMatch) continue;
@@ -167,7 +219,6 @@ function parseJinaMarkdownProducts(
 
   return found;
 }
-
 async function extractProductsFromStore(storeUrl: string, storeName: string): Promise<ScrapedItem[]> {
   const baseOrigin = (() => {
     try {
