@@ -18,8 +18,7 @@ interface ScrapedItem {
   sellerLabel?: string;
 }
 
-const '' =
-  'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=900&q=80';
+const DEFAULT_FALLBACK_IMAGE = '';
 
 function normalizeUrl(raw: string): string {
   const trimmed = raw.trim();
@@ -67,7 +66,7 @@ function stripHtml(html: string): string {
 
 async function fetchJsonWithFallback(targetUrl: string): Promise<any | null> {
   const attempts = [
-    targetUrl,`,
+    targetUrl,
   ];
   for (const endpoint of attempts) {
     try {
@@ -83,7 +82,7 @@ async function fetchJsonWithFallback(targetUrl: string): Promise<any | null> {
 
 async function fetchTextWithFallback(targetUrl: string): Promise<string | null> {
   const attempts = [
-    targetUrl,`,
+    targetUrl,
   ];
   for (const endpoint of attempts) {
     try {
