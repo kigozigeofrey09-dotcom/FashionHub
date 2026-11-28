@@ -1,4 +1,4 @@
-export default function App() {
+export function App() {
   return (
     <div
       style={{
@@ -9,3 +9,5 @@ export default function App() {
     />
   );
 }
+
+export default App;
