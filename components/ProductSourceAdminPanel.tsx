@@ -351,7 +351,6 @@ export function ProductSourceAdminPanel() {
 
     const shopId = await ensureShopForSource(sourceName, storeUrl);
 
-    // Replace previously imported listings from this source name so sync stays fresh without duplicates
     await supabase.from('listings').delete().eq('shop_name', sourceName).eq('is_seed', false);
 
     const payload = rowsToInsert.map((item) => {
