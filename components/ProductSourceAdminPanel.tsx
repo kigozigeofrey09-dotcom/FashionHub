@@ -18,7 +18,7 @@ interface ScrapedItem {
   sellerLabel?: string;
 }
 
-const DEFAULT_FALLBACK_IMAGE =
+const '' =
   'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=900&q=80';
 
 function normalizeUrl(raw: string): string {
@@ -67,8 +67,7 @@ function stripHtml(html: string): string {
 
 async function fetchJsonWithFallback(targetUrl: string): Promise<any | null> {
   const attempts = [
-    targetUrl,
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+    targetUrl,`,
   ];
   for (const endpoint of attempts) {
     try {
@@ -84,8 +83,7 @@ async function fetchJsonWithFallback(targetUrl: string): Promise<any | null> {
 
 async function fetchTextWithFallback(targetUrl: string): Promise<string | null> {
   const attempts = [
-    targetUrl,
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+    targetUrl,`,
   ];
   for (const endpoint of attempts) {
     try {
@@ -203,7 +201,7 @@ function parseJinaMarkdownProducts(
         ? `${rawTitle} · ${subSeller} (via ${storeName})`
         : `${rawTitle} · Imported from ${storeName}`,
       priceUgx: matchedPrice,
-      imageUrl: resolvedImg || DEFAULT_FALLBACK_IMAGE,
+      imageUrl: resolvedImg || '',
       productUrl: fallbackUrl,
       sellerLabel: subSeller || storeName,
     });
@@ -256,7 +254,7 @@ async function extractProductsFromStore(storeUrl: string, storeName: string): Pr
       seenNames.add(title.toLowerCase());
       const variant = Array.isArray(p?.variants) ? p.variants[0] : null;
       const rawPrice = Number(variant?.price ?? 0);
-      const img = Array.isArray(p?.images) && p.images[0]?.src ? String(p.images[0].src) : DEFAULT_FALLBACK_IMAGE;
+      const img = Array.isArray(p?.images) && p.images[0]?.src ? String(p.images[0].src) : '';
       const handle = p?.handle ? `${baseOrigin}/products/${p.handle}` : storeUrl;
       items.push({
         name: title,
@@ -280,7 +278,7 @@ async function extractProductsFromStore(storeUrl: string, storeName: string): Pr
       const minorUnit = Number(p?.prices?.currency_minor_unit ?? 0);
       const rawMinor = Number(p?.prices?.price ?? 0);
       const priceUgx = minorUnit > 0 ? Math.round(rawMinor / Math.pow(10, minorUnit)) : Math.round(rawMinor);
-      const img = Array.isArray(p?.images) && p.images[0]?.src ? String(p.images[0].src) : DEFAULT_FALLBACK_IMAGE;
+      const img = Array.isArray(p?.images) && p.images[0]?.src ? String(p.images[0].src) : '';
       items.push({
         name: title,
         description: stripHtml(String(p?.short_description || p?.description || `${title} from ${storeName}`)).slice(0, 300),
@@ -311,7 +309,7 @@ async function extractProductsFromStore(storeUrl: string, storeName: string): Pr
       const md = await jinaRes.text();
       const extracted = parseJinaMarkdownProducts(md, baseOrigin, targetPage, storeName, seenNames);
       for (const prod of extracted) {
-        if (prod.imageUrl === DEFAULT_FALLBACK_IMAGE && htmlImgCursor < htmlImages.length) {
+        if (prod.imageUrl === '' && htmlImgCursor < htmlImages.length) {
           prod.imageUrl = htmlImages[htmlImgCursor];
           htmlImgCursor += 1;
         }
@@ -338,7 +336,7 @@ async function extractProductsFromStore(storeUrl: string, storeName: string): Pr
             const offers = Array.isArray(node.offers) ? node.offers[0] : node.offers;
             const price = Number(offers?.price ?? 0);
             const rawImg = Array.isArray(node.image) ? String(node.image[0] || '') : String(node.image || '');
-            const normalizedImg = normalizeExtractedImageUrl(rawImg, baseOrigin) || htmlImages[htmlImgCursor++] || DEFAULT_FALLBACK_IMAGE;
+            const normalizedImg = normalizeExtractedImageUrl(rawImg, baseOrigin) || htmlImages[htmlImgCursor++] || '';
             items.push({
               name: title,
               description: stripHtml(String(node.description || `${title} from ${storeName}`)).slice(0, 300),
@@ -389,7 +387,7 @@ export function ProductSourceAdminPanel() {
       country_code: 'UG',
       country_name: 'Uganda',
       city: 'Kampala',
-      cover_url: DEFAULT_FALLBACK_IMAGE,
+      cover_url: '',
       is_verified: true,
       subscription_status: 'active',
     };
@@ -420,7 +418,7 @@ export function ProductSourceAdminPanel() {
               name: `${sourceName} Featured Piece`,
               description: `Explore ${sourceName} (${storeUrl}) in Kampala, Uganda.`,
               priceUgx: 0,
-              imageUrl: DEFAULT_FALLBACK_IMAGE,
+              imageUrl: '',
               productUrl: storeUrl,
               sellerLabel: sourceName,
             },
@@ -431,7 +429,7 @@ export function ProductSourceAdminPanel() {
     await supabase.from('listings').delete().eq('shop_name', sourceName).eq('is_seed', false);
 
     const payload = rowsToInsert.map((item) => {
-      const img = item.imageUrl || DEFAULT_FALLBACK_IMAGE;
+      const img = item.imageUrl || '';
       const listingRow: Record<string, any> = {
         shop_name: sourceName,
         name: item.name,
@@ -444,7 +442,7 @@ export function ProductSourceAdminPanel() {
         country_name: 'Uganda',
         city: 'Kampala',
         image: img,
-        images: [img],
+        images: img ? [img] : [],
         is_active: true,
         is_seed: false,
       };
